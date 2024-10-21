@@ -1,0 +1,429 @@
+<mxfile host="Electron" modified="2024-10-21T09:31:20.556Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.2.5 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" version="24.2.5" etag="Kyo6YLrCb4jQei3ZP-QK" type="device">
+  <diagram name="Page-1" id="Page-1">
+    <mxGraphModel dx="2713" dy="1829" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="zzfweBIF8FUx-dQAt3dm-75" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="777.5" y="460" width="1250" height="1570" as="geometry" />
+        </mxCell>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;提问&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="3">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=2;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="852" y="745" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;回答&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="4">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=3;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="852" y="974" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;置顶回答&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="5">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=4;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="857" y="1446" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;匿名提问&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="6">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=5;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="1068" y="687" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;公开提问&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="7">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=6;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="1068" y="808" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;查看问答&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="8">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=7;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="852" y="1229" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;查看匿名问答&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="9">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=8;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="1068" y="1172" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;查看公屏问答&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="10">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=9;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="1068" y="1305" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;大家问&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="11">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=10;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="1334" y="808" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;教师问&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="12">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=11;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="1334" y="687" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;教师答&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="13">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=12;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="1068" y="930" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;大家答&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="14">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=13;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="1068" y="1051" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;问题删除&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="15">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=14;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="1777" y="1118" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;用户管理&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="16">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=15;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="1777" y="1314" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;学生用户增删改&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="17">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=16;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="1552" y="1266" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;教师用户授权&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="18">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=17;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="1552" y="1383" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;插入图片&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="31">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=30;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="1777" y="813" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;回答排序&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="32">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=31;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="1290" y="1305" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;回答检索&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="33">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=32;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="1290" y="1172" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;账号找回&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="34">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=33;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="857" y="1804" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;学生注册&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="38">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=37;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="857" y="1614" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;教师注册&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="39">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=38;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="1785" y="1509" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;引用回答&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="40">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=39;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="1471" y="1046" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16px;font-family:0;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;管理员注册&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="Background" id="41">
+          <mxCell style="verticalAlign=middle;align=center;overflow=width;vsdxID=40;fillColor=#dfebff;gradientColor=none;shape=stencil(jZFRDsIgEERPs58aYGM9QK33aCwVIkJDqdbbC1mbKiGmfzvDWyaZBaxH1Q4SBBuDdzf51F1QgCcQQlslvQ5xAmwA6955efVush3poU1kmu7ukX6YaY+lDcFepA4kz0ReJk8o/2U/cserfXUkbxbkcbZAogBhDuGW2BVfjEJwFssLsX9DjbYbW4nDWmavjaFbfL/n5UeLDofNGw==);strokeColor=#067aef;strokeWidth=2;spacingTop=-3;spacingBottom=-3;spacingLeft=-3;spacingRight=-3;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+            <mxGeometry x="1785" y="1705" width="137" height="76" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="42">
+          <mxCell style="vsdxID=41;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0.014285714285714285;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="16" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="85" y="128" as="offset" />
+              <Array as="points" />
+              <mxPoint x="2086" y="1298" as="sourcePoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="43">
+          <mxCell style="vsdxID=42;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=1.0142857142857142;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="4" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="-120" y="-82" as="offset" />
+              <Array as="points" />
+              <mxPoint x="612.9999999999998" y="1378" as="sourcePoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="44">
+          <mxCell style="vsdxID=43;edgeStyle=none;dashed=1;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="7" target="3" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="38" y="69" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="45">
+          <mxCell style="vsdxID=44;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=1.0142857142857142;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="3" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="-120" y="-196" as="offset" />
+              <Array as="points" />
+              <mxPoint x="612.9999999999998" y="1378" as="sourcePoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="46">
+          <mxCell style="vsdxID=45;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0.014285714285714285;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="31" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="85" y="103" as="offset" />
+              <Array as="points" />
+              <mxPoint x="2086" y="847" as="sourcePoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="47">
+          <mxCell style="vsdxID=46;edgeStyle=none;dashed=1;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="40" target="13" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="132" y="43" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="48">
+          <mxCell style="vsdxID=47;edgeStyle=none;dashed=1;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="10" target="8" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="39" y="63" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="49">
+          <mxCell style="vsdxID=48;edgeStyle=none;dashed=1;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="12" target="6" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="64" y="102" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="50">
+          <mxCell style="vsdxID=49;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="31" target="13" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="286" y="160" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="51">
+          <mxCell style="vsdxID=50;edgeStyle=none;dashed=1;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="11" target="7" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="64" y="102" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="52">
+          <mxCell style="vsdxID=51;edgeStyle=none;dashed=1;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="6" target="3" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="39" y="130" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="53">
+          <mxCell style="vsdxID=52;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=1.0142857142857142;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="4" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="-125" y="140" as="offset" />
+              <Array as="points" />
+              <mxPoint x="604" y="935" as="sourcePoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="54">
+          <mxCell style="vsdxID=53;edgeStyle=none;dashed=1;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="33" target="10" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="42" y="168" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="55">
+          <mxCell style="vsdxID=54;edgeStyle=none;dashed=1;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="33" target="9" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="43" y="102" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="56">
+          <mxCell style="vsdxID=55;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="31" target="14" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="286" y="220" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="57">
+          <mxCell style="vsdxID=56;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=1.0142857142857142;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="34" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="-122" y="103" as="offset" />
+              <Array as="points" />
+              <mxPoint x="612.9999999999998" y="1838" as="sourcePoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="58">
+          <mxCell style="vsdxID=57;edgeStyle=none;dashed=1;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="14" target="4" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="39" y="63" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="59">
+          <mxCell style="vsdxID=58;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=1.0142857142857142;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="34" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="-122" y="334" as="offset" />
+              <Array as="points" />
+              <mxPoint x="612.9999999999998" y="1378" as="sourcePoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="60">
+          <mxCell style="vsdxID=59;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.9854014598540146;entryY=0.5789473684210527;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="31" target="11" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="154" y="101" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="61">
+          <mxCell style="vsdxID=60;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0.014285714285714285;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="15" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="85" y="30" as="offset" />
+              <Array as="points" />
+              <mxPoint x="2086" y="1298" as="sourcePoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="62">
+          <mxCell style="vsdxID=61;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=1.0142857142857142;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.0072992700729927005;entryY=0.42105263157894735;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="8" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="-120" y="43" as="offset" />
+              <Array as="points" />
+              <mxPoint x="612.9999999999998" y="1378" as="sourcePoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="63">
+          <mxCell style="vsdxID=62;edgeStyle=none;dashed=1;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="13" target="4" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="39" y="123" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="64">
+          <mxCell style="vsdxID=63;edgeStyle=none;dashed=1;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="9" target="8" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="38" y="130" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="65">
+          <mxCell style="vsdxID=64;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0.014285714285714285;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1.0072992700729928;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="41" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="81" y="324" as="offset" />
+              <Array as="points" />
+              <mxPoint x="2086" y="1298" as="sourcePoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="66">
+          <mxCell style="vsdxID=65;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=1.0142857142857142;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="8" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="-124" y="268" as="offset" />
+              <Array as="points" />
+              <mxPoint x="604" y="935" as="sourcePoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="67">
+          <mxCell style="vsdxID=66;edgeStyle=none;dashed=1;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="17" target="16" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="-44" y="125" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="68">
+          <mxCell style="vsdxID=67;edgeStyle=none;dashed=1;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="18" target="16" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="-44" y="66" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="69">
+          <mxCell style="vsdxID=68;edgeStyle=none;dashed=1;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="12" target="7" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="63" y="162" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="70">
+          <mxCell style="vsdxID=69;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=1.0142857142857142;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="38" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="-123" y="238" as="offset" />
+              <Array as="points" />
+              <mxPoint x="612.9999999999998" y="1378" as="sourcePoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="71">
+          <mxCell style="vsdxID=70;edgeStyle=none;dashed=1;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="32" target="10" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="43" y="102" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="72">
+          <mxCell style="vsdxID=71;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0.014285714285714285;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1.0072992700729928;entryY=0.5131578947368421;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="39" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="81" y="226" as="offset" />
+              <Array as="points" />
+              <mxPoint x="2086" y="1298" as="sourcePoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="73">
+          <mxCell style="vsdxID=72;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="31" target="12" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="152" y="38" as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="Background" id="74">
+          <mxCell style="vsdxID=73;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeWidth=2;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=1.0142857142857142;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="5" edge="1">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="-127" y="376" as="offset" />
+              <Array as="points" />
+              <mxPoint x="604" y="935" as="sourcePoint" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <mxCell id="zzfweBIF8FUx-dQAt3dm-76" value="&lt;font style=&quot;font-size: 40px;&quot;&gt;SuAsk&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="1372.5" y="510" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="zzfweBIF8FUx-dQAt3dm-78" value="&lt;font style=&quot;font-size: 17px;&quot;&gt;教师用户&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeWidth=4;fillColor=#e1ebfd;strokeColor=#3578e7;" vertex="1" parent="1">
+          <mxGeometry x="540" y="894" width="56" height="112" as="geometry" />
+        </mxCell>
+        <mxCell id="zzfweBIF8FUx-dQAt3dm-80" value="&lt;font style=&quot;font-size: 17px;&quot;&gt;学生用户&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeWidth=4;fillColor=#e1ebfd;strokeColor=#3578e7;align=center;fontFamily=Helvetica;fontSize=12;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="550" y="1342" width="56" height="112" as="geometry" />
+        </mxCell>
+        <mxCell id="zzfweBIF8FUx-dQAt3dm-81" value="&lt;font style=&quot;font-size: 17px;&quot;&gt;邮件发送系统&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeWidth=4;strokeColor=#3578e7;align=center;fontFamily=Helvetica;fontSize=12;fontColor=default;fillColor=#e1ebfd;" vertex="1" parent="1">
+          <mxGeometry x="550" y="1800" width="56" height="112" as="geometry" />
+        </mxCell>
+        <mxCell id="zzfweBIF8FUx-dQAt3dm-84" value="&lt;font style=&quot;font-size: 17px;&quot;&gt;图片存储系统&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeWidth=4;strokeColor=#3578e7;align=center;fontFamily=Helvetica;fontSize=12;fontColor=default;fillColor=#e1ebfd;" vertex="1" parent="1">
+          <mxGeometry x="2093" y="810" width="56" height="112" as="geometry" />
+        </mxCell>
+        <mxCell id="zzfweBIF8FUx-dQAt3dm-85" value="&lt;font style=&quot;font-size: 17px;&quot;&gt;管理员&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeWidth=4;strokeColor=#3578e7;align=center;fontFamily=Helvetica;fontSize=12;fontColor=default;fillColor=#e1ebfd;" vertex="1" parent="1">
+          <mxGeometry x="2093" y="1260" width="56" height="112" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
