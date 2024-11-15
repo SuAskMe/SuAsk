@@ -11,7 +11,7 @@
  Target Server Version : 80402 (8.4.2)
  File Encoding         : 65001
 
- Date: 13/11/2024 15:21:04
+ Date: 15/11/2024 15:42:09
 */
 
 SET NAMES utf8mb4;
@@ -28,12 +28,13 @@ CREATE TABLE `answers`  (
   `in_reply_to` int NULL DEFAULT NULL COMMENT '回复的回答ID，可为空',
   `contents` text CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '回答内容',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `views` int NOT NULL DEFAULT 0 COMMENT '浏览量',
+  `upvotes` int NOT NULL DEFAULT 0 COMMENT '点赞量',
   PRIMARY KEY (`id`) USING BTREE,
   FULLTEXT INDEX `contents`(`contents`) COMMENT '内容支持全文搜索，使用ngram parser以支持中文，默认token size为2',
   INDEX `user_id`(`user_id` ASC) USING BTREE,
   INDEX `question_id`(`question_id` ASC) USING BTREE,
   INDEX `in_reply_to`(`in_reply_to` ASC) USING BTREE,
+  INDEX `upvotes`(`upvotes` DESC) USING BTREE COMMENT '按点赞量降序索引',
   CONSTRAINT `answers_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `answers_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `answers_ibfk_3` FOREIGN KEY (`in_reply_to`) REFERENCES `answers` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
@@ -83,9 +84,8 @@ CREATE TABLE `favorites`  (
   `id` int NOT NULL AUTO_INCREMENT COMMENT '收藏（置顶）ID',
   `user_id` int NOT NULL COMMENT '用户ID',
   `question_id` int NOT NULL COMMENT '问题ID',
-  `ordinal` int NOT NULL COMMENT '收藏序号',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `user_id_2`(`user_id` ASC, `ordinal` ASC) USING BTREE COMMENT '每个用户收藏的问题序号必须不同',
   UNIQUE INDEX `user_id`(`user_id` ASC, `question_id` ASC) USING BTREE COMMENT '每个用户收藏同个问题最多一次',
   INDEX `question_id`(`question_id` ASC) USING BTREE,
   CONSTRAINT `favorites_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
@@ -118,7 +118,7 @@ CREATE TABLE `notifications`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `user_id`(`user_id` ASC) USING BTREE,
   INDEX `question_id`(`question_id` ASC) USING BTREE,
-  UNIQUE INDEX `user_id_2`(`user_id` ASC, `question_id` ASC) USING BTREE COMMENT '每个用户只能收到关于提问的一条提醒',
+  UNIQUE INDEX `user_id_2`(`user_id` ASC, `question_id` ASC) USING BTREE COMMENT '每个用户只能收到关于同一个问题的一条提醒',
   CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `notifications_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
@@ -135,10 +135,13 @@ CREATE TABLE `questions`  (
   `is_private` bit(1) NOT NULL COMMENT '是否私密提问，仅在问教师时可为是',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `views` int NOT NULL DEFAULT 0 COMMENT '浏览量',
+  `upvotes` int NOT NULL DEFAULT 0 COMMENT '点赞量',
   PRIMARY KEY (`id`) USING BTREE,
   FULLTEXT INDEX `contents`(`contents`) WITH PARSER `ngram` COMMENT '内容支持全文搜索，使用ngram parser以支持中文，默认token size为2',
   INDEX `src_user_id`(`src_user_id` ASC) USING BTREE,
   INDEX `dst_user_id`(`dst_user_id` ASC) USING BTREE,
+  INDEX `views`(`views` DESC) USING BTREE COMMENT '按浏览量降序索引',
+  INDEX `upvotes`(`upvotes` DESC) USING BTREE COMMENT '按点赞量降序索引',
   CONSTRAINT `questions_ibfk_1` FOREIGN KEY (`src_user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `questions_ibfk_2` FOREIGN KEY (`dst_user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `questions_chk_1` CHECK ((`dst_user_id` is not null) or (`is_private` = 0))
@@ -154,6 +157,25 @@ CREATE TABLE `themes`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `background_file_id`(`background_file_id` ASC) USING BTREE,
   CONSTRAINT `themes_ibfk_1` FOREIGN KEY (`background_file_id`) REFERENCES `files` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for upvotes
+-- ----------------------------
+DROP TABLE IF EXISTS `upvotes`;
+CREATE TABLE `upvotes`  (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT '点赞ID',
+  `user_id` int NOT NULL COMMENT '用户ID',
+  `question_id` int NULL DEFAULT NULL COMMENT '问题ID',
+  `answer_id` int NULL DEFAULT NULL COMMENT '回复ID',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `upvotes_ibfk_1`(`user_id` ASC) USING BTREE,
+  INDEX `upvotes_ibfk_2`(`question_id` ASC) USING BTREE,
+  INDEX `upvotes_ibfk_3`(`answer_id` ASC) USING BTREE,
+  CONSTRAINT `upvotes_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `upvotes_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `upvotes_ibfk_3` FOREIGN KEY (`answer_id`) REFERENCES `answers` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `upvotes_chk_1` CHECK (((`question_id` is not null) + (`answer_id` is not null)) = 1)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
