@@ -11,7 +11,7 @@
  Target Server Version : 80402 (8.4.2)
  File Encoding         : 65001
 
- Date: 15/11/2024 15:42:09
+ Date: 19/11/2024 11:44:25
 */
 
 SET NAMES utf8mb4;
@@ -30,11 +30,11 @@ CREATE TABLE `answers`  (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `upvotes` int NOT NULL DEFAULT 0 COMMENT '点赞量',
   PRIMARY KEY (`id`) USING BTREE,
-  FULLTEXT INDEX `contents`(`contents`) COMMENT '内容支持全文搜索，使用ngram parser以支持中文，默认token size为2',
   INDEX `user_id`(`user_id` ASC) USING BTREE,
   INDEX `question_id`(`question_id` ASC) USING BTREE,
   INDEX `in_reply_to`(`in_reply_to` ASC) USING BTREE,
   INDEX `upvotes`(`upvotes` DESC) USING BTREE COMMENT '按点赞量降序索引',
+  FULLTEXT INDEX `contents`(`contents`) COMMENT '内容支持全文搜索，使用ngram parser以支持中文，默认token size为2',
   CONSTRAINT `answers_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `answers_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `answers_ibfk_3` FOREIGN KEY (`in_reply_to`) REFERENCES `answers` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
@@ -51,12 +51,12 @@ CREATE TABLE `attachments`  (
   `type` enum('picture') CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '附件类型（目前仅支持图片）',
   `file_id` int NOT NULL COMMENT '文件ID',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `file_id`(`file_id` ASC) USING BTREE,
   INDEX `question_id`(`question_id` ASC) USING BTREE,
   INDEX `answer_id`(`answer_id` ASC) USING BTREE,
-  CONSTRAINT `attachments_ibfk_1` FOREIGN KEY (`file_id`) REFERENCES `files` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `attachments_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `attachments_ibfk_3` FOREIGN KEY (`answer_id`) REFERENCES `answers` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  INDEX `file_id`(`file_id` ASC) USING BTREE,
+  CONSTRAINT `attachments_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `attachments_ibfk_2` FOREIGN KEY (`answer_id`) REFERENCES `answers` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `attachments_ibfk_3` FOREIGN KEY (`file_id`) REFERENCES `files` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `attachments_chk_1` CHECK (((`question_id` is not null) + (`answer_id` is not null)) = 1)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
@@ -66,13 +66,11 @@ CREATE TABLE `attachments`  (
 DROP TABLE IF EXISTS `config`;
 CREATE TABLE `config`  (
   `id` bit(1) NOT NULL DEFAULT b'0' COMMENT '配置ID，限制为0',
-  `default_avatar_file_id` int NOT NULL COMMENT '默认头像文件ID',
+  `default_avatar_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '默认头像文件路径',
   `default_theme_id` int NOT NULL COMMENT '默认主题ID',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `default_avatar_file_id`(`default_avatar_file_id` ASC) USING BTREE,
   INDEX `default_theme_id`(`default_theme_id` ASC) USING BTREE,
-  CONSTRAINT `config_ibfk_1` FOREIGN KEY (`default_avatar_file_id`) REFERENCES `files` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `config_ibfk_2` FOREIGN KEY (`default_theme_id`) REFERENCES `themes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `config_ibfk_1` FOREIGN KEY (`default_theme_id`) REFERENCES `themes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `config_chk_1` CHECK (`id` = 0)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
@@ -116,9 +114,9 @@ CREATE TABLE `notifications`  (
   `question_id` int NOT NULL COMMENT '问题ID',
   `type` enum('new_question','new_reply') CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '提醒类型（新提问或新回复）',
   PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `user_id_2`(`user_id` ASC, `question_id` ASC) USING BTREE COMMENT '每个用户只能收到关于同一个问题的一条提醒',
   INDEX `user_id`(`user_id` ASC) USING BTREE,
   INDEX `question_id`(`question_id` ASC) USING BTREE,
-  UNIQUE INDEX `user_id_2`(`user_id` ASC, `question_id` ASC) USING BTREE COMMENT '每个用户只能收到关于同一个问题的一条提醒',
   CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `notifications_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
@@ -137,11 +135,11 @@ CREATE TABLE `questions`  (
   `views` int NOT NULL DEFAULT 0 COMMENT '浏览量',
   `upvotes` int NOT NULL DEFAULT 0 COMMENT '点赞量',
   PRIMARY KEY (`id`) USING BTREE,
-  FULLTEXT INDEX `contents`(`contents`) WITH PARSER `ngram` COMMENT '内容支持全文搜索，使用ngram parser以支持中文，默认token size为2',
   INDEX `src_user_id`(`src_user_id` ASC) USING BTREE,
   INDEX `dst_user_id`(`dst_user_id` ASC) USING BTREE,
   INDEX `views`(`views` DESC) USING BTREE COMMENT '按浏览量降序索引',
   INDEX `upvotes`(`upvotes` DESC) USING BTREE COMMENT '按点赞量降序索引',
+  FULLTEXT INDEX `contents`(`contents`) WITH PARSER `ngram` COMMENT '内容支持全文搜索，使用ngram parser以支持中文，默认token size为2',
   CONSTRAINT `questions_ibfk_1` FOREIGN KEY (`src_user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `questions_ibfk_2` FOREIGN KEY (`dst_user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `questions_chk_1` CHECK ((`dst_user_id` is not null) or (`is_private` = 0))
@@ -153,10 +151,8 @@ CREATE TABLE `questions`  (
 DROP TABLE IF EXISTS `themes`;
 CREATE TABLE `themes`  (
   `id` int NOT NULL AUTO_INCREMENT COMMENT '主题ID',
-  `background_file_id` int NOT NULL COMMENT '背景图片文件ID',
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `background_file_id`(`background_file_id` ASC) USING BTREE,
-  CONSTRAINT `themes_ibfk_1` FOREIGN KEY (`background_file_id`) REFERENCES `files` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  `background_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '背景图片文件路径',
+  PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -201,5 +197,31 @@ CREATE TABLE `users`  (
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`avatar_file_id`) REFERENCES `files` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `users_ibfk_2` FOREIGN KEY (`theme_id`) REFERENCES `themes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Triggers structure for table upvotes
+-- ----------------------------
+DROP TRIGGER IF EXISTS `ins_upvotes`;
+delimiter ;;
+CREATE TRIGGER `ins_upvotes` AFTER INSERT ON `upvotes` FOR EACH ROW IF NEW.question_id IS NOT NULL THEN
+  UPDATE questions SET upvotes=upvotes+1 WHERE id=NEW.question_id;
+ELSEIF NEW.answer_id IS NOT NULL THEN
+  UPDATE answers SET upvotes=upvotes+1 WHERE id=NEW.answer_id;
+END IF
+;;
+delimiter ;
+
+-- ----------------------------
+-- Triggers structure for table upvotes
+-- ----------------------------
+DROP TRIGGER IF EXISTS `del_upvotes`;
+delimiter ;;
+CREATE TRIGGER `del_upvotes` AFTER DELETE ON `upvotes` FOR EACH ROW IF OLD.question_id IS NOT NULL THEN
+  UPDATE questions SET upvotes=upvotes-1 WHERE id=OLD.question_id;
+ELSEIF OLD.answer_id IS NOT NULL THEN
+  UPDATE answers SET upvotes=upvotes-1 WHERE id=OLD.answer_id;
+END IF
+;;
+delimiter ;
 
 SET FOREIGN_KEY_CHECKS = 1;
