@@ -6,14 +6,13 @@ package do
 
 import (
 	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/os/gtime"
 )
 
-// Favorites is the golang structure of table favorites for DAO operations like Where/Data.
-type Favorites struct {
-	g.Meta     `orm:"table:favorites, do:true"`
-	Id         interface{} // 收藏（置顶）ID
+// Upvotes is the golang structure of table upvotes for DAO operations like Where/Data.
+type Upvotes struct {
+	g.Meta     `orm:"table:upvotes, do:true"`
+	Id         interface{} // 点赞ID
 	UserId     interface{} // 用户ID
 	QuestionId interface{} // 问题ID
-	CreatedAt  *gtime.Time // 创建时间
+	AnswerId   interface{} // 回复ID
 }

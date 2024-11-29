@@ -20,14 +20,14 @@ type ThemesDao struct {
 
 // ThemesColumns defines and stores column names for table themes.
 type ThemesColumns struct {
-	Id               string // 主题ID
-	BackgroundFileId string // 背景图片文件ID
+	Id             string // 主题ID
+	BackgroundPath string // 背景图片文件路径
 }
 
 // themesColumns holds the columns for table themes.
 var themesColumns = ThemesColumns{
-	Id:               "id",
-	BackgroundFileId: "background_file_id",
+	Id:             "id",
+	BackgroundPath: "background_path",
 }
 
 // NewThemesDao creates and returns a new DAO object for table data access.

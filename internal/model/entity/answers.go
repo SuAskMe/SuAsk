@@ -16,5 +16,5 @@ type Answers struct {
 	InReplyTo  int         `json:"inReplyTo"  orm:"in_reply_to" description:"回复的回答ID，可为空"` // 回复的回答ID，可为空
 	Contents   string      `json:"contents"   orm:"contents"    description:"回答内容"`        // 回答内容
 	CreatedAt  *gtime.Time `json:"createdAt"  orm:"created_at"  description:"创建时间"`        // 创建时间
-	Views      int         `json:"views"      orm:"views"       description:"浏览量"`         // 浏览量
+	Upvotes    int         `json:"upvotes"    orm:"upvotes"     description:"点赞量"`         // 点赞量
 }

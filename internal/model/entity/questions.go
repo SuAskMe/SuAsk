@@ -17,4 +17,5 @@ type Questions struct {
 	IsPrivate bool        `json:"isPrivate" orm:"is_private"  description:"是否私密提问，仅在问教师时可为是"`        // 是否私密提问，仅在问教师时可为是
 	CreatedAt *gtime.Time `json:"createdAt" orm:"created_at"  description:"创建时间"`                    // 创建时间
 	Views     int         `json:"views"     orm:"views"       description:"浏览量"`                     // 浏览量
+	Upvotes   int         `json:"upvotes"   orm:"upvotes"     description:"点赞量"`                     // 点赞量
 }

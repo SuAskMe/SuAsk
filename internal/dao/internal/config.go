@@ -20,16 +20,16 @@ type ConfigDao struct {
 
 // ConfigColumns defines and stores column names for table config.
 type ConfigColumns struct {
-	Id                  string // 配置ID，限制为0
-	DefaultAvatarFileId string // 默认头像文件ID
-	DefaultThemeId      string // 默认主题ID
+	Id                string // 配置ID，限制为0
+	DefaultAvatarPath string // 默认头像文件路径
+	DefaultThemeId    string // 默认主题ID
 }
 
 // configColumns holds the columns for table config.
 var configColumns = ConfigColumns{
-	Id:                  "id",
-	DefaultAvatarFileId: "default_avatar_file_id",
-	DefaultThemeId:      "default_theme_id",
+	Id:                "id",
+	DefaultAvatarPath: "default_avatar_path",
+	DefaultThemeId:    "default_theme_id",
 }
 
 // NewConfigDao creates and returns a new DAO object for table data access.

@@ -26,7 +26,7 @@ type AnswersColumns struct {
 	InReplyTo  string // 回复的回答ID，可为空
 	Contents   string // 回答内容
 	CreatedAt  string // 创建时间
-	Views      string // 浏览量
+	Upvotes    string // 点赞量
 }
 
 // answersColumns holds the columns for table answers.
@@ -37,7 +37,7 @@ var answersColumns = AnswersColumns{
 	InReplyTo:  "in_reply_to",
 	Contents:   "contents",
 	CreatedAt:  "created_at",
-	Views:      "views",
+	Upvotes:    "upvotes",
 }
 
 // NewAnswersDao creates and returns a new DAO object for table data access.

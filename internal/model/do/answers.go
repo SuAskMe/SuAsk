@@ -18,5 +18,5 @@ type Answers struct {
 	InReplyTo  interface{} // 回复的回答ID，可为空
 	Contents   interface{} // 回答内容
 	CreatedAt  *gtime.Time // 创建时间
-	Views      interface{} // 浏览量
+	Upvotes    interface{} // 点赞量
 }
