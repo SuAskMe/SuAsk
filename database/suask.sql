@@ -1,17 +1,17 @@
 /*
- Navicat Premium Dump SQL
+ Navicat Premium Data Transfer
 
  Source Server         : mysql
  Source Server Type    : MySQL
- Source Server Version : 80402 (8.4.2)
+ Source Server Version : 80403
  Source Host           : localhost:3306
  Source Schema         : suask
 
  Target Server Type    : MySQL
- Target Server Version : 80402 (8.4.2)
+ Target Server Version : 80403
  File Encoding         : 65001
 
- Date: 19/11/2024 11:44:25
+ Date: 30/11/2024 10:41:52
 */
 
 SET NAMES utf8mb4;
@@ -41,6 +41,10 @@ CREATE TABLE `answers`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
+-- Records of answers
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for attachments
 -- ----------------------------
 DROP TABLE IF EXISTS `attachments`;
@@ -61,6 +65,10 @@ CREATE TABLE `attachments`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
+-- Records of attachments
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for config
 -- ----------------------------
 DROP TABLE IF EXISTS `config`;
@@ -73,6 +81,10 @@ CREATE TABLE `config`  (
   CONSTRAINT `config_ibfk_1` FOREIGN KEY (`default_theme_id`) REFERENCES `themes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `config_chk_1` CHECK (`id` = 0)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of config
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for favorites
@@ -91,6 +103,10 @@ CREATE TABLE `favorites`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
+-- Records of favorites
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for files
 -- ----------------------------
 DROP TABLE IF EXISTS `files`;
@@ -105,6 +121,10 @@ CREATE TABLE `files`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
+-- Records of files
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for notifications
 -- ----------------------------
 DROP TABLE IF EXISTS `notifications`;
@@ -113,6 +133,8 @@ CREATE TABLE `notifications`  (
   `user_id` int NOT NULL COMMENT '用户ID',
   `question_id` int NOT NULL COMMENT '问题ID',
   `type` enum('new_question','new_reply') CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '提醒类型（新提问或新回复）',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `user_id_2`(`user_id` ASC, `question_id` ASC) USING BTREE COMMENT '每个用户只能收到关于同一个问题的一条提醒',
   INDEX `user_id`(`user_id` ASC) USING BTREE,
@@ -120,6 +142,10 @@ CREATE TABLE `notifications`  (
   CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `notifications_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of notifications
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for questions
@@ -146,6 +172,10 @@ CREATE TABLE `questions`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
+-- Records of questions
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for themes
 -- ----------------------------
 DROP TABLE IF EXISTS `themes`;
@@ -154,6 +184,10 @@ CREATE TABLE `themes`  (
   `background_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '背景图片文件路径',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of themes
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for upvotes
@@ -172,7 +206,11 @@ CREATE TABLE `upvotes`  (
   CONSTRAINT `upvotes_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `upvotes_ibfk_3` FOREIGN KEY (`answer_id`) REFERENCES `answers` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `upvotes_chk_1` CHECK (((`question_id` is not null) + (`answer_id` is not null)) = 1)
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of upvotes
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for users
@@ -189,6 +227,8 @@ CREATE TABLE `users`  (
   `avatar_file_id` int NULL DEFAULT NULL COMMENT '头像文件ID，为空时为配置的默认头像',
   `theme_id` int NULL DEFAULT NULL COMMENT '主题ID，为空时为配置的默认主题',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `name`(`name` ASC) USING BTREE COMMENT '用户名唯一',
   UNIQUE INDEX `email`(`email` ASC) USING BTREE COMMENT '邮箱唯一',
@@ -197,6 +237,10 @@ CREATE TABLE `users`  (
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`avatar_file_id`) REFERENCES `files` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `users_ibfk_2` FOREIGN KEY (`theme_id`) REFERENCES `themes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of users
+-- ----------------------------
 
 -- ----------------------------
 -- Triggers structure for table upvotes
