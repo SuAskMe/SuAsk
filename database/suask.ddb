@@ -1,0 +1,1013 @@
+{
+  "author": "Unnamed",
+  "title": "suAsk",
+  "date": "2024-11-29T10:29:12.762Z",
+  "tables": [
+    {
+      "name": "answers",
+      "comment": "",
+      "color": "#175e7a",
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "comment": "回答ID",
+          "unique": false,
+          "increment": true,
+          "notNull": true,
+          "primary": true,
+          "default": "",
+          "check": "",
+          "id": 0
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "comment": "用户ID",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "check": "",
+          "id": 1
+        },
+        {
+          "name": "question_id",
+          "type": "INTEGER",
+          "comment": "问题ID",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "check": "",
+          "id": 2
+        },
+        {
+          "name": "in_reply_to",
+          "type": "INTEGER",
+          "comment": "回复的回答ID，可为空",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "NULL",
+          "check": "",
+          "id": 3
+        },
+        {
+          "name": "contents",
+          "type": "TEXT",
+          "comment": "回答内容",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "check": "",
+          "id": 4
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "comment": "创建时间",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "CURRENT_TIMESTAMP",
+          "check": "",
+          "id": 5
+        },
+        {
+          "name": "upvotes",
+          "type": "INTEGER",
+          "comment": "点赞量",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "0",
+          "check": "",
+          "id": 6
+        }
+      ],
+      "indices": [],
+      "id": 0,
+      "x": -394.58072791248816,
+      "y": 170.97247530291625
+    },
+    {
+      "name": "attachments",
+      "comment": "",
+      "color": "#175e7a",
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "comment": "附件ID",
+          "unique": false,
+          "increment": true,
+          "notNull": true,
+          "primary": true,
+          "default": "",
+          "check": "",
+          "id": 0
+        },
+        {
+          "name": "question_id",
+          "type": "INTEGER",
+          "comment": "问题ID",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "NULL",
+          "check": "",
+          "id": 1
+        },
+        {
+          "name": "answer_id",
+          "type": "INTEGER",
+          "comment": "回答ID",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "NULL",
+          "check": "",
+          "id": 2
+        },
+        {
+          "name": "type",
+          "type": "ENUM",
+          "values": [
+            "picture"
+          ],
+          "comment": "附件类型（目前仅支持图片）",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "check": "",
+          "id": 3
+        },
+        {
+          "name": "file_id",
+          "type": "INTEGER",
+          "comment": "文件ID",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "check": "",
+          "id": 4
+        }
+      ],
+      "indices": [],
+      "id": 1,
+      "x": 688.9116156726485,
+      "y": -108.43547200997187
+    },
+    {
+      "name": "config",
+      "comment": "",
+      "color": "#175e7a",
+      "fields": [
+        {
+          "name": "id",
+          "type": "BIT",
+          "comment": "配置ID，限制为0",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": true,
+          "default": "0",
+          "size": 1,
+          "check": "",
+          "id": 0
+        },
+        {
+          "name": "default_avatar_path",
+          "type": "VARCHAR",
+          "comment": "默认头像文件路径",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "size": 255,
+          "check": "",
+          "id": 1
+        },
+        {
+          "name": "default_theme_id",
+          "type": "INTEGER",
+          "comment": "默认主题ID",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "check": "",
+          "id": 2
+        }
+      ],
+      "indices": [],
+      "id": 2,
+      "x": -501.7679195281256,
+      "y": 820.2371843628908
+    },
+    {
+      "name": "favorites",
+      "comment": "",
+      "color": "#175e7a",
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "comment": "收藏（置顶）ID",
+          "unique": false,
+          "increment": true,
+          "notNull": true,
+          "primary": true,
+          "default": "",
+          "check": "",
+          "id": 0
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "comment": "用户ID",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "check": "",
+          "id": 1
+        },
+        {
+          "name": "question_id",
+          "type": "INTEGER",
+          "comment": "问题ID",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "check": "",
+          "id": 2
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "comment": "创建时间",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "CURRENT_TIMESTAMP",
+          "check": "",
+          "id": 3
+        }
+      ],
+      "indices": [],
+      "id": 3,
+      "x": 688.3018365796562,
+      "y": 329.2308829606068
+    },
+    {
+      "name": "files",
+      "comment": "",
+      "color": "#175e7a",
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "comment": "文件ID",
+          "unique": false,
+          "increment": true,
+          "notNull": true,
+          "primary": true,
+          "default": "",
+          "check": "",
+          "id": 0
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR",
+          "comment": "文件名，不得包含非法字符例如斜杠",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "size": 255,
+          "check": "",
+          "id": 1
+        },
+        {
+          "name": "hash",
+          "type": "BINARY",
+          "comment": "文件哈希，算法暂定为BLAKE2b",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "size": 32,
+          "check": "",
+          "id": 2
+        },
+        {
+          "name": "uploader_id",
+          "type": "INTEGER",
+          "comment": "上传者用户ID",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "NULL",
+          "check": "",
+          "id": 3
+        }
+      ],
+      "indices": [],
+      "id": 4,
+      "x": 263.4770515317331,
+      "y": 1286.5198138438047
+    },
+    {
+      "name": "notifications",
+      "comment": "",
+      "color": "#175e7a",
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "comment": "提醒ID",
+          "unique": false,
+          "increment": true,
+          "notNull": true,
+          "primary": true,
+          "default": "",
+          "check": "",
+          "id": 0
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "comment": "用户ID",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "check": "",
+          "id": 1
+        },
+        {
+          "name": "question_id",
+          "type": "INTEGER",
+          "comment": "问题ID",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "check": "",
+          "id": 2
+        },
+        {
+          "name": "type",
+          "type": "ENUM",
+          "values": [
+            "new_question",
+            "new_reply"
+          ],
+          "comment": "提醒类型（新提问或新回复）",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "check": "",
+          "id": 3
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "comment": "",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "NULL",
+          "check": "",
+          "id": 4
+        },
+        {
+          "name": "deleted_at",
+          "type": "TIMESTAMP",
+          "comment": "",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "NULL",
+          "check": "",
+          "id": 5
+        }
+      ],
+      "indices": [],
+      "id": 5,
+      "x": 1131.1204884746944,
+      "y": 1049.3195629855359
+    },
+    {
+      "name": "questions",
+      "comment": "",
+      "color": "#175e7a",
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "comment": "问题ID",
+          "unique": false,
+          "increment": true,
+          "notNull": true,
+          "primary": true,
+          "default": "",
+          "check": "",
+          "id": 0
+        },
+        {
+          "name": "src_user_id",
+          "type": "INTEGER",
+          "comment": "发起提问的用户ID",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "check": "",
+          "id": 1
+        },
+        {
+          "name": "dst_user_id",
+          "type": "INTEGER",
+          "comment": "被提问的用户ID，为空时问大家，不为空时问教师",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "NULL",
+          "check": "",
+          "id": 2
+        },
+        {
+          "name": "contents",
+          "type": "TEXT",
+          "comment": "问题内容",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "check": "",
+          "id": 3
+        },
+        {
+          "name": "is_private",
+          "type": "BIT",
+          "comment": "是否私密提问，仅在问教师时可为是",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "size": 1,
+          "check": "",
+          "id": 4
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "comment": "创建时间",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "CURRENT_TIMESTAMP",
+          "check": "",
+          "id": 5
+        },
+        {
+          "name": "views",
+          "type": "INTEGER",
+          "comment": "浏览量",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "0",
+          "check": "",
+          "id": 6
+        },
+        {
+          "name": "upvotes",
+          "type": "INTEGER",
+          "comment": "点赞量",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "0",
+          "check": "",
+          "id": 7
+        }
+      ],
+      "indices": [],
+      "id": 6,
+      "x": 1085.5850116651695,
+      "y": 608.3788961323846
+    },
+    {
+      "name": "themes",
+      "comment": "",
+      "color": "#175e7a",
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "comment": "主题ID",
+          "unique": false,
+          "increment": true,
+          "notNull": true,
+          "primary": true,
+          "default": "",
+          "check": "",
+          "id": 0
+        },
+        {
+          "name": "background_path",
+          "type": "VARCHAR",
+          "comment": "背景图片文件路径",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "size": 255,
+          "check": "",
+          "id": 1
+        }
+      ],
+      "indices": [],
+      "id": 7,
+      "x": -218.94073457421928,
+      "y": 780.1739174984377
+    },
+    {
+      "name": "upvotes",
+      "comment": "",
+      "color": "#175e7a",
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "comment": "点赞ID",
+          "unique": false,
+          "increment": true,
+          "notNull": true,
+          "primary": true,
+          "default": "",
+          "check": "",
+          "id": 0
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "comment": "用户ID",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "check": "",
+          "id": 1
+        },
+        {
+          "name": "question_id",
+          "type": "INTEGER",
+          "comment": "问题ID",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "NULL",
+          "check": "",
+          "id": 2
+        },
+        {
+          "name": "answer_id",
+          "type": "INTEGER",
+          "comment": "回复ID",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "NULL",
+          "check": "",
+          "id": 3
+        }
+      ],
+      "indices": [],
+      "id": 8,
+      "x": 112.63272433981672,
+      "y": 391.182874588382
+    },
+    {
+      "name": "users",
+      "comment": "",
+      "color": "#175e7a",
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "comment": "用户ID",
+          "unique": false,
+          "increment": true,
+          "notNull": true,
+          "primary": true,
+          "default": "",
+          "check": "",
+          "id": 0
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR",
+          "comment": "用户名",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "size": 20,
+          "check": "",
+          "id": 1
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR",
+          "comment": "邮箱",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "size": 255,
+          "check": "",
+          "id": 2
+        },
+        {
+          "name": "password_hash",
+          "type": "VARCHAR",
+          "comment": "密码哈希，算法暂定为Argon2id",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "size": 255,
+          "check": "",
+          "id": 3
+        },
+        {
+          "name": "role",
+          "type": "ENUM",
+          "values": [
+            "admin",
+            "teacher",
+            "student"
+          ],
+          "comment": "角色",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "check": "",
+          "id": 4
+        },
+        {
+          "name": "nickname",
+          "type": "VARCHAR",
+          "comment": "昵称",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "size": 20,
+          "check": "",
+          "id": 5
+        },
+        {
+          "name": "introduction",
+          "type": "TEXT",
+          "comment": "简介",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "",
+          "check": "",
+          "id": 6
+        },
+        {
+          "name": "avatar_file_id",
+          "type": "INTEGER",
+          "comment": "头像文件ID，为空时为配置的默认头像",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "NULL",
+          "check": "",
+          "id": 7
+        },
+        {
+          "name": "theme_id",
+          "type": "INTEGER",
+          "comment": "主题ID，为空时为配置的默认主题",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "NULL",
+          "check": "",
+          "id": 8
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "comment": "创建时间",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "CURRENT_TIMESTAMP",
+          "check": "",
+          "id": 9
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "comment": "",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "NULL",
+          "check": "",
+          "id": 10
+        },
+        {
+          "name": "deleted_at",
+          "type": "TIMESTAMP",
+          "comment": "",
+          "unique": false,
+          "increment": false,
+          "notNull": true,
+          "primary": false,
+          "default": "NULL",
+          "check": "",
+          "id": 11
+        }
+      ],
+      "indices": [],
+      "id": 9,
+      "x": 109.71430324929702,
+      "y": 679.8470551178784
+    }
+  ],
+  "relationships": [
+    {
+      "name": "answers_user_id_fk",
+      "startTableId": 0,
+      "startFieldId": 1,
+      "endTableId": 9,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 0
+    },
+    {
+      "name": "answers_question_id_fk",
+      "startTableId": 0,
+      "startFieldId": 2,
+      "endTableId": 6,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 1
+    },
+    {
+      "name": "answers_in_reply_to_fk",
+      "startTableId": 0,
+      "startFieldId": 3,
+      "endTableId": 0,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 2
+    },
+    {
+      "name": "attachments_question_id_fk",
+      "startTableId": 1,
+      "startFieldId": 1,
+      "endTableId": 6,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 3
+    },
+    {
+      "name": "attachments_answer_id_fk",
+      "startTableId": 1,
+      "startFieldId": 2,
+      "endTableId": 0,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 4
+    },
+    {
+      "name": "attachments_file_id_fk",
+      "startTableId": 1,
+      "startFieldId": 4,
+      "endTableId": 4,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 5
+    },
+    {
+      "name": "config_default_theme_id_fk",
+      "startTableId": 2,
+      "startFieldId": 2,
+      "endTableId": 7,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 6
+    },
+    {
+      "name": "favorites_user_id_fk",
+      "startTableId": 3,
+      "startFieldId": 1,
+      "endTableId": 9,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 7
+    },
+    {
+      "name": "favorites_question_id_fk",
+      "startTableId": 3,
+      "startFieldId": 2,
+      "endTableId": 6,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 8
+    },
+    {
+      "name": "files_uploader_id_fk",
+      "startTableId": 4,
+      "startFieldId": 3,
+      "endTableId": 9,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 9
+    },
+    {
+      "name": "notifications_user_id_fk",
+      "startTableId": 5,
+      "startFieldId": 1,
+      "endTableId": 9,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 10
+    },
+    {
+      "name": "notifications_question_id_fk",
+      "startTableId": 5,
+      "startFieldId": 2,
+      "endTableId": 6,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 11
+    },
+    {
+      "name": "questions_src_user_id_fk",
+      "startTableId": 6,
+      "startFieldId": 1,
+      "endTableId": 9,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 12
+    },
+    {
+      "name": "questions_dst_user_id_fk",
+      "startTableId": 6,
+      "startFieldId": 2,
+      "endTableId": 9,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 13
+    },
+    {
+      "name": "upvotes_user_id_fk",
+      "startTableId": 8,
+      "startFieldId": 1,
+      "endTableId": 9,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 14
+    },
+    {
+      "name": "upvotes_question_id_fk",
+      "startTableId": 8,
+      "startFieldId": 2,
+      "endTableId": 6,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 15
+    },
+    {
+      "name": "upvotes_answer_id_fk",
+      "startTableId": 8,
+      "startFieldId": 3,
+      "endTableId": 0,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 16
+    },
+    {
+      "name": "users_avatar_file_id_fk",
+      "startTableId": 9,
+      "startFieldId": 7,
+      "endTableId": 4,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 17
+    },
+    {
+      "name": "users_theme_id_fk",
+      "startTableId": 9,
+      "startFieldId": 8,
+      "endTableId": 7,
+      "endFieldId": 0,
+      "updateConstraint": "Restrict",
+      "deleteConstraint": "Restrict",
+      "cardinality": "many_to_one",
+      "id": 18
+    }
+  ],
+  "notes": [],
+  "subjectAreas": [],
+  "database": "mysql"
+}
