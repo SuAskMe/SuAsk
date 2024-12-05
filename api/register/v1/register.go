@@ -12,7 +12,7 @@ const (
 
 type RegisterReq struct {
 	g.Meta   `path:"/user/register" tags:"Register" method:"POST" summary:"注册接口"`
-	UserName string `json:"userName" dc:"用户名"`
+	Name     string `json:"name" dc:"用户名"`
 	Password string `json:"password" dc:"密码"`
 	Role     Role   `json:"role" dc:"角色"`
 	Token    string `json:"token" dc:"注册邮箱成功时传递的Token，用于在这里验证为同一个人，里面搭载 Email"`
