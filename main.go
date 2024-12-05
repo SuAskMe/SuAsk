@@ -3,6 +3,8 @@ package main
 import (
 	_ "suask/internal/packed"
 
+	_ "suask/internal/logic"
+
 	"github.com/gogf/gf/v2/os/gctx"
 
 	_ "github.com/gogf/gf/v2/os/gcfg"

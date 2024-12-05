@@ -45,8 +45,8 @@ server:
 
 #     # 日志扩展配置(参数日志组件配置)
 #     # 此配置主要影响server（ghttp模块）日志，如web服务监听端口号、web服务路由，不会对 g.Log 产生影响
-#     logger:
-#       path:                  ""            # 日志文件路径。默认为空，表示关闭，仅输出到终端
+#    logger:
+#       path:                  "logs/default"            # 日志文件路径。默认为空，表示关闭，仅输出到终端
 #       file:                  "{Y-m-d}.log" # 日志文件格式。默认为"{Y-m-d}.log"
 #       prefix:                ""            # 日志内容输出前缀。默认为空
 #       level:                 "all"         # 日志输出级别
@@ -72,7 +72,7 @@ server:
 #     gracefulTimeout:     2                  # 父进程在平滑重启后多少秒退出，默认2秒。若请求耗时大于该值，可能会导致请求中断
 # 日志配置
 logger:
-  # path:                  ""                    # 日志文件路径。默认为空，表示关闭，仅输出到终端
+#  path:                  "logs/default"                    # 日志文件路径。默认为空，表示关闭，仅输出到终端
   # file:                  "{Y-m-d}.log"         # 日志文件格式。默认为"{Y-m-d}.log"
   # prefix:                ""                    # 日志内容输出前缀。默认为空
   level:                 "all"                 # 日志输出级别
