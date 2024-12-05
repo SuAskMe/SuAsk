@@ -10,7 +10,7 @@ const (
 
 // RegisterInput 注册输入
 type RegisterInput struct {
-	UserName string `json:"userName" dc:"用户名"`
+	UserName string `json:"username" dc:"用户名"`
 	Password string `json:"password" dc:"密码"`
 	Role     Role   `json:"role" dc:"角色"`
 	Token    string `json:"token" dc:"注册邮箱成功时传递的Token，用于在这里验证为同一个人，里面搭载 Email"`
@@ -18,7 +18,7 @@ type RegisterInput struct {
 
 // RegisterOutput 注册输出
 type RegisterOutput struct {
-	UserName string `json:"userName"`
+	UserName string `json:"username"`
 }
 
 // SendVerificationCodeInput 发送验证码输入
