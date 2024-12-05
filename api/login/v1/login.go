@@ -6,7 +6,7 @@ import "github.com/gogf/gf/v2/frame/g"
 
 type LoginReq struct {
 	g.Meta   `path:"/user/login" method:"POST" tag:"Login" summary:"登录请求"`
-	UserName string `json:"userName"`
+	Name     string `json:"name"`
 	Password string `json:"password"`
 }
 

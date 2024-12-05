@@ -1,6 +1,6 @@
 package model
 
 type UserLoginInput struct {
-	UserName string `json:"username"`
+	Name     string `json:"name"`
 	Password string `json:"password"`
 }
