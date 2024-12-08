@@ -24,6 +24,8 @@ type NotificationsColumns struct {
 	UserId     string // 用户ID
 	QuestionId string // 问题ID
 	Type       string // 提醒类型（新提问或新回复）
+	CreatedAt  string //
+	DeletedAt  string //
 }
 
 // notificationsColumns holds the columns for table notifications.
@@ -32,6 +34,8 @@ var notificationsColumns = NotificationsColumns{
 	UserId:     "user_id",
 	QuestionId: "question_id",
 	Type:       "type",
+	CreatedAt:  "created_at",
+	DeletedAt:  "deleted_at",
 }
 
 // NewNotificationsDao creates and returns a new DAO object for table data access.

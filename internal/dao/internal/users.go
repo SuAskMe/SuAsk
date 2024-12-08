@@ -23,6 +23,7 @@ type UsersColumns struct {
 	Id           string // 用户ID
 	Name         string // 用户名
 	Email        string // 邮箱
+	Salt         string // 加密盐
 	PasswordHash string // 密码哈希，算法暂定为Argon2id
 	Role         string // 角色
 	Nickname     string // 昵称
@@ -30,6 +31,8 @@ type UsersColumns struct {
 	AvatarFileId string // 头像文件ID，为空时为配置的默认头像
 	ThemeId      string // 主题ID，为空时为配置的默认主题
 	CreatedAt    string // 创建时间
+	UpdatedAt    string //
+	DeletedAt    string //
 }
 
 // usersColumns holds the columns for table users.
@@ -37,6 +40,7 @@ var usersColumns = UsersColumns{
 	Id:           "id",
 	Name:         "name",
 	Email:        "email",
+	Salt:         "salt",
 	PasswordHash: "password_hash",
 	Role:         "role",
 	Nickname:     "nickname",
@@ -44,6 +48,8 @@ var usersColumns = UsersColumns{
 	AvatarFileId: "avatar_file_id",
 	ThemeId:      "theme_id",
 	CreatedAt:    "created_at",
+	UpdatedAt:    "updated_at",
+	DeletedAt:    "deleted_at",
 }
 
 // NewUsersDao creates and returns a new DAO object for table data access.
