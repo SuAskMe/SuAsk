@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"suask/internal/controller/hello"
+	"suask/internal/controller/register"
 	"suask/internal/service"
 
 	"github.com/gogf/gf/v2/frame/g"
@@ -23,6 +24,7 @@ var (
 					service.Middleware().CORS)
 				group.Bind(
 					hello.NewV1(),
+					register.Register.Register,
 				)
 			})
 			s.Run()

@@ -2,7 +2,7 @@ package login
 
 import (
 	"context"
-	v1 "suask/api/login/v1"
+	"suask/api/login/v1"
 )
 
 type cLogin struct{}

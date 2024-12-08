@@ -12,23 +12,18 @@ type UserInfoBase struct {
 	ThemeId      int    `json:"themeId"      orm:"theme_id"       description:"主题ID，为空时为配置的默认主题"`   // 主题ID，为空时为配置的默认主题
 }
 
-const (
-	Teacher Role = "teacher"
-	Student Role = "student"
-	Admin   Role = "admin"
-)
-
 // RegisterInput 注册输入
 type RegisterInput struct {
 	Name     string `json:"name" dc:"用户名"`
+	UserSalt string `json:"userSalt" dc:"加密盐"`
 	Password string `json:"password" dc:"密码"`
-	Role     Role   `json:"role" dc:"角色"`
+	Role     string `json:"role" dc:"角色"`
 	Token    string `json:"token" dc:"注册邮箱成功时传递的Token，用于在这里验证为同一个人，里面搭载 Email"`
 }
 
 // RegisterOutput 注册输出
 type RegisterOutput struct {
-	Name string `json:"name"`
+	Id int `json:"id"`
 }
 
 // SendVerificationCodeInput 发送验证码输入
