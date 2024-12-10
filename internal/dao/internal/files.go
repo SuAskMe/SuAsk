@@ -24,6 +24,7 @@ type FilesColumns struct {
 	Name       string // 文件名，不得包含非法字符例如斜杠
 	Hash       string // 文件哈希，算法暂定为BLAKE2b
 	UploaderId string // 上传者用户ID
+	CreatedAt  string //
 }
 
 // filesColumns holds the columns for table files.
@@ -32,6 +33,7 @@ var filesColumns = FilesColumns{
 	Name:       "name",
 	Hash:       "hash",
 	UploaderId: "uploader_id",
+	CreatedAt:  "created_at",
 }
 
 // NewFilesDao creates and returns a new DAO object for table data access.
