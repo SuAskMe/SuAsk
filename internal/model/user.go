@@ -41,7 +41,6 @@ type VerifyVerificationCodeOutput struct {
 }
 
 type UpdateUserInput struct {
-	Id           int    `json:"id" v:"required" orm:"id" dc:"用户ID"`
 	Nickname     string `json:"nickname" v:"required" orm:"nickname" dc:"昵称"`
 	Introduction string `json:"introduction" v:"required" orm:"introduction" dc:"简介"`
 	AvatarFileId int    `json:"avatarFileId" v:"required" orm:"avatar_file_id" dc:"头像文件ID，为空时为配置的默认头像"`
@@ -49,13 +48,16 @@ type UpdateUserInput struct {
 }
 
 type UpdateUserOutput struct {
+	Id int `json:"id" v:"required" orm:"id" dc:"用户ID"`
 }
 
 type UpdatePasswordInput struct {
 	Password string `json:"password" v:"required" dc:"新的密码"`
+	Salt     string `json:"salt" v:"required" orm:"salt"`
 }
 
 type UpdatePasswordOutput struct {
+	Id int `json:"id" v:"required" dc:"用户ID"`
 }
 
 type GetUserInfoByIdInput struct {

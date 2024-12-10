@@ -41,6 +41,8 @@ var (
 					group.Bind(
 						hello.NewV1(),
 						user.User.Info,
+						user.User.UpdateUserInfo,
+						user.User.UpdatePassWord,
 					)
 				})
 			})
