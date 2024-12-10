@@ -1,3 +1,8 @@
+// ================================================================================
+// Code generated and maintained by GoFrame CLI tool. DO NOT EDIT.
+// You can delete these comments if you wish manually maintain this interface file.
+// ================================================================================
+
 package service
 
 import (
@@ -7,6 +12,8 @@ import (
 
 type (
 	IUser interface {
+		GetUserInfoById(ctx context.Context, in model.GetUserInfoByIdInput) (out model.GetUserInfoByIdOutput, err error)
+		GetUserInfo(ctx context.Context, in model.UserInfoInput) (out model.UserInfoOutput, err error)
 		UpdateUserInfo(ctx context.Context, in model.UpdateUserInput) (out model.UpdateUserOutput, err error)
 		UpdatePassword(ctx context.Context, in model.UpdatePasswordInput) (out model.UpdatePasswordOutput, err error)
 	}

@@ -19,5 +19,5 @@ type RegisterReq struct {
 }
 
 type RegisterRes struct {
-	Result bool `json:"result" dc:"返回是否成功"`
+	Id int `json:"id" dc:"注册成功的用户ID"`
 }
