@@ -5,6 +5,7 @@ import (
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
+	"suask/internal/model/do"
 	"suask/internal/service"
 	"suask/utility"
 
@@ -26,7 +27,19 @@ func (s *sRegister) Register(ctx context.Context, in model.RegisterInput) (out m
 	in.Password = utility.EncryptPassword(in.Password, UserSalt)
 	in.UserSalt = UserSalt
 	in.Role = consts.STUDENT
-	lastInsertID, err := dao.Users.Ctx(ctx).InsertAndGetId(in)
+
+	registerUser := do.Users{
+		Name:         in.Name,
+		Email:        in.Token,
+		Salt:         UserSalt,
+		PasswordHash: in.Password,
+		Role:         in.Role,
+		Nickname:     in.Name,
+		Introduction: "",
+		ThemeId:      consts.DefaultThemeId,
+	}
+
+	lastInsertID, err := dao.Users.Ctx(ctx).InsertAndGetId(registerUser)
 	if err != nil {
 		return out, err
 	}
