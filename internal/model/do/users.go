@@ -15,6 +15,7 @@ type Users struct {
 	Id           interface{} // 用户ID
 	Name         interface{} // 用户名
 	Email        interface{} // 邮箱
+	Salt         interface{} // 加密盐
 	PasswordHash interface{} // 密码哈希，算法暂定为Argon2id
 	Role         interface{} // 角色
 	Nickname     interface{} // 昵称
@@ -22,4 +23,6 @@ type Users struct {
 	AvatarFileId interface{} // 头像文件ID，为空时为配置的默认头像
 	ThemeId      interface{} // 主题ID，为空时为配置的默认主题
 	CreatedAt    *gtime.Time // 创建时间
+	UpdatedAt    *gtime.Time //
+	DeletedAt    *gtime.Time //
 }

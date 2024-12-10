@@ -1,34 +1,22 @@
 package model
 
+import v1 "suask/api/user/v1"
+
 type Role string
-
-type UserInfoBase struct {
-	Id           int    `json:"id"           orm:"id"             description:"用户ID"`               // 用户ID
-	Name         string `json:"name"         orm:"name"           description:"用户名"`                // 用户名
-	Email        string `json:"email"        orm:"email"          description:"邮箱"`                 // 邮箱
-	Nickname     string `json:"nickname"     orm:"nickname"       description:"昵称"`                 // 昵称
-	Introduction string `json:"introduction" orm:"introduction"   description:"简介"`                 // 简介
-	AvatarFileId int    `json:"avatarFileId" orm:"avatar_file_id" description:"头像文件ID，为空时为配置的默认头像"` // 头像文件ID，为空时为配置的默认头像
-	ThemeId      int    `json:"themeId"      orm:"theme_id"       description:"主题ID，为空时为配置的默认主题"`   // 主题ID，为空时为配置的默认主题
-}
-
-const (
-	Teacher Role = "teacher"
-	Student Role = "student"
-	Admin   Role = "admin"
-)
 
 // RegisterInput 注册输入
 type RegisterInput struct {
-	Name     string `json:"name" dc:"用户名"`
-	Password string `json:"password" dc:"密码"`
-	Role     Role   `json:"role" dc:"角色"`
+	Name     string `json:"name" orm:"name" dc:"用户名"`
+	UserSalt string `json:"userSalt" orm:"salt" dc:"加密盐"`
+	Password string `json:"password" orm:"password" dc:"密码"`
+	Role     string `json:"role" orm:"role" dc:"角色"`
+	Email    string `json:"email" orm:"email" dc:"注册邮箱"`
 	Token    string `json:"token" dc:"注册邮箱成功时传递的Token，用于在这里验证为同一个人，里面搭载 Email"`
 }
 
 // RegisterOutput 注册输出
 type RegisterOutput struct {
-	Name string `json:"name"`
+	Id int `json:"id"`
 }
 
 // SendVerificationCodeInput 发送验证码输入
@@ -53,11 +41,11 @@ type VerifyVerificationCodeOutput struct {
 }
 
 type UpdateUserInput struct {
-	Id           int    `json:"id" v:"required" orm:"id" description:"用户ID"`
-	Nickname     string `json:"nickname" v:"required" orm:"nickname" description:"昵称"`
-	Introduction string `json:"introduction" v:"required" orm:"introduction" description:"简介"`
-	AvatarFileId int    `json:"avatarFileId" v:"required" orm:"avatar_file_id" description:"头像文件ID，为空时为配置的默认头像"`
-	ThemeId      int    `json:"themeId" v:"required" orm:"theme_id" description:"主题ID，为空时为配置的默认主题"`
+	Id           int    `json:"id" v:"required" orm:"id" dc:"用户ID"`
+	Nickname     string `json:"nickname" v:"required" orm:"nickname" dc:"昵称"`
+	Introduction string `json:"introduction" v:"required" orm:"introduction" dc:"简介"`
+	AvatarFileId int    `json:"avatarFileId" v:"required" orm:"avatar_file_id" dc:"头像文件ID，为空时为配置的默认头像"`
+	ThemeId      int    `json:"themeId" v:"required" orm:"theme_id" dc:"主题ID，为空时为配置的默认主题"`
 }
 
 type UpdateUserOutput struct {
@@ -68,4 +56,21 @@ type UpdatePasswordInput struct {
 }
 
 type UpdatePasswordOutput struct {
+}
+
+type GetUserInfoByIdInput struct {
+	Id int `json:"id" v:"required" dc:"用户ID"`
+}
+
+type GetUserInfoByIdOutput struct {
+	v1.UserInfoBase
+}
+
+type UserInfoInput struct {
+	Id int `json:"id" v:"required" dc:"用户ID"`
+}
+type UserInfoOutput struct {
+	v1.UserInfoBase
+	Email   string `json:"email"        orm:"email"          description:"邮箱"`
+	ThemeId int    `json:"themeId"      orm:"theme_id"       description:"主题ID，为空时为配置的默认主题"`
 }
