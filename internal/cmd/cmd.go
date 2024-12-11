@@ -31,7 +31,7 @@ var (
 					ghttp.MiddlewareHandlerResponse,
 					service.Middleware().CORS)
 				group.Bind(
-					register.Register.Register,
+					register.Register,
 					user.User.GetUserInfoById,
 					file.File.GetFileById,
 				)
