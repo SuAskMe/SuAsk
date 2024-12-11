@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"suask/internal/controller/file"
 	"suask/internal/controller/hello"
 	"suask/internal/controller/register"
 	"suask/internal/controller/user"
@@ -32,6 +33,7 @@ var (
 				group.Bind(
 					register.Register.Register,
 					user.User.GetUserInfoById,
+					file.File.GetFileById,
 				)
 				group.Group("/", func(group *ghttp.RouterGroup) {
 					err := gfToken.Middleware(ctx, group)
@@ -43,6 +45,7 @@ var (
 						user.User.Info,
 						user.User.UpdateUserInfo,
 						user.User.UpdatePassWord,
+						file.File.UpdateFile,
 					)
 				})
 			})
