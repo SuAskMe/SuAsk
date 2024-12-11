@@ -15,11 +15,29 @@ type cUser struct {
 var User cUser
 
 func (c *cUser) UpdateUserInfo(ctx context.Context, req *v1.UpdateUserReq) (res *v1.UpdateUserRes, err error) {
-	return
+	userInfo := model.UpdateUserInput{}
+	err = gconv.Struct(req, &userInfo)
+	if err != nil {
+		return nil, err
+	}
+	out, err := service.User().UpdateUserInfo(ctx, userInfo)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateUserRes{Id: out.Id}, nil
 }
 
 func (c *cUser) UpdatePassWord(ctx context.Context, req *v1.UpdatePasswordReq) (res *v1.UpdatePasswordRes, err error) {
-	return
+	userInfo := model.UpdatePasswordInput{}
+	err = gconv.Struct(req, &userInfo)
+	if err != nil {
+		return nil, err
+	}
+	out, err := service.User().UpdatePassword(ctx, userInfo)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdatePasswordRes{Id: out.Id}, nil
 }
 
 func (c *cUser) GetUserInfoById(ctx context.Context, req *v1.UserInfoByIdReq) (res *v1.UserInfoByIdRes, err error) {
