@@ -7,7 +7,7 @@ import (
 	"suask/internal/model"
 	"suask/internal/model/do"
 	"suask/internal/service"
-	"suask/utility"
+	"suask/utility/login"
 
 	"github.com/gogf/gf/v2/util/grand"
 )
@@ -24,7 +24,7 @@ func New() *sRegister {
 
 func (s *sRegister) Register(ctx context.Context, in model.RegisterInput) (out model.RegisterOutput, err error) {
 	UserSalt := grand.S(10)
-	in.Password = utility.EncryptPassword(in.Password, UserSalt)
+	in.Password = login.EncryptPassword(in.Password, UserSalt)
 	in.UserSalt = UserSalt
 	in.Role = consts.STUDENT
 
