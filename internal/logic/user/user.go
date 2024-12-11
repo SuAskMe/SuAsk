@@ -9,7 +9,7 @@ import (
 	"suask/internal/model"
 	"suask/internal/model/do"
 	"suask/internal/service"
-	"suask/utility"
+	"suask/utility/login"
 )
 
 type sUser struct {
@@ -29,7 +29,12 @@ func (s sUser) GetUserInfo(ctx context.Context, in model.UserInfoInput) (out mod
 
 func (s sUser) UpdateUserInfo(ctx context.Context, in model.UpdateUserInput) (out model.UpdateUserOutput, err error) {
 	userId := gconv.Int(ctx.Value(consts.CtxId))
-	_, err = dao.Users.Ctx(ctx).WherePri(userId).Update(in)
+	userInfo := do.Users{
+		Nickname:     in.Nickname,
+		Introduction: in.Introduction,
+		ThemeId:      in.ThemeId,
+	}
+	_, err = dao.Users.Ctx(ctx).WherePri(userId).Update(userInfo)
 	if err != nil {
 		return model.UpdateUserOutput{}, err
 	}
@@ -40,7 +45,7 @@ func (s sUser) UpdatePassword(ctx context.Context, in model.UpdatePasswordInput)
 	userId := gconv.Int(ctx.Value(consts.CtxId))
 	userSalt := grand.S(10)
 	in.Salt = userSalt
-	in.Password = utility.EncryptPassword(in.Password, userSalt)
+	in.Password = login.EncryptPassword(in.Password, userSalt)
 	_, err = dao.Users.Ctx(ctx).WherePri(userId).Update(in)
 	if err != nil {
 		return model.UpdatePasswordOutput{}, err

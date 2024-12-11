@@ -11,7 +11,7 @@ import (
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model/entity"
-	"suask/utility"
+	"suask/utility/login"
 	"suask/utility/response"
 )
 
@@ -56,7 +56,7 @@ func loginFuncFrontend(r *ghttp.Request) (string, interface{}) {
 		r.ExitAll()
 	}
 	// 密码校验失败
-	if utility.EncryptPassword(password, userInfo.Salt) != userInfo.PasswordHash {
+	if login.EncryptPassword(password, userInfo.Salt) != userInfo.PasswordHash {
 		r.Response.WriteJson(gtoken.Fail(consts.ErrLoginFaulMsg))
 		r.ExitAll()
 	}

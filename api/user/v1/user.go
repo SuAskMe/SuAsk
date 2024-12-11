@@ -45,7 +45,7 @@ type UpdateUserRes struct {
 }
 
 type UpdatePasswordReq struct {
-	g.Meta   `path:"user/updatePassword" method:"POST" tags:"User" summary:"更新密码"`
+	g.Meta   `path:"/user/update-password" method:"POST" tags:"User" summary:"更新密码"`
 	Id       string `json:"id" v:"required" dc:"用户ID"`
 	Password string `json:"password" v:"required" dc:"新的密码"`
 }
