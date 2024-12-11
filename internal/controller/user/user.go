@@ -30,7 +30,7 @@ func (c *cUser) UpdateUserInfo(ctx context.Context, req *v1.UpdateUserReq) (res 
 		avatarId := data.Id
 		userInfo.AvatarFileId = avatarId
 	}
-	out, err := service.User().UpdateUserInfo(ctx, userInfo)
+	out, err := service.User().UpdateUser(ctx, userInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -51,8 +51,8 @@ func (c *cUser) UpdatePassWord(ctx context.Context, req *v1.UpdatePasswordReq) (
 }
 
 func (c *cUser) GetUserInfoById(ctx context.Context, req *v1.UserInfoByIdReq) (res *v1.UserInfoByIdRes, err error) {
-	UserId := model.GetUserInfoByIdInput{Id: req.Id}
-	out, err := service.User().GetUserInfoById(ctx, UserId)
+	UserId := model.UserInfoInput{Id: req.Id}
+	out, err := service.User().GetUser(ctx, UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (c *cUser) GetUserInfoById(ctx context.Context, req *v1.UserInfoByIdReq) (r
 
 func (c *cUser) Info(ctx context.Context, req *v1.UserInfoReq) (res *v1.UserInfoRes, err error) {
 	userId := gconv.Int(ctx.Value(consts.CtxId))
-	out, err := service.User().GetUserInfo(ctx, model.UserInfoInput{Id: userId})
+	out, err := service.User().GetUser(ctx, model.UserInfoInput{Id: userId})
 	if err != nil {
 		return nil, err
 	}

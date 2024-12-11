@@ -15,19 +15,13 @@ import (
 type sUser struct {
 }
 
-func (s sUser) GetUserInfoById(ctx context.Context, in model.GetUserInfoByIdInput) (out model.GetUserInfoByIdOutput, err error) {
-	user := model.GetUserInfoByIdOutput{}
-	err = dao.Users.Ctx(ctx).Where(do.Users{Id: in.Id}).Scan(&user)
-	return model.GetUserInfoByIdOutput{UserInfoBase: user.UserInfoBase}, err
-}
-
-func (s sUser) GetUserInfo(ctx context.Context, in model.UserInfoInput) (out model.UserInfoOutput, err error) {
+func (s sUser) GetUser(ctx context.Context, in model.UserInfoInput) (out model.UserInfoOutput, err error) {
 	user := model.UserInfoOutput{}
 	err = dao.Users.Ctx(ctx).Where(do.Users{Id: in.Id}).Scan(&user)
 	return user, err
 }
 
-func (s sUser) UpdateUserInfo(ctx context.Context, in model.UpdateUserInput) (out model.UpdateUserOutput, err error) {
+func (s sUser) UpdateUser(ctx context.Context, in model.UpdateUserInput) (out model.UpdateUserOutput, err error) {
 	userId := gconv.Int(ctx.Value(consts.CtxId))
 	userInfo := do.Users{
 		Nickname:     in.Nickname,
