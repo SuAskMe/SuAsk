@@ -10,7 +10,9 @@ import (
 	v1 "suask/api/login/v1"
 	"suask/internal/consts"
 	"suask/internal/dao"
+	"suask/internal/model"
 	"suask/internal/model/entity"
+	"suask/internal/service"
 	"suask/utility/login"
 	"suask/utility/response"
 )
@@ -77,9 +79,11 @@ func loginAfterFunc(r *ghttp.Request, respData gtoken.Resp) {
 			return
 		}
 		var avatarURL string
-		err = dao.Files.Ctx(context.TODO()).WherePri(userInfo.AvatarFileId).Scan(&avatarURL)
+		get, err := service.File().Get(context.TODO(), model.FileGetInput{Id: userInfo.AvatarFileId})
 		if err != nil {
 			avatarURL = consts.DefaultAvatarURL
+		} else {
+			avatarURL = get.URL
 		}
 		data := &v1.LoginRes{
 			Token: respData.GetString("token"),
