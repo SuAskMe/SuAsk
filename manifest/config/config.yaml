@@ -126,3 +126,6 @@ database:
 
 upload:
   path: "upload"
+
+jwt:
+  signKey: "114514"

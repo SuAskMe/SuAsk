@@ -13,6 +13,8 @@ gfcli:
     dao:
       - link: "mysql:root:123456@tcp(127.0.0.1:3306)/suask"
         descriptionTag: true
+    enums:
+      path: "internal/enum/enums.go"
   docker:
     build: "-a amd64 -s linux -p temp -ew"
     tagPrefixes:
