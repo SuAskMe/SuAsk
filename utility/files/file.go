@@ -26,7 +26,7 @@ func HashToString(hash []byte) string {
 	return hex.EncodeToString(hash[:])
 }
 
-func GetURL(fileHash []byte, fileName string) (URL *string, err error) {
+func GetURL(fileHash []byte, fileName string) (URL string, err error) {
 	fileExtension := gstr.StrEx(fileName, ".")
 	fileHashString := HashToString(fileHash)
 	if fileName != "" {
@@ -35,10 +35,10 @@ func GetURL(fileHash []byte, fileName string) (URL *string, err error) {
 		fileName = fileHashString
 	}
 	ctx := context.TODO()
-	uploadPath := g.Cfg().MustGet(ctx, "files.path").String()
+	uploadPath := g.Cfg().MustGet(ctx, "upload.path").String()
 	if uploadPath == "" {
-		return nil, gerror.New("配置不存在，请配置文件地址")
+		return "", gerror.New("配置不存在，请配置文件地址")
 	}
-	*URL = "/" + uploadPath + "/" + fileName[0:2] + "/" + fileName[2:4] + "/" + fileName
+	URL = "/" + uploadPath + "/" + fileName[0:2] + "/" + fileName[2:4] + "/" + fileName
 	return URL, nil
 }

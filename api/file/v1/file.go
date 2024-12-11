@@ -8,7 +8,7 @@ import (
 
 type UploadFileReq struct {
 	g.Meta `path:"/files" method:"post" tags:"Files" summary:"上传图片"`
-	File   *ghttp.UploadFile `json:"files" type:"files" v:"required" dc:"要上传的图片"`
+	File   *ghttp.UploadFile `json:"file" v:"required" dc:"要上传的图片"`
 }
 
 type UploadFileRes struct {

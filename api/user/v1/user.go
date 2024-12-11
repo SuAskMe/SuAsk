@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/ghttp"
 )
 
 type UserInfoReq struct {
@@ -34,10 +35,10 @@ type UserInfoBase struct {
 
 type UpdateUserReq struct {
 	g.Meta       `path:"/user/update-user" method:"POST" tags:"User" summary:"更新用户信息"`
-	Nickname     string `json:"nickname"     orm:"nickname"       description:"昵称"`
-	Introduction string `json:"introduction" orm:"introduction"   description:"简介"`
-	AvatarFileId int    `json:"avatarFileId" orm:"avatar_file_id" description:"头像文件ID，为空时为配置的默认头像"`
-	ThemeId      int    `json:"themeId"      orm:"theme_id"       description:"主题ID，为空时为配置的默认主题"`
+	Nickname     string            `json:"nickname"     orm:"nickname"       description:"昵称"`
+	Introduction string            `json:"introduction" orm:"introduction"   description:"简介"`
+	AvatarFile   *ghttp.UploadFile `json:"avatarFile"   description:"头像文件ID，为空时为配置的默认头像"`
+	ThemeId      int               `json:"themeId"      orm:"theme_id"       description:"主题ID，为空时为配置的默认主题"`
 }
 
 type UpdateUserRes struct {

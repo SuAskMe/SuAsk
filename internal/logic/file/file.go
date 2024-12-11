@@ -22,12 +22,15 @@ type sFile struct{}
 
 func (s *sFile) UploadFile(ctx context.Context, in model.FileUploadInput) (out *model.FileUploadOutput, err error) {
 	// 获取文件保存地址
-	uploadPath := g.Cfg().MustGet(ctx, "files.path").String()
+	uploadPath := g.Cfg().MustGet(ctx, "upload.path").String()
 	if uploadPath == "" {
 		return nil, gerror.New("配置不存在，请配置文件地址")
 	}
 	// 取得上传者Id
 	upLoaderId := gconv.String(ctx.Value(consts.CtxId))
+	if upLoaderId == "" {
+		return nil, gerror.New("未找到上传者")
+	}
 	// 限制上传数量
 	count, err := dao.Files.Ctx(ctx).
 		Where(dao.Files.Columns().UploaderId, upLoaderId).
@@ -71,7 +74,7 @@ func (s *sFile) UploadFile(ctx context.Context, in model.FileUploadInput) (out *
 	out = &model.FileUploadOutput{}
 	out.Id = int(id)
 	out.Name = fileName
-	out.URL = *URL
+	out.URL = URL
 	return out, nil
 }
 
@@ -87,7 +90,7 @@ func (s *sFile) Get(ctx context.Context, in model.FileGetInput) (out model.FileG
 	}
 	out = model.FileGetOutput{}
 	out.Name = file.Name
-	out.URL = *URL
+	out.URL = URL
 	out.HashString = files.HashToString(file.Hash)
 	out.CreatedAt = file.CreatedAt
 	return out, nil
