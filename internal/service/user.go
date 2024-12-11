@@ -12,9 +12,8 @@ import (
 
 type (
 	IUser interface {
-		GetUserInfoById(ctx context.Context, in model.GetUserInfoByIdInput) (out model.GetUserInfoByIdOutput, err error)
-		GetUserInfo(ctx context.Context, in model.UserInfoInput) (out model.UserInfoOutput, err error)
-		UpdateUserInfo(ctx context.Context, in model.UpdateUserInput) (out model.UpdateUserOutput, err error)
+		GetUser(ctx context.Context, in model.UserInfoInput) (out model.UserInfoOutput, err error)
+		UpdateUser(ctx context.Context, in model.UpdateUserInput) (out model.UpdateUserOutput, err error)
 		UpdatePassword(ctx context.Context, in model.UpdatePasswordInput) (out model.UpdatePasswordOutput, err error)
 	}
 )
