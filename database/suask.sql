@@ -9,7 +9,7 @@
 
  Target Server Type    : MySQL
  Target Server Version : 80403
- File Encoding         : 65001
+ Get Encoding         : 65001
 
  Date: 30/11/2024 10:41:52
 */
@@ -176,20 +176,6 @@ CREATE TABLE `questions`  (
 -- ----------------------------
 
 -- ----------------------------
--- Table structure for themes
--- ----------------------------
-DROP TABLE IF EXISTS `themes`;
-CREATE TABLE `themes`  (
-  `id` int NOT NULL AUTO_INCREMENT COMMENT '主题ID',
-  `background_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '背景图片文件路径',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of themes
--- ----------------------------
-
--- ----------------------------
 -- Table structure for upvotes
 -- ----------------------------
 DROP TABLE IF EXISTS `upvotes`;
@@ -236,7 +222,6 @@ CREATE TABLE `users`  (
   INDEX `avatar_file_id`(`avatar_file_id` ASC) USING BTREE,
   INDEX `theme_id`(`theme_id` ASC) USING BTREE,
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`avatar_file_id`) REFERENCES `files` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `users_ibfk_2` FOREIGN KEY (`theme_id`) REFERENCES `themes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
