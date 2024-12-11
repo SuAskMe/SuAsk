@@ -8,8 +8,7 @@ import (
 type (
 	IRegister interface {
 		Register(ctx context.Context, in model.RegisterInput) (out model.RegisterOutput, err error)
-		SendVerificationCode(ctx context.Context, in model.SendVerificationCodeInput) (out model.SendVerificationCodeOutput, err error)
-		VerifyVerificationCode(ctx context.Context, in model.VerifyVerificationCodeInput) (out model.VerifyVerificationCodeOutput, err error)
+		CheckEmailAndName(ctx context.Context, in model.CheckEmailAndNameInput) (out model.CheckEmailAndNameOutput, err error)
 	}
 )
 
