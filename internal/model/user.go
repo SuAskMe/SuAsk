@@ -1,7 +1,5 @@
 package model
 
-import v1 "suask/api/user/v1"
-
 type Role string
 
 // RegisterInput 注册输入
@@ -65,14 +63,23 @@ type GetUserInfoByIdInput struct {
 }
 
 type GetUserInfoByIdOutput struct {
-	v1.UserInfoBase
+	UserInfoBase
 }
 
 type UserInfoInput struct {
 	Id int `json:"id" v:"required" dc:"用户ID"`
 }
 type UserInfoOutput struct {
-	v1.UserInfoBase
+	UserInfoBase
 	Email   string `json:"email"        orm:"email"          description:"邮箱"`
 	ThemeId int    `json:"themeId"      orm:"theme_id"       description:"主题ID，为空时为配置的默认主题"`
+}
+
+type UserInfoBase struct {
+	Id           int    `json:"id"           orm:"id"             description:"用户ID"`
+	Name         string `json:"name"         orm:"name"           description:"用户名"`
+	Role         string `json:"role"         orm:"role"           description:"角色"`
+	Nickname     string `json:"nickname"     orm:"nickname"       description:"昵称"`
+	Introduction string `json:"introduction" orm:"introduction"   description:"简介"`
+	AvatarFileId int    `json:"avatarFileId" orm:"avatar_file_id" description:"头像文件ID，为空时为配置的默认头像"`
 }

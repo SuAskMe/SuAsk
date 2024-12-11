@@ -20,6 +20,16 @@ func (c *cUser) UpdateUserInfo(ctx context.Context, req *v1.UpdateUserReq) (res 
 	if err != nil {
 		return nil, err
 	}
+	// 上传头像
+	if req.AvatarFile != nil {
+		avatarFile := model.FileUploadInput{File: req.AvatarFile}
+		data, err := service.File().UploadFile(ctx, avatarFile)
+		if err != nil {
+			return nil, err
+		}
+		avatarId := data.Id
+		userInfo.AvatarFileId = avatarId
+	}
 	out, err := service.User().UpdateUserInfo(ctx, userInfo)
 	if err != nil {
 		return nil, err
@@ -46,7 +56,22 @@ func (c *cUser) GetUserInfoById(ctx context.Context, req *v1.UserInfoByIdReq) (r
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UserInfoByIdRes{UserInfoBase: out.UserInfoBase}, nil
+	res = &v1.UserInfoByIdRes{}
+	res.Id = out.Id
+	res.Name = out.Name
+	res.Nickname = out.Nickname
+	res.Role = out.Role
+	res.Introduction = out.Introduction
+	avatarId := out.AvatarFileId
+	if avatarId != 0 {
+		file, err1 := service.File().Get(ctx, model.FileGetInput{Id: avatarId})
+		if err1 != nil {
+			return nil, err1
+		}
+		avatarURL := file.URL
+		res.UserInfoBase.AvatarURL = avatarURL
+	}
+	return res, nil
 }
 
 func (c *cUser) Info(ctx context.Context, req *v1.UserInfoReq) (res *v1.UserInfoRes, err error) {
@@ -55,5 +80,21 @@ func (c *cUser) Info(ctx context.Context, req *v1.UserInfoReq) (res *v1.UserInfo
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UserInfoRes{UserInfoBase: out.UserInfoBase, Email: out.Email, ThemeId: out.ThemeId}, nil
+	res = &v1.UserInfoRes{}
+	res.Id = out.Id
+	res.Name = out.Name
+	res.Nickname = out.Nickname
+	res.Role = out.Role
+	res.Introduction = out.Introduction
+	avatarId := out.AvatarFileId
+	if avatarId != 0 {
+		file, err1 := service.File().Get(ctx, model.FileGetInput{Id: avatarId})
+		if err1 != nil {
+			return nil, err1
+		}
+		res.AvatarURL = file.URL
+	}
+	res.Email = out.Email
+	res.ThemeId = out.ThemeId
+	return res, nil
 }

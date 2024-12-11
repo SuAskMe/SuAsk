@@ -1,6 +1,6 @@
 package model
 
-import "github.com/gogf/gf/os/gtime"
+import "github.com/gogf/gf/v2/os/gtime"
 
 type PublicQuestion struct {
 	ID            int         `json:"id"`

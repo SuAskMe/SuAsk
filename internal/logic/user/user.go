@@ -33,6 +33,7 @@ func (s sUser) UpdateUserInfo(ctx context.Context, in model.UpdateUserInput) (ou
 		Nickname:     in.Nickname,
 		Introduction: in.Introduction,
 		ThemeId:      in.ThemeId,
+		AvatarFileId: in.AvatarFileId,
 	}
 	_, err = dao.Users.Ctx(ctx).WherePri(userId).Update(userInfo)
 	if err != nil {
