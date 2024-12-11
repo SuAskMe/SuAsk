@@ -47,7 +47,8 @@ func (c *cUser) UpdatePassWord(ctx context.Context, req *v1.UpdatePasswordReq) (
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdatePasswordRes{Id: out.Id}, nil
+	res = &v1.UpdatePasswordRes{Id: out.Id}
+	return res, nil
 }
 
 func (c *cUser) GetUserInfoById(ctx context.Context, req *v1.UserInfoByIdReq) (res *v1.UserInfoByIdRes, err error) {

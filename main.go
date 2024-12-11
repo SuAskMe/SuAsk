@@ -11,6 +11,8 @@ import (
 
 	"suask/internal/cmd"
 
+	_ "suask/internal/enum"
+
 	_ "github.com/gogf/gf/contrib/drivers/mysql/v2"
 )
 
