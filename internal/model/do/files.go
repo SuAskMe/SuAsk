@@ -16,5 +16,5 @@ type Files struct {
 	Name       interface{} // 文件名，不得包含非法字符例如斜杠
 	Hash       []byte      // 文件哈希，算法暂定为BLAKE2b
 	UploaderId interface{} // 上传者用户ID
-	CreatedAt  *gtime.Time //
+	CreatedAt  *gtime.Time // 文件上传时间
 }

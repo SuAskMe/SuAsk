@@ -9,9 +9,9 @@
 
  Target Server Type    : MySQL
  Target Server Version : 80403
- Get Encoding         : 65001
+ File Encoding         : 65001
 
- Date: 30/11/2024 10:41:52
+ Date: 12/12/2024 09:50:50
 */
 
 SET NAMES utf8mb4;
@@ -115,6 +115,7 @@ CREATE TABLE `files`  (
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '文件名，不得包含非法字符例如斜杠',
   `hash` binary(32) NOT NULL COMMENT '文件哈希，算法暂定为BLAKE2b',
   `uploader_id` int NULL DEFAULT NULL COMMENT '上传者用户ID',
+  `created_at` timestamp NULL DEFAULT NULL COMMENT '文件上传时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `uploader_id`(`uploader_id` ASC) USING BTREE,
   CONSTRAINT `files_ibfk_1` FOREIGN KEY (`uploader_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
@@ -176,6 +177,25 @@ CREATE TABLE `questions`  (
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for teachers
+-- ----------------------------
+DROP TABLE IF EXISTS `teachers`;
+CREATE TABLE `teachers`  (
+  `id` int NOT NULL,
+  `responses` int NULL DEFAULT NULL COMMENT '回复数',
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '老师名字',
+  `avatar_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '老师头像链接',
+  `introduction` tinytext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '老师简介',
+  `email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '老师邮箱',
+  PRIMARY KEY (`id`) USING BTREE,
+  CONSTRAINT `teachers_ibfk_1` FOREIGN KEY (`id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of teachers
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for upvotes
 -- ----------------------------
 DROP TABLE IF EXISTS `upvotes`;
@@ -206,7 +226,7 @@ CREATE TABLE `users`  (
   `id` int NOT NULL AUTO_INCREMENT COMMENT '用户ID',
   `name` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '用户名',
   `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '邮箱',
-  `salt` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COLLATE '加密盐',
+  `salt` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '加密盐',
   `password_hash` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '密码哈希，算法暂定为Argon2id',
   `role` enum('admin','teacher','student') CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '角色',
   `nickname` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '昵称',
@@ -221,7 +241,7 @@ CREATE TABLE `users`  (
   UNIQUE INDEX `email`(`email` ASC) USING BTREE COMMENT '邮箱唯一',
   INDEX `avatar_file_id`(`avatar_file_id` ASC) USING BTREE,
   INDEX `theme_id`(`theme_id` ASC) USING BTREE,
-  CONSTRAINT `users_ibfk_1` FOREIGN KEY (`avatar_file_id`) REFERENCES `files` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `users_ibfk_1` FOREIGN KEY (`avatar_file_id`) REFERENCES `files` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
