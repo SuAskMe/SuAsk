@@ -35,6 +35,7 @@ func New() *HistoryOperation {
 	return &HistoryOperation{}
 }
 
+// 辅助函数仅通过文件id得到图片url
 func (h HistoryOperation) GetUrlUseFileId(ctx context.Context, id string) (out string, err error) {
 	file := entity.Files{}
 	err = dao.Files.Ctx(ctx).Where(dao.Files.Columns().Id, id).Scan(&file)
