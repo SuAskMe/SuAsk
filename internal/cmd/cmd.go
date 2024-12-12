@@ -3,8 +3,8 @@ package cmd
 import (
 	"context"
 	"suask/internal/controller/file"
+	"suask/internal/controller/hello"
 	"suask/internal/controller/register"
-	"suask/internal/controller/star"
 	"suask/internal/controller/user"
 	"suask/internal/service"
 
