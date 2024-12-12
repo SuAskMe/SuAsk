@@ -12,6 +12,8 @@ import (
 
 type HistoryOperation struct{}
 
+var historyOperation HistoryOperation
+
 // 查找历史提问模块需要的信息
 func (h HistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHistoryInput) (out *model.GetHistoryOutput, err error) {
 
@@ -24,10 +26,36 @@ func (h HistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHist
 	// 将排序之后的结果分页并得到对应的查询结果
 	historyQuestionAll := md.Page(in.Page, consts.NumOfQuestionsPerPage)
 
-	var mqq *[]model.MultiQueryQuestions
+	var mqq []*model.MultiQueryQuestions
 
 	err = historyQuestionAll.Scan(&mqq)
+	if err != nil {
+		return nil, err
+	}
+	// 初始化myhistoryquestion
+	mhq := make([]model.MyHistoryQuestion, len(mqq))
 
+	// key是问题的id  value是对应附件所有的url
+	imageUrlMap := make(map[int][]string)
+
+	for _, m := range mqq {
+		for i := range m.Images {
+			tempFileID := m.Images[i].FileID
+			var tempUrl string
+			tempUrl, err = historyOperation.GetUrlUseFileId(ctx, tempFileID)
+			imageUrlMap[m.Id] = append(imageUrlMap[m.Id], tempUrl)
+		}
+	}
+	// 将所有的
+	for i := range mqq {
+		mhq[i] = model.MyHistoryQuestion{
+			Id:        mqq[i].Id,              //int
+			Contents:  mqq[i].Contents,        //string
+			CreatedAt: mqq[i].CreatedAt,       //*gtime.Time
+			Views:     mqq[i].Views,           //int
+			ImageURLs: imageUrlMap[mqq[i].Id], //[]string
+		}
+	}
 	return
 }
 
@@ -36,7 +64,7 @@ func New() *HistoryOperation {
 }
 
 // 辅助函数仅通过文件id得到图片url
-func (h HistoryOperation) GetUrlUseFileId(ctx context.Context, id string) (out string, err error) {
+func (h HistoryOperation) GetUrlUseFileId(ctx context.Context, id int) (out string, err error) {
 	file := entity.Files{}
 	err = dao.Files.Ctx(ctx).Where(dao.Files.Columns().Id, id).Scan(&file)
 	if err != nil {

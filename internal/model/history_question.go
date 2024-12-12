@@ -32,5 +32,5 @@ type MultiQueryQuestions struct {
 	Contents  string          `json:"contents"  orm:"contents"    description:"问题内容"`
 	CreatedAt *gtime.Time     `json:"createdAt" orm:"created_at"  description:"创建时间"`
 	Views     int             `json:"views"     orm:"views"       description:"浏览量"`
-	Images    []*custom.Image `json:"images"  orm:"with:question_id=id" description:"1"`
+	Images    []*custom.Image `json:"images"  orm:"with:question_id=id" description:"图片信息"`
 }
