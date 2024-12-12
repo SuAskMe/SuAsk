@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"suask/internal/controller/file"
-	"suask/internal/controller/hello"
 	"suask/internal/controller/register"
 	"suask/internal/controller/star"
 	"suask/internal/controller/user"
@@ -31,8 +30,9 @@ var (
 				group.Middleware(
 					ghttp.MiddlewareHandlerResponse,
 					service.Middleware().CORS)
+				// 这里是不需要认证的接口
 				group.Bind(
-					register.Register.Register,
+					register.Register,
 					user.User.GetUserInfoById,
 					file.File.GetFileById,
 				)
@@ -42,8 +42,8 @@ var (
 						panic(err)
 					}
 					group.Bind(
-						star.New(),
 						hello.NewV1(),
+						// 这里是需要认证的接口
 						user.User.Info,
 						user.User.UpdateUserInfo,
 						user.User.UpdatePassWord,
