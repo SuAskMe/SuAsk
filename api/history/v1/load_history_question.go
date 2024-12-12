@@ -7,8 +7,8 @@ import (
 )
 
 type LoadHistoryQuestionReq struct {
-	g.Meta `path:"/history" method:"GET" tag:"history" summary:"获取历史提问请求"`
-	UserId int `v:"required|min:1" json:"user_id" dc:"发起获取历史提问请求的UserId"`
+	g.Meta `path:"/history" method:"GET" tag:"History" summary:"获取历史提问请求"`
+	UserId int `v:"required" json:"user_id" dc:"发起获取历史提问请求的UserId"`
 	Page   int `v:"required|min:1" json:"page" dc:"历史提问的第几页"`
 }
 
