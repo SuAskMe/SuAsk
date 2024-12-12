@@ -5,4 +5,30 @@
 
 package service
 
-type ()
+import (
+	"context"
+	"suask/internal/model"
+)
+
+
+type (
+	IHistory interface {
+		LoadHistoryInfo(ctx context.Context, in *model.GetHistoryInput) (out *model.GetHistoryOutput, err error)
+		GetUrlUseFileId(ctx context.Context, id int) (out string, err error)
+	}
+)
+
+var (
+	localHistory IHistory
+)
+
+func History() IHistory {
+	if localHistory == nil {
+		panic("implement not found for interface IHistory, forgot register?")
+	}
+	return localHistory
+}
+
+func RegisterHistory(i IHistory) {
+	localHistory = i
+}

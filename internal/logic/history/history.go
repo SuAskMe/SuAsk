@@ -7,6 +7,7 @@ import (
 	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/model/entity"
+	"suask/internal/service"
 	"suask/utility/files"
 )
 
@@ -75,10 +76,6 @@ func (h HistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHist
 	return &ultimate_out, nil
 }
 
-func New() *HistoryOperation {
-	return &HistoryOperation{}
-}
-
 // 辅助函数仅通过文件id得到图片url
 func (h HistoryOperation) GetUrlUseFileId(ctx context.Context, id int) (out string, err error) {
 	file := entity.Files{}
@@ -92,4 +89,12 @@ func (h HistoryOperation) GetUrlUseFileId(ctx context.Context, id int) (out stri
 	}
 
 	return URL, nil
+}
+
+func init() {
+	service.RegisterHistory(New())
+}
+
+func New() *HistoryOperation {
+	return &HistoryOperation{}
 }
