@@ -43,10 +43,14 @@ func (h HistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHist
 			tempFileID := m.Images[i].FileID
 			var tempUrl string
 			tempUrl, err = historyOperation.GetUrlUseFileId(ctx, tempFileID)
+			if err != nil {
+				return nil, err
+			}
 			imageUrlMap[m.Id] = append(imageUrlMap[m.Id], tempUrl)
 		}
 	}
-	// 将所有的
+
+	// MyQuestionList切片完成
 	for i := range mqq {
 		mhq[i] = model.MyHistoryQuestion{
 			Id:        mqq[i].Id,              //int
@@ -56,7 +60,21 @@ func (h HistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHist
 			ImageURLs: imageUrlMap[mqq[i].Id], //[]string
 		}
 	}
-	return
+	remain, err := md.Count()
+	if err != nil {
+		return nil, err
+	}
+	remainNum := remain - consts.NumOfQuestionsPerPage*in.Page
+	remain = remainNum / consts.NumOfQuestionsPerPage
+	if remainNum%consts.NumOfQuestionsPerPage > 0 {
+		remain += 1
+	}
+	ultimate_out := model.GetHistoryOutput{
+		Question:   mhq,
+		RemainPage: remain,
+	}
+
+	return &ultimate_out, nil
 }
 
 func New() *HistoryOperation {
