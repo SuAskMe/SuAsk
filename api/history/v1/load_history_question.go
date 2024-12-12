@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"suask/internal/model/custom"
+	"suask/internal/model"
 
 	"github.com/gogf/gf/v2/frame/g"
 )
@@ -12,6 +12,6 @@ type LoadHistoryQuestionReq struct {
 }
 
 type LoadHistoryQuestionRes struct {
-	HistoryQuestionList []custom.PublicQuestions `json:"question_list" dc:"后端返回的历史提问列表"`
+	HistoryQuestionList []model.PublicQuestion `json:"question_list" dc:"后端返回的历史提问列表"`
 }
 
