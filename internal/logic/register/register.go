@@ -50,7 +50,7 @@ func (s *sRegister) Register(ctx context.Context, in model.RegisterInput) (out m
 		}
 		return out, err
 	}
-	return model.RegisterOutput{Id: int(lastInsertID)}, err
+	return model.RegisterOutput{Id: int(lastInsertID)}, nil
 }
 
 func (s *sRegister) CheckEmailAndName(ctx context.Context, in model.CheckEmailAndNameInput) (out model.CheckEmailAndNameOutput, err error) {
