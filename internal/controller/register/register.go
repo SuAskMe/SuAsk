@@ -18,8 +18,6 @@ type cRegister struct{}
 
 var Register = cRegister{}
 
-//var verificationCode string
-
 func (c *cRegister) SendVerificationCode(ctx context.Context, req *v1.SendVerificationCodeReq) (res *v1.SendVerificationCodeRes, err error) {
 	data := model.CheckEmailAndNameInput{}
 	err = gconv.Struct(req, &data)
