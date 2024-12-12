@@ -12,8 +12,6 @@ import (
 
 type HistoryOperation struct{}
 
-var historyOperation HistoryOperation
-
 // 查找历史提问模块需要的信息
 func (h HistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHistoryInput) (out *model.GetHistoryOutput, err error) {
 
@@ -42,7 +40,7 @@ func (h HistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHist
 		for i := range m.Images {
 			tempFileID := m.Images[i].FileID
 			var tempUrl string
-			tempUrl, err = historyOperation.GetUrlUseFileId(ctx, tempFileID)
+			tempUrl, err = h.GetUrlUseFileId(ctx, tempFileID)
 			if err != nil {
 				return nil, err
 			}
