@@ -5,6 +5,7 @@ import (
 	"suask/internal/controller/file"
 	"suask/internal/controller/hello"
 	"suask/internal/controller/register"
+	"suask/internal/controller/star"
 	"suask/internal/controller/user"
 	"suask/internal/service"
 
@@ -41,6 +42,7 @@ var (
 						panic(err)
 					}
 					group.Bind(
+						star.New(),
 						hello.NewV1(),
 						user.User.Info,
 						user.User.UpdateUserInfo,
