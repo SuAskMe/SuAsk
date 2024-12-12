@@ -14,5 +14,5 @@ type Files struct {
 	Name       string      `json:"name"       orm:"name"        description:"文件名，不得包含非法字符例如斜杠"`  // 文件名，不得包含非法字符例如斜杠
 	Hash       []byte      `json:"hash"       orm:"hash"        description:"文件哈希，算法暂定为BLAKE2b"` // 文件哈希，算法暂定为BLAKE2b
 	UploaderId int         `json:"uploaderId" orm:"uploader_id" description:"上传者用户ID"`           // 上传者用户ID
-	CreatedAt  *gtime.Time `json:"createdAt"  orm:"created_at"  description:""`                  //
+	CreatedAt  *gtime.Time `json:"createdAt"  orm:"created_at"  description:"文件上传时间"`            // 文件上传时间
 }
