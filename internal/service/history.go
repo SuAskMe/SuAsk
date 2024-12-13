@@ -5,16 +5,14 @@
 
 package service
 
-import (
+import(
 	"context"
 	"suask/internal/model"
 )
 
-
 type (
 	IHistory interface {
 		LoadHistoryInfo(ctx context.Context, in *model.GetHistoryInput) (out *model.GetHistoryOutput, err error)
-		GetUrlUseFileId(ctx context.Context, id int) (out string, err error)
 	}
 )
 
