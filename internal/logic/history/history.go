@@ -2,17 +2,13 @@ package history
 
 import (
 	"context"
-	"fmt"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
-	"suask/internal/model/entity"
-	"suask/utility/files"
+	"suask/internal/service"
 )
 
 type HistoryOperation struct{}
-
-var historyOperation HistoryOperation
 
 // 查找历史提问模块需要的信息
 func (h HistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHistoryInput) (out *model.GetHistoryOutput, err error) {
@@ -41,8 +37,15 @@ func (h HistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHist
 	for _, m := range mqq {
 		for i := range m.Images {
 			tempFileID := m.Images[i].FileID
+
+			// 得到结构体sFile的  用tempFileID做出来的
+			var tempFileGetInput = model.FileGetInput{
+				Id: tempFileID, // 确保 tempFileID 是 int 类型
+			}
+			var tempFileGetOutput = model.FileGetOutput{}
 			var tempUrl string
-			tempUrl, err = historyOperation.GetUrlUseFileId(ctx, tempFileID)
+			tempFileGetOutput, err = service.IFile.Get(service.File(), ctx, tempFileGetInput)
+			tempUrl = tempFileGetOutput.URL
 			if err != nil {
 				return nil, err
 			}
@@ -77,21 +80,25 @@ func (h HistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHist
 	return &ultimate_out, nil
 }
 
-func New() *HistoryOperation {
-	return &HistoryOperation{}
+// // 辅助函数仅通过文件id得到图片url
+// func (h HistoryOperation) GetUrlUseFileId(ctx context.Context, id int) (out string, err error) {
+// 	file := entity.Files{}
+// 	err = dao.Files.Ctx(ctx).Where(dao.Files.Columns().Id, id).Scan(&file)
+// 	if err != nil {
+// 		return "", fmt.Errorf("无法查询文件记录：%w", err)
+// 	}
+// 	URL, err := files.GetURL(file.Hash, file.Name)
+// 	if err != nil {
+// 		return "", fmt.Errorf("生成文件 URL 失败：%w", err)
+// 	}
+
+// 	return URL, nil
+// }
+
+func init() {
+	service.RegisterHistory(New())
 }
 
-// 辅助函数仅通过文件id得到图片url
-func (h HistoryOperation) GetUrlUseFileId(ctx context.Context, id int) (out string, err error) {
-	file := entity.Files{}
-	err = dao.Files.Ctx(ctx).Where(dao.Files.Columns().Id, id).Scan(&file)
-	if err != nil {
-		return "", fmt.Errorf("无法查询文件记录：%w", err)
-	}
-	URL, err := files.GetURL(file.Hash, file.Name)
-	if err != nil {
-		return "", fmt.Errorf("生成文件 URL 失败：%w", err)
-	}
-
-	return URL, nil
+func New() *HistoryOperation {
+	return &HistoryOperation{}
 }
