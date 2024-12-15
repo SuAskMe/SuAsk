@@ -8,7 +8,7 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 )
 
-// Favorites is the golang structure for table favorites.
+// Favorites is the golang structure for table favorite.
 type Favorites struct {
 	Id         int         `json:"id"         orm:"id"          description:"收藏（置顶）ID"` // 收藏（置顶）ID
 	UserId     int         `json:"userId"     orm:"user_id"     description:"用户ID"`     // 用户ID
