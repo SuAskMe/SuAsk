@@ -4,6 +4,7 @@ import (
 	"context"
 	"suask/internal/controller/file"
 	"suask/internal/controller/hello"
+	"suask/internal/controller/questions"
 	"suask/internal/controller/register"
 	"suask/internal/controller/user"
 	"suask/internal/service"
@@ -35,6 +36,7 @@ var (
 					register.Register,
 					user.User.GetUserInfoById,
 					file.File.GetFileById,
+					questions.PublicQuestions,
 				)
 				group.Group("/", func(group *ghttp.RouterGroup) {
 					err := gfToken.Middleware(ctx, group)

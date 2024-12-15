@@ -43,6 +43,23 @@ func sortByType(md **gdb.Model, sortType int) error {
 	return nil
 }
 
+// TruncateString 截断字符串：中文字符截断到 150 个字符，英文字符截断到 450 个字符
+func TruncateString(s string) string {
+	runes := []rune(s)
+	length := 0
+	for i, r := range runes {
+		if r <= 0x7F {
+			length++
+		} else {
+			length += 3
+		}
+		if length > 500 {
+			return string(runes[:i]) + "..."
+		}
+	}
+	return s
+}
+
 func (sPublicQuestion) Get(ctx context.Context, input *model.GetInput) (*model.GetOutput, error) {
 	var q []*custom.PublicQuestions
 	md := dao.Questions.Ctx(ctx).WhereNull("dst_user_id")
@@ -65,8 +82,8 @@ func (sPublicQuestion) Get(ctx context.Context, input *model.GetInput) (*model.G
 		pqs[i] = model.PublicQuestion{
 			ID:            pq.Id,
 			Title:         pq.Title,
-			Content:       pq.Contents,
-			CreatedAt:     pq.CreatedAt,
+			Content:       TruncateString(pq.Contents),
+			CreatedAt:     pq.CreatedAt.TimestampMilli(),
 			Views:         pq.Views,
 			ImageURLs:     nil,
 			IsFavorited:   len(pq.IsFavorited) == 1,
@@ -99,8 +116,8 @@ func (sPublicQuestion) GetKeyword(ctx context.Context, input *model.GetKeywordsI
 	if err != nil {
 		return nil, err
 	}
-	words := make([]model.Keywords, 10)
-	err = md.Where("title LIKE ?", "%"+input.Keyword+"%").Limit(10).Scan(&words)
+	words := make([]model.Keywords, 8)
+	err = md.Where("title LIKE ?", "%"+input.Keyword+"%").Limit(8).Scan(&words)
 	if err != nil {
 		return nil, err
 	}
