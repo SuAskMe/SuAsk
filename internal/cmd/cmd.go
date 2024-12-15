@@ -35,6 +35,8 @@ var (
 					register.Register,
 					user.User.GetUserInfoById,
 					file.File.GetFileById,
+					star.Star.GetStar,
+					star.Star.DelStar,
 				)
 				group.Group("/", func(group *ghttp.RouterGroup) {
 					err := gfToken.Middleware(ctx, group)
@@ -47,8 +49,6 @@ var (
 						user.User.UpdateUserInfo,
 						user.User.UpdatePassWord,
 						file.File.UpdateFile,
-						star.Star.GET,
-						star.Star.DELETE,
 					)
 				})
 			})

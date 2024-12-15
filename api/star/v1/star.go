@@ -6,18 +6,18 @@ import (
 )
 
 type StarReq struct {
-	g.Meta `path:"/star/get" method:"GET" tag:"GetStar" summary:"查询收藏列表"`
+	g.Meta `path:"/star/get" method:"GET" tags:"Star" summary:"查询收藏列表"`
 }
 
 type StarRes struct {
-	StarQuestionList model.StarQuestionOutPut `json:"star_question_list"`
+	StarQuestionList []model.StarQuestion `json:"star_question_list"`
 }
 
 type DeleteStarReq struct {
-	g.Meta `path:"/star/delete" method:"Delete" tag:"DeleteStar" summary:"删除收藏"`
+	g.Meta `path:"/star/delete" method:"DELETE" tags:"Star" summary:"删除收藏"`
 	Id     int `json:"id"`
 }
 
 type DeleteStarRes struct {
-	String model.DeleteStarOutput `json:"string"`
+	String string `json:"string"`
 }

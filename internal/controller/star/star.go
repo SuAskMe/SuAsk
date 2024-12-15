@@ -7,19 +7,19 @@ import (
 	"suask/internal/service"
 )
 
-type Controller struct{}
+type cStar struct{}
 
-var Star Controller
+var Star cStar
 
 //func (c *Controller) POST(req *ghttp.Request) {
 //	req.Response.Writeln("增加收藏")
 //}
 
-func (c *Controller) DELETE(ctx context.Context, req *v1.DeleteStarReq) (res *v1.DeleteStarRes, err error) {
+func (c *cStar) DelStar(ctx context.Context, req *v1.DeleteStarReq) (res *v1.DeleteStarRes, err error) {
 	in := model.DeleteStarInput{Id: req.Id}
 	out, err := service.Star().DeleteStar(ctx, in)
 
-	res = &v1.DeleteStarRes{String: out}
+	res = &v1.DeleteStarRes{String: out.String} // 从StarOut中取出string，放到Res中
 	return res, err
 }
 
@@ -27,11 +27,11 @@ func (c *Controller) DELETE(ctx context.Context, req *v1.DeleteStarReq) (res *v1
 //	req.Response.Writeln("修改收藏")
 //}
 
-func (c *Controller) GET(ctx context.Context, req *v1.StarReq) (res *v1.StarRes, err error) {
+func (c *cStar) GetStar(ctx context.Context, req *v1.StarReq) (res *v1.StarRes, err error) {
 	//userId = gconv.Int(ctx.Value(consts.CtxId))
 	userId := 1 // 测试用
 	out, err := service.Star().GetStar(ctx, userId)
 
-	res = &v1.StarRes{StarQuestionList: out}
+	res = &v1.StarRes{StarQuestionList: out.StarQuestionList}
 	return res, err
 }
