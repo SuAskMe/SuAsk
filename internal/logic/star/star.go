@@ -9,8 +9,7 @@ import (
 
 type sStar struct{}
 
-func (s *sStar) Star(ctx context.Context, in model.StarQuestionInPut) (out model.StarQuestionOutPut, err error) {
-	id := 1 // 先写死了
+func (s *sStar) GetStar(ctx context.Context, id int) (out model.StarQuestionOutPut, err error) {
 	star := model.StarQuestionOutPut{}
 	err = dao.Favorites.Ctx(ctx).With(model.QuestionInfo{}).Where(do.Favorites{UserId: id}).Scan(&star)
 

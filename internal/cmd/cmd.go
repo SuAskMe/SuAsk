@@ -4,6 +4,7 @@ import (
 	"context"
 	"suask/internal/controller/file"
 	"suask/internal/controller/register"
+	"suask/internal/controller/star"
 	"suask/internal/controller/user"
 	"suask/internal/service"
 
@@ -46,6 +47,7 @@ var (
 						user.User.UpdateUserInfo,
 						user.User.UpdatePassWord,
 						file.File.UpdateFile,
+						star.New(),
 					)
 				})
 			})

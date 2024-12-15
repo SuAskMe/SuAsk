@@ -6,9 +6,9 @@ import (
 )
 
 type StarReq struct {
-	g.Meta `path:"/star" method:"GET" tag:"Star" summary:"查询收藏列表"`
+	g.Meta `path:"/star/get" method:"GET" tag:"GetStar" summary:"查询收藏列表"`
 }
 
 type StarRes struct {
-	StarQuestionList []model.StarRelation `json:"star_question_list"`
+	StarQuestionList model.StarQuestionOutPut `json:"star_question_list"`
 }
