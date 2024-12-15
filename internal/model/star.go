@@ -1,22 +1,34 @@
 package model
 
-import (
-	"github.com/gogf/gf/v2/net/ghttp"
-	"github.com/gogf/gf/v2/os/gtime"
-)
+import "github.com/gogf/gf/v2/os/gtime"
 
-type StarQuestionInPut struct {
-	r *ghttp.Request
+// model层：controller和logic之间的数据规范
+
+// “获取收藏”相关结构体
+
+type StarQuestionInPut struct { // controller -> logic
+	Id int `json:"id" v:"required" dc:"用户ID"`
 }
 
-type StarQuestionOutPut struct {
-	ID        int         `json:"id"`
-	Title     string      `json:"title"` // 目前不支持标题
-	Content   *string     `json:"content"`
-	Views     int         `json:"views"`
-	CreatedAt *gtime.Time `json:"created_at"`
-	ImageURLs []string    `json:"image_urls"`
-	// 默认全部 IsFavorite = true
-	AnswerNum     int      `json:"answer_num"`
-	AnswerAvatars []string `json:"answer_avatars"`
+type StarQuestionOutPut struct { // logic -> controller
+	StarQuestionList []StarQuestion `json:"star_question" dc:"返回收藏问题列表"`
+	//RemainPage int            `json:"remain_page" dc:"剩余页码数量"`
+}
+
+type StarQuestion struct {
+	ID       int         `json:"id" dc:"问题ID"`
+	Title    string      `json:"title" dc:"标题"`
+	Contents string      `json:"contents" dc:"问题内容"`
+	Views    int         `json:"views" dc:"浏览量"`
+	StarAt   *gtime.Time `json:"star_at" dc:"收藏时间"`
+}
+
+// “删除收藏”相关结构体
+
+type DeleteStarInput struct {
+	Id int `json:"id" v:"required" dc:"收藏Id"`
+}
+
+type DeleteStarOutput struct {
+	String string `json:"string" dc:"提示信息"`
 }

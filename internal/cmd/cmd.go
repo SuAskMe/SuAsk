@@ -6,6 +6,7 @@ import (
 	"suask/internal/controller/hello"
 	"suask/internal/controller/questions"
 	"suask/internal/controller/register"
+	"suask/internal/controller/star"
 	"suask/internal/controller/user"
 	"suask/internal/service"
 
@@ -37,6 +38,8 @@ var (
 					user.User.GetUserInfoById,
 					file.File.GetFileById,
 					questions.PublicQuestions,
+					star.Star.GetStar,
+					star.Star.DelStar,
 				)
 				group.Group("/", func(group *ghttp.RouterGroup) {
 					err := gfToken.Middleware(ctx, group)
