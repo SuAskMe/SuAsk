@@ -12,7 +12,9 @@ import (
 
 type (
 	IPublicQuestion interface {
-		Get(ctx context.Context, input *model.GetPublicQuestionInput) (*model.GetPublicQuestionOutput, error)
+		Get(ctx context.Context, input *model.GetInput) (*model.GetOutput, error)
+		GetKeyword(ctx context.Context, input *model.GetKeywordsInput) (*model.GetKeywordsOutput, error)
+		Favorite(ctx context.Context, input *model.FavoriteInput) error
 	}
 )
 

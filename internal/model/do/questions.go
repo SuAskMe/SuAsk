@@ -15,6 +15,7 @@ type Questions struct {
 	Id        interface{} // 问题ID
 	SrcUserId interface{} // 发起提问的用户ID
 	DstUserId interface{} // 被提问的用户ID，为空时问大家，不为空时问教师
+	Title     interface{} // 问题标题
 	Contents  interface{} // 问题内容
 	IsPrivate interface{} // 是否私密提问，仅在问教师时可为是
 	CreatedAt *gtime.Time // 创建时间
