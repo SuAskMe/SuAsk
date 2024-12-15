@@ -1,18 +1,16 @@
 package model
 
-import "github.com/gogf/gf/v2/os/gtime"
-
 type PublicQuestion struct {
-	ID            int         `json:"id"`
-	Title         string      `json:"title"` // 目前不支持标题
-	Content       string      `json:"contents"`
-	Views         int         `json:"views"`
-	CreatedAt     *gtime.Time `json:"created_at"`
-	ImageURLs     []string    `json:"image_urls"`
-	IsFavorited   bool        `json:"is_favorited"`
-	IsUpvoted     bool        `json:"is_upvoted"`
-	AnswerNum     int         `json:"answer_num"`
-	AnswerAvatars []string    `json:"answer_avatars"`
+	ID            int      `json:"id"`
+	Title         string   `json:"title"` // 目前不支持标题
+	Content       string   `json:"contents"`
+	Views         int      `json:"views"`
+	CreatedAt     int64    `json:"created_at"`
+	ImageURLs     []string `json:"image_urls"`
+	IsFavorited   bool     `json:"is_favorited"`
+	IsUpvoted     bool     `json:"is_upvoted"`
+	AnswerNum     int      `json:"answer_num"`
+	AnswerAvatars []string `json:"answer_avatars"`
 }
 
 type GetInput struct {
