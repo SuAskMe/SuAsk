@@ -44,7 +44,7 @@ func (h HistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHist
 			}
 			var tempFileGetOutput = model.FileGetOutput{}
 			var tempUrl string
-			tempFileGetOutput, err = service.IFile.Get(service.File(), ctx, tempFileGetInput)
+			tempFileGetOutput, err = service.IFile.Get(service.File(), ctx, tempFileGetInput) // 这步放到controller
 			tempUrl = tempFileGetOutput.URL
 			if err != nil {
 				return nil, err

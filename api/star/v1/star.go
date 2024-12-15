@@ -10,5 +10,5 @@ type StarReq struct {
 }
 
 type StarRes struct {
-	StarQuestionList []model.StarQuestionOutPut `json:"star_question_list"`
+	StarQuestionList []model.StarRelation `json:"star_question_list"`
 }

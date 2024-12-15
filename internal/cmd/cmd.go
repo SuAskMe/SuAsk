@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"suask/internal/controller/file"
-	"suask/internal/controller/hello"
 	"suask/internal/controller/register"
 	"suask/internal/controller/user"
 	"suask/internal/service"
@@ -42,7 +41,6 @@ var (
 						panic(err)
 					}
 					group.Bind(
-						hello.NewV1(),
 						// 这里是需要认证的接口
 						user.User.Info,
 						user.User.UpdateUserInfo,
