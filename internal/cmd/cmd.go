@@ -47,7 +47,8 @@ var (
 						user.User.UpdateUserInfo,
 						user.User.UpdatePassWord,
 						file.File.UpdateFile,
-						star.New(),
+						star.Star.GET,
+						star.Star.DELETE,
 					)
 				})
 			})

@@ -12,3 +12,12 @@ type StarReq struct {
 type StarRes struct {
 	StarQuestionList model.StarQuestionOutPut `json:"star_question_list"`
 }
+
+type DeleteStarReq struct {
+	g.Meta `path:"/star/delete" method:"Delete" tag:"DeleteStar" summary:"删除收藏"`
+	Id     int `json:"id"`
+}
+
+type DeleteStarRes struct {
+	String model.DeleteStarOutput `json:"string"`
+}

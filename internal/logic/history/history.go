@@ -96,7 +96,7 @@ func (h HistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHist
 // }
 
 func init() {
-	service.RegisterHistory(New())
+	//service.RegisterHistory(New())
 }
 
 func New() *HistoryOperation {
