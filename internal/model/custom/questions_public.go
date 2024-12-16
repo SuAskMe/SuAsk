@@ -32,7 +32,7 @@ type UserUpvotes struct {
 }
 
 type UserFavorites struct {
-	g.Meta `orm:"table:favorites"`
+	g.Meta `orm:"table:favorite"`
 	UserID int `json:"userId"     orm:"user_id"     description:"用户ID"` // 用户ID
 }
 
