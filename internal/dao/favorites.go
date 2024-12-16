@@ -11,14 +11,14 @@ import (
 // internalFavoritesDao is internal type for wrapping internal DAO implements.
 type internalFavoritesDao = *internal.FavoritesDao
 
-// favoritesDao is the data access object for table favorites.
+// favoritesDao is the data access object for table favorite.
 // You can define custom methods on it to extend its functionality as you wish.
 type favoritesDao struct {
 	internalFavoritesDao
 }
 
 var (
-	// Favorites is globally public accessible object for table favorites operations.
+	// Favorites is globally public accessible object for table favorite operations.
 	Favorites = favoritesDao{
 		internal.NewFavoritesDao(),
 	}

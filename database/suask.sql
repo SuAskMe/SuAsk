@@ -11,7 +11,7 @@
  Target Server Version : 80403
  File Encoding         : 65001
 
- Date: 12/12/2024 09:50:50
+ Date: 15/12/2024 13:18:27
 */
 
 SET NAMES utf8mb4;
@@ -41,10 +41,6 @@ CREATE TABLE `answers`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
--- Records of answers
--- ----------------------------
-
--- ----------------------------
 -- Table structure for attachments
 -- ----------------------------
 DROP TABLE IF EXISTS `attachments`;
@@ -65,10 +61,6 @@ CREATE TABLE `attachments`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
--- Records of attachments
--- ----------------------------
-
--- ----------------------------
 -- Table structure for config
 -- ----------------------------
 DROP TABLE IF EXISTS `config`;
@@ -81,10 +73,6 @@ CREATE TABLE `config`  (
   CONSTRAINT `config_ibfk_1` FOREIGN KEY (`default_theme_id`) REFERENCES `themes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `config_chk_1` CHECK (`id` = 0)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of config
--- ----------------------------
 
 -- ----------------------------
 -- Table structure for favorites
@@ -103,10 +91,6 @@ CREATE TABLE `favorites`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
--- Records of favorites
--- ----------------------------
-
--- ----------------------------
 -- Table structure for files
 -- ----------------------------
 DROP TABLE IF EXISTS `files`;
@@ -120,10 +104,6 @@ CREATE TABLE `files`  (
   INDEX `uploader_id`(`uploader_id` ASC) USING BTREE,
   CONSTRAINT `files_ibfk_1` FOREIGN KEY (`uploader_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of files
--- ----------------------------
 
 -- ----------------------------
 -- Table structure for notifications
@@ -145,10 +125,6 @@ CREATE TABLE `notifications`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
--- Records of notifications
--- ----------------------------
-
--- ----------------------------
 -- Table structure for questions
 -- ----------------------------
 DROP TABLE IF EXISTS `questions`;
@@ -156,6 +132,7 @@ CREATE TABLE `questions`  (
   `id` int NOT NULL AUTO_INCREMENT COMMENT '问题ID',
   `src_user_id` int NOT NULL COMMENT '发起提问的用户ID',
   `dst_user_id` int NULL DEFAULT NULL COMMENT '被提问的用户ID，为空时问大家，不为空时问教师',
+  `title` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '问题标题',
   `contents` text CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '问题内容',
   `is_private` bit(1) NOT NULL COMMENT '是否私密提问，仅在问教师时可为是',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -170,11 +147,7 @@ CREATE TABLE `questions`  (
   CONSTRAINT `questions_ibfk_1` FOREIGN KEY (`src_user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `questions_ibfk_2` FOREIGN KEY (`dst_user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `questions_chk_1` CHECK ((`dst_user_id` is not null) or (`is_private` = 0))
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of questions
--- ----------------------------
+) ENGINE = InnoDB AUTO_INCREMENT = 1000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for teachers
@@ -190,10 +163,6 @@ CREATE TABLE `teachers`  (
   PRIMARY KEY (`id`) USING BTREE,
   CONSTRAINT `teachers_ibfk_1` FOREIGN KEY (`id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of teachers
--- ----------------------------
 
 -- ----------------------------
 -- Table structure for upvotes
@@ -212,11 +181,7 @@ CREATE TABLE `upvotes`  (
   CONSTRAINT `upvotes_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `upvotes_ibfk_3` FOREIGN KEY (`answer_id`) REFERENCES `answers` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `upvotes_chk_1` CHECK (((`question_id` is not null) + (`answer_id` is not null)) = 1)
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of upvotes
--- ----------------------------
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for users
@@ -242,36 +207,6 @@ CREATE TABLE `users`  (
   INDEX `avatar_file_id`(`avatar_file_id` ASC) USING BTREE,
   INDEX `theme_id`(`theme_id` ASC) USING BTREE,
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`avatar_file_id`) REFERENCES `files` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of users
--- ----------------------------
-
--- ----------------------------
--- Triggers structure for table upvotes
--- ----------------------------
-DROP TRIGGER IF EXISTS `ins_upvotes`;
-delimiter ;;
-CREATE TRIGGER `ins_upvotes` AFTER INSERT ON `upvotes` FOR EACH ROW IF NEW.question_id IS NOT NULL THEN
-  UPDATE questions SET upvotes=upvotes+1 WHERE id=NEW.question_id;
-ELSEIF NEW.answer_id IS NOT NULL THEN
-  UPDATE answers SET upvotes=upvotes+1 WHERE id=NEW.answer_id;
-END IF
-;;
-delimiter ;
-
--- ----------------------------
--- Triggers structure for table upvotes
--- ----------------------------
-DROP TRIGGER IF EXISTS `del_upvotes`;
-delimiter ;;
-CREATE TRIGGER `del_upvotes` AFTER DELETE ON `upvotes` FOR EACH ROW IF OLD.question_id IS NOT NULL THEN
-  UPDATE questions SET upvotes=upvotes-1 WHERE id=OLD.question_id;
-ELSEIF OLD.answer_id IS NOT NULL THEN
-  UPDATE answers SET upvotes=upvotes-1 WHERE id=OLD.answer_id;
-END IF
-;;
-delimiter ;
+) ENGINE = InnoDB AUTO_INCREMENT = 1000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 SET FOREIGN_KEY_CHECKS = 1;

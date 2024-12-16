@@ -23,6 +23,7 @@ type QuestionsColumns struct {
 	Id        string // 问题ID
 	SrcUserId string // 发起提问的用户ID
 	DstUserId string // 被提问的用户ID，为空时问大家，不为空时问教师
+	Title     string // 问题标题
 	Contents  string // 问题内容
 	IsPrivate string // 是否私密提问，仅在问教师时可为是
 	CreatedAt string // 创建时间
@@ -35,6 +36,7 @@ var questionsColumns = QuestionsColumns{
 	Id:        "id",
 	SrcUserId: "src_user_id",
 	DstUserId: "dst_user_id",
+	Title:     "title",
 	Contents:  "contents",
 	IsPrivate: "is_private",
 	CreatedAt: "created_at",

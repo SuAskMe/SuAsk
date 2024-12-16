@@ -7,16 +7,17 @@ import (
 
 type PublicQuestions struct {
 	g.Meta    `orm:"table:questions"`
-	Id        int         `json:"id"        orm:"id"          description:"问题ID"` // 问题ID
-	Contents  string      `json:"contents"  orm:"contents"    description:"问题内容"` // 问题内容
-	CreatedAt *gtime.Time `json:"createdAt" orm:"created_at"  description:"创建时间"` // 创建时间
-	Views     int         `json:"views"     orm:"views"       description:"浏览量"`  // 浏览量
-	Upvotes   int         `json:"upvotes"   orm:"upvotes"     description:"点赞量"`  // 点赞量
+	Id        int         `json:"id"        orm:"id"          description:"问题ID"`  // 问题ID
+	Title     string      `json:"title"     orm:"title"       description:"问题标题"`  // 问题标题
+	Contents  string      `json:"contents"  orm:"contents"    description:"问题内容"`  // 问题内容
+	CreatedAt *gtime.Time `json:"created_at" orm:"created_at"  description:"创建时间"` // 创建时间
+	Views     int         `json:"views"     orm:"views"       description:"浏览量"`   // 浏览量
+	Upvotes   int         `json:"upvotes"   orm:"upvotes"     description:"点赞量"`   // 点赞量
 
 	Images      []*Image          `json:"images"  orm:"with:question_id=id"`      // 图片附件
 	IsUpvoted   []*UserUpvotes    `json:"is_upvoted" orm:"with:question_id=id"`   // 是否点赞
 	IsFavorited []*UserFavorites  `json:"is_favorited" orm:"with:question_id=id"` // 是否收藏
-	Answers     []*QuestionAnwers `json:"answers"   orm:"where:question_id=id"`   // 回答
+	Answers     []*QuestionAnwers `json:"answers"   orm:"with:question_id=id"`    // 回答
 }
 
 type Image struct {
@@ -25,19 +26,13 @@ type Image struct {
 	FileID int    `json:"fileId" orm:"file_id"      description:"文件ID"` // 文件ID
 }
 
-type FileHash struct {
-	g.Meta `orm:"table:files"`
-	Name   string `json:"name"       orm:"name"        description:"文件名，不得包含非法字符例如斜杠"`  // 文件名，不得包含非法字符例如斜杠
-	Hash   []byte `json:"hash"       orm:"hash"        description:"文件哈希，算法暂定为BLAKE2b"` // 文件哈希，算法暂定为BLAKE2b
-}
-
 type UserUpvotes struct {
 	g.Meta `orm:"table:upvotes"`
 	UserID int `json:"userId"     orm:"user_id"     description:"用户ID"` // 用户ID
 }
 
 type UserFavorites struct {
-	g.Meta `orm:"table:favorites"`
+	g.Meta `orm:"table:favorite"`
 	UserID int `json:"userId"     orm:"user_id"     description:"用户ID"` // 用户ID
 }
 

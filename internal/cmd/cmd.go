@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"context"
+	"suask/internal/controller/favorite"
 	"suask/internal/controller/file"
+	"suask/internal/controller/hello"
+	"suask/internal/controller/questions"
 	"suask/internal/controller/register"
-	"suask/internal/controller/star"
 	"suask/internal/controller/user"
 	"suask/internal/service"
 
@@ -35,6 +37,9 @@ var (
 					register.Register,
 					user.User.GetUserInfoById,
 					file.File.GetFileById,
+					questions.PublicQuestions,
+					favorite.Favorite.GetFavorite,
+					favorite.Favorite.DelFavorite,
 				)
 				group.Group("/", func(group *ghttp.RouterGroup) {
 					err := gfToken.Middleware(ctx, group)
