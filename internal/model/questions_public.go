@@ -8,7 +8,6 @@ type PublicQuestion struct {
 	CreatedAt     int64    `json:"created_at"`
 	ImageURLs     []string `json:"image_urls"`
 	IsFavorited   bool     `json:"is_favorited"`
-	IsUpvoted     bool     `json:"is_upvoted"`
 	AnswerNum     int      `json:"answer_num"`
 	AnswerAvatars []string `json:"answer_avatars"`
 }
@@ -41,4 +40,8 @@ type GetKeywordsOutput struct {
 type FavoriteInput struct {
 	QuestionID int `json:"question_id"`
 	UserID     int `json:"user_id"`
+}
+
+type FavoriteOutput struct {
+	IsFavorited bool `json:"is_favorited"`
 }

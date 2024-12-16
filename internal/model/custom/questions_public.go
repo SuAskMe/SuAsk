@@ -14,10 +14,9 @@ type PublicQuestions struct {
 	Views     int         `json:"views"     orm:"views"       description:"浏览量"`   // 浏览量
 	Upvotes   int         `json:"upvotes"   orm:"upvotes"     description:"点赞量"`   // 点赞量
 
-	Images      []*Image          `json:"images"  orm:"with:question_id=id"`      // 图片附件
-	IsUpvoted   []*UserUpvotes    `json:"is_upvoted" orm:"with:question_id=id"`   // 是否点赞
-	IsFavorited []*UserFavorites  `json:"is_favorited" orm:"with:question_id=id"` // 是否收藏
-	Answers     []*QuestionAnwers `json:"answers"   orm:"with:question_id=id"`    // 回答
+	Images      []*Image          `json:"images"  orm:"with:question_id=id"`       // 图片附件
+	IsFavorited []*UserFavorites  `json:"is_favorited" orm:"where:question_id=id"` // 是否收藏
+	Answers     []*QuestionAnwers `json:"answers"   orm:"with:question_id=id"`     // 回答
 }
 
 type Image struct {
@@ -26,13 +25,8 @@ type Image struct {
 	FileID int    `json:"fileId" orm:"file_id"      description:"文件ID"` // 文件ID
 }
 
-type UserUpvotes struct {
-	g.Meta `orm:"table:upvotes"`
-	UserID int `json:"userId"     orm:"user_id"     description:"用户ID"` // 用户ID
-}
-
 type UserFavorites struct {
-	g.Meta `orm:"table:favorite"`
+	g.Meta `orm:"table:favorites"`
 	UserID int `json:"userId"     orm:"user_id"     description:"用户ID"` // 用户ID
 }
 

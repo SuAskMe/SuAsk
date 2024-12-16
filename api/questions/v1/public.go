@@ -52,7 +52,7 @@ type FavoriteReq struct {
 }
 
 type FavoriteRes struct {
-	Success bool `json:"success"`
+	IsFavorited bool `json:"is_favorited"`
 }
 
 // type UpvoteReq struct {
