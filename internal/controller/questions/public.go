@@ -16,7 +16,9 @@ var PublicQuestions = cPublicQuestions{}
 func (cPublicQuestions) Get(ctx context.Context, req *v1.GetPageReq) (res *v1.GetPageRes, err error) {
 	input := model.GetInput{}
 	gconv.Scan(req, &input)
+	// fmt.Println(input)
 	ouput, err := service.PublicQuestion().Get(ctx, &input)
+	// fmt.Println(err)
 	res = &v1.GetPageRes{
 		QuestionList: ouput.Questions,
 		RemainPage:   ouput.RemainPage,
@@ -46,10 +48,7 @@ func (cPublicQuestions) GetByKeyword(ctx context.Context, req *v1.GetPageByKeywo
 func (cPublicQuestions) Favorite(ctx context.Context, req *v1.FavoriteReq) (res *v1.FavoriteRes, err error) {
 	input := model.FavoriteInput{}
 	gconv.Scan(req, &input)
-	res = &v1.FavoriteRes{}
-	err = service.PublicQuestion().Favorite(ctx, &input)
-	if err == nil {
-		res.Success = true
-	}
+	output, err := service.PublicQuestion().Favorite(ctx, &input)
+	gconv.Scan(output, &res)
 	return
 }

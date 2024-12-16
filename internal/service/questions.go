@@ -14,7 +14,7 @@ type (
 	IPublicQuestion interface {
 		Get(ctx context.Context, input *model.GetInput) (*model.GetOutput, error)
 		GetKeyword(ctx context.Context, input *model.GetKeywordsInput) (*model.GetKeywordsOutput, error)
-		Favorite(ctx context.Context, input *model.FavoriteInput) error
+		Favorite(ctx context.Context, input *model.FavoriteInput) (*model.FavoriteOutput, error)
 	}
 )
 
