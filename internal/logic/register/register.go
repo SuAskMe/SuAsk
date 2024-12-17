@@ -2,14 +2,15 @@ package register
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/text/gstr"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/model/do"
 	"suask/internal/service"
 	"suask/utility/login"
+
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/text/gstr"
 
 	"github.com/gogf/gf/v2/util/grand"
 )
@@ -32,10 +33,10 @@ func (s *sRegister) Register(ctx context.Context, in model.RegisterInput) (out m
 
 	registerUser := do.Users{
 		Name:         in.Name,
-		Email:        in.Token,
-		Salt:         UserSalt,
+		Email:        in.Email,
+		Salt:         in.UserSalt,
 		PasswordHash: in.Password,
-		Role:         in.Role,
+		Role:         consts.STUDENT,
 		Nickname:     in.Name,
 		Introduction: "",
 		ThemeId:      consts.DefaultThemeId,
