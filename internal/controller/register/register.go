@@ -37,11 +37,17 @@ func (c *cRegister) SendVerificationCode(ctx context.Context, req *v1.SendVerifi
 		}
 		duplicated, _ := gcache.SetIfNotExist(ctx, req.Email, code, 5*time.Minute)
 		if !duplicated {
-			return nil, gerror.New("你的邮箱和别人重复了")
+			_, _, err := gcache.Update(ctx, req.Email, code)
+			if err != nil {
+				return nil, err
+			}
+			//return nil, gerror.New("你的邮箱和别人重复了")
 		}
 		codeTest = code
+	} else {
+		return nil, gerror.New("邮箱或用户名重复")
 	}
-	return &v1.SendVerificationCodeRes{EmailDuplicated: out.EmailDuplicated, NameDuplicated: out.NameDuplicated, Code: codeTest}, nil
+	return &v1.SendVerificationCodeRes{Code: codeTest}, nil
 }
 
 type VerifyClaims struct { // 对邮件验证的token
