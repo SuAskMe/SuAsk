@@ -20,7 +20,7 @@ type QuestionInfo struct {
 }
 
 type MyFavoriteQuestion struct {
-	g.Meta     `orm:"table:favorite"`
+	g.Meta     `orm:"table:favorites"`
 	QuestionId int         `json:"question_id"`
 	FavoriteAt *gtime.Time `json:"favorite_at"`
 
@@ -77,7 +77,7 @@ func (s *sFavorite) GetPageFavorite(ctx context.Context, in model.PageFavoriteQu
 }
 
 func (s *sFavorite) DeleteFavorite(ctx context.Context, in model.DeleteFavoriteInput) (out model.DeleteFavoriteOutput, err error) {
-	_, err = g.Model("favorite").Ctx(ctx).Where("id", in.Id).Delete()
+	_, err = dao.Favorites.Ctx(ctx).Where("id", in.Id).Delete()
 	if err != nil {
 		return model.DeleteFavoriteOutput{}, err
 	}
