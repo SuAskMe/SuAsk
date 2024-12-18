@@ -5,8 +5,6 @@ import (
 	v1 "suask/api/history/v1"
 	"suask/internal/model"
 	"suask/internal/service"
-
-	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type cHistory struct{}
@@ -21,10 +19,6 @@ func (cHistory) Get(cxt context.Context, req *v1.LoadHistoryQuestionReq) (res *v
 		Page:   req.Page,
 	}
 
-	err = gconv.Scan(req, &in)
-	if err != nil {
-		return nil, err
-	}
 	// 使用接口中的注册接口方法调用login中的逻辑函数
 	out, err := service.HistoryOperation().LoadHistoryInfo(cxt, &in)
 	if err != nil {
