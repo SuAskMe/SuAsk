@@ -15,7 +15,7 @@ var History = cHistory{}
 
 func (cHistory) Get(cxt context.Context, req *v1.LoadHistoryQuestionReq) (res *v1.LoadHistoryQuestionRes, err error) {
 	//userId = gconv.Int(ctx.Value(consts.CtxId))
-	userId := 160
+	userId := 1
 	in := model.GetHistoryInput{
 		UserId: userId,
 		Page:   req.Page,
