@@ -39,25 +39,3 @@ type MultiQueryQuestions struct {
 	Views     int             `json:"views"     orm:"views"       description:"浏览量"`
 	Images    []*custom.Image `json:"images"  orm:"with:question_id=id" description:"图片信息"`
 }
-
-// // “获取历史问题”相关结构体
-// type PageHistoryQuestionInPut struct {
-// 	Id      int `json:"id" v:"required" dc:"用户ID"`
-// 	PageIdx int `json:"page_idx"`
-// }
-
-// type PageHistoryQuestionOutPut struct {
-// 	PageHistoryQuestionList []HistoryQuestion `json:"page_history_question_list" dc:"返回收藏问题列表"`
-// 	Total                   int               `json:"total" dc:"总问题数"`
-// 	Size                    int               `json:"size" dc:"每页问题数"`
-// 	PageNum                 int               `json:"page_num" dc:"总页数"`
-// 	RemainPage              int               `json:"remain_page" dc:"剩余页数"`
-// }
-
-// type HistoryQuestion struct {
-// 	ID        int         `json:"id" dc:"问题ID"`
-// 	Title     string      `json:"title" dc:"标题"`
-// 	Contents  string      `json:"contents" dc:"问题内容"`
-// 	Views     int         `json:"views" dc:"浏览量"`
-// 	CreatedAt *gtime.Time `json:"created_at" dc:"收藏时间"`
-// }
