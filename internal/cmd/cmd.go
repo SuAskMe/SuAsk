@@ -5,6 +5,7 @@ import (
 	"suask/internal/controller/favorite"
 	"suask/internal/controller/file"
 	"suask/internal/controller/hello"
+	"suask/internal/controller/history"
 	"suask/internal/controller/questions"
 	"suask/internal/controller/register"
 	"suask/internal/controller/user"
@@ -41,6 +42,8 @@ var (
 					favorite.Favorite.GetFavorite,
 					favorite.Favorite.GetPageFavorite,
 					favorite.Favorite.DelFavorite,
+					// test
+					history.History.Get,
 				)
 				group.Group("/", func(group *ghttp.RouterGroup) {
 					err := gfToken.Middleware(ctx, group)
