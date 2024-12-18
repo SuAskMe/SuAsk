@@ -14,8 +14,13 @@ type cHistory struct{}
 var History = cHistory{}
 
 func (cHistory) Get(cxt context.Context, req *v1.LoadHistoryQuestionReq) (res *v1.LoadHistoryQuestionRes, err error) {
-	// 声明与数据库交互的in结构体
-	in := model.GetHistoryInput{}
+	//userId = gconv.Int(ctx.Value(consts.CtxId))
+	userId := 160
+	in := model.GetHistoryInput{
+		UserId: userId,
+		Page:   req.Page,
+	}
+
 	err = gconv.Scan(req, &in)
 	if err != nil {
 		return nil, err
