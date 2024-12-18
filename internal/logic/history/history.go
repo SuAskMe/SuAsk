@@ -2,9 +2,11 @@ package history
 
 import (
 	"context"
+	"math"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
+	"suask/internal/model/do"
 	"suask/internal/service"
 )
 
@@ -57,6 +59,7 @@ func (sHistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHisto
 	for i := range mqq {
 		mhq[i] = model.MyHistoryQuestion{
 			Id:        mqq[i].Id,              //int
+			Title:     mqq[i].Title,           //string
 			Contents:  mqq[i].Contents,        //string
 			CreatedAt: mqq[i].CreatedAt,       //*gtime.Time
 			Views:     mqq[i].Views,           //int
@@ -72,28 +75,22 @@ func (sHistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHisto
 	if remainNum%consts.NumOfQuestionsPerPage > 0 {
 		remain += 1
 	}
+
+	limit := 10
+	total, err := dao.Questions.Ctx(ctx).Where(do.Questions{SrcUserId: in.UserId}).Count()
+	pageNum := math.Ceil(float64(total) / float64(limit))
+	remain = int(pageNum) - in.Page
+
 	ultimate_out := model.GetHistoryOutput{
 		Question:   mhq,
+		Total:      total,
+		Size:       limit,
+		PageNum:    int(pageNum),
 		RemainPage: remain,
 	}
 
 	return &ultimate_out, nil
 }
-
-// // 辅助函数仅通过文件id得到图片url
-// func (h HistoryOperation) GetUrlUseFileId(ctx context.Context, id int) (out string, err error) {
-// 	file := entity.Files{}
-// 	err = dao.Files.Ctx(ctx).Where(dao.Files.Columns().Id, id).Scan(&file)
-// 	if err != nil {
-// 		return "", fmt.Errorf("无法查询文件记录：%w", err)
-// 	}
-// 	URL, err := files.GetURL(file.Hash, file.Name)
-// 	if err != nil {
-// 		return "", fmt.Errorf("生成文件 URL 失败：%w", err)
-// 	}
-
-// 	return URL, nil
-// }
 
 func init() {
 	service.RegisterHistoryOperation(New())

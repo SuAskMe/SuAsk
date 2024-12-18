@@ -14,5 +14,8 @@ type LoadHistoryQuestionReq struct {
 
 type LoadHistoryQuestionRes struct {
 	HistoryQuestionList []model.MyHistoryQuestion `json:"question_list" dc:"后端返回的历史提问列表"`
-	RemainPage          int                       `json:"remain_page" dc:"剩余页码数量"`
+	Total               int                       `json:"total" dc:"总问题数"`
+	Size                int                       `json:"size" dc:"每页问题数"`
+	RemainPage          int                       `json:"remain_page" dc:"剩余页数"`
+	PageNum             int                       `json:"page_num" dc:"总页数"`
 }
