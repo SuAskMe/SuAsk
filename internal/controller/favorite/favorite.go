@@ -35,3 +35,23 @@ func (c *cFavorite) GetFavorite(ctx context.Context, req *v1.FavoriteReq) (res *
 	res = &v1.FavoriteRes{FavoriteQuestionList: out.FavoriteQuestionList}
 	return res, err
 }
+
+func (c *cFavorite) GetPageFavorite(ctx context.Context, req *v1.PageFavoriteReq) (res *v1.PageFavoriteRes, err error) {
+	//userId = gconv.Int(ctx.Value(consts.CtxId))
+	userId := 1 // 测试用
+	in := model.PageFavoriteQuestionInPut{
+		Id:      userId,
+		PageIdx: req.PageIdx,
+	}
+
+	out, err := service.Favorite().GetPageFavorite(ctx, in)
+
+	res = &v1.PageFavoriteRes{
+		PageFavoriteQuestionList: out.PageFavoriteQuestionList,
+		Total:                    out.Total,
+		Size:                     out.Size,
+		PageNum:                  out.PageNum,
+		RemainPage:               out.RemainPage,
+	}
+	return res, err
+}

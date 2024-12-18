@@ -13,6 +13,7 @@ import (
 type (
 	IFavorite interface {
 		GetFavorite(ctx context.Context, id int) (out model.FavoriteQuestionOutPut, err error)
+		GetPageFavorite(ctx context.Context, in model.PageFavoriteQuestionInPut) (out model.PageFavoriteQuestionOutPut, err error)
 		DeleteFavorite(ctx context.Context, in model.DeleteFavoriteInput) (out model.DeleteFavoriteOutput, err error)
 	}
 )
