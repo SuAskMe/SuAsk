@@ -39,6 +39,7 @@ var (
 					file.File.GetFileById,
 					questions.PublicQuestions,
 					favorite.Favorite.GetFavorite,
+					favorite.Favorite.GetPageFavorite,
 					favorite.Favorite.DelFavorite,
 				)
 				group.Group("/", func(group *ghttp.RouterGroup) {

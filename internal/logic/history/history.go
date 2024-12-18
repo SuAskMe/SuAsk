@@ -8,10 +8,10 @@ import (
 	"suask/internal/service"
 )
 
-type HistoryOperation struct{}
+type sHistoryOperation struct{}
 
 // 查找历史提问模块需要的信息
-func (h HistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHistoryInput) (out *model.GetHistoryOutput, err error) {
+func (sHistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHistoryInput) (out *model.GetHistoryOutput, err error) {
 
 	// 得到用户提问的所有提问记录
 	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().SrcUserId, in.UserId)
@@ -96,9 +96,9 @@ func (h HistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHist
 // }
 
 func init() {
-	//service.RegisterHistory(New())
+	service.RegisterHistoryOperation(New())
 }
 
-func New() *HistoryOperation {
-	return &HistoryOperation{}
+func New() *sHistoryOperation {
+	return &sHistoryOperation{}
 }

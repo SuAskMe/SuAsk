@@ -68,17 +68,19 @@ func (sPublicQuestion) Get(ctx context.Context, input *model.GetInput) (*model.G
 	}
 	qList := md.Page(input.Page, consts.NumOfQuestionsPerPage)
 	qList = qList.WithAll()
-	qList = qList.Where(custom.UserUpvotes{UserID: input.UserID}).Where(custom.UserFavorites{UserID: input.UserID})
+	qList = qList.Where(custom.UserFavorites{UserID: input.UserID})
 	err := sortByType(&qList, input.SortType)
 	if err != nil {
 		return nil, err
 	}
 	err = qList.Scan(&q)
 	if err != nil {
+		// fmt.Println(err)
 		return nil, err
 	}
 	pqs := make([]model.PublicQuestion, len(q))
 	for i, pq := range q {
+		// fmt.Println(pq)
 		pqs[i] = model.PublicQuestion{
 			ID:            pq.Id,
 			Title:         pq.Title,
@@ -87,11 +89,11 @@ func (sPublicQuestion) Get(ctx context.Context, input *model.GetInput) (*model.G
 			Views:         pq.Views,
 			ImageURLs:     nil,
 			IsFavorited:   len(pq.IsFavorited) == 1,
-			IsUpvoted:     len(pq.IsUpvoted) == 1,
 			AnswerNum:     len(pq.Answers),
 			AnswerAvatars: nil,
 		}
 	}
+	// fmt.Println(pqs)
 	remain, err := md.Count()
 	if err != nil {
 		return nil, err
@@ -101,6 +103,7 @@ func (sPublicQuestion) Get(ctx context.Context, input *model.GetInput) (*model.G
 	if remainNum%consts.NumOfQuestionsPerPage > 0 {
 		remain += 1
 	}
+	// fmt.Println(remain)
 	output := model.GetOutput{
 		Questions:  pqs,
 		RemainPage: remain,
@@ -126,20 +129,32 @@ func (sPublicQuestion) GetKeyword(ctx context.Context, input *model.GetKeywordsI
 	return output, nil
 }
 
-func (sPublicQuestion) Favorite(ctx context.Context, input *model.FavoriteInput) error {
+func (sPublicQuestion) Favorite(ctx context.Context, input *model.FavoriteInput) (*model.FavoriteOutput, error) {
 	md := dao.Favorites.Ctx(ctx)
 	cnt, err := md.Where("user_id = ? AND question_id = ?", input.UserID, input.QuestionID).Count()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if cnt > 0 {
-		return fmt.Errorf("already favorited")
+		_, err = md.Delete("user_id = ? AND question_id = ?", input.UserID, input.QuestionID)
+		if err != nil {
+			return nil, err
+		}
+		return &model.FavoriteOutput{
+			IsFavorited: false,
+		}, nil
+	} else {
+		_, err = md.Insert(g.Map{
+			"user_id":     input.UserID,
+			"question_id": input.QuestionID,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return &model.FavoriteOutput{
+			IsFavorited: true,
+		}, nil
 	}
-	_, err = md.Insert(g.Map{
-		"user_id":     input.UserID,
-		"question_id": input.QuestionID,
-	})
-	return err
 }
 
 func init() {

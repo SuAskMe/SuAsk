@@ -21,7 +21,7 @@ func (cHistory) Get(cxt context.Context, req *v1.LoadHistoryQuestionReq) (res *v
 		return nil, err
 	}
 	// 使用接口中的注册接口方法调用login中的逻辑函数
-	out, err := service.History().LoadHistoryInfo(cxt, &in)
+	out, err := service.HistoryOperation().LoadHistoryInfo(cxt, &in)
 	if err != nil {
 		return nil, err
 	}

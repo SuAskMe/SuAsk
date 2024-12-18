@@ -11,14 +11,14 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 )
 
-// FavoritesDao is the data access object for table favorite.
+// FavoritesDao is the data access object for table favorites.
 type FavoritesDao struct {
 	table   string           // table is the underlying table name of the DAO.
 	group   string           // group is the database configuration group name of current DAO.
 	columns FavoritesColumns // columns contains all the column names of Table for convenient usage.
 }
 
-// FavoritesColumns defines and stores column names for table favorite.
+// FavoritesColumns defines and stores column names for table favorites.
 type FavoritesColumns struct {
 	Id         string // 收藏（置顶）ID
 	UserId     string // 用户ID
@@ -26,7 +26,7 @@ type FavoritesColumns struct {
 	CreatedAt  string // 创建时间
 }
 
-// favoritesColumns holds the columns for table favorite.
+// favoritesColumns holds the columns for table favorites.
 var favoritesColumns = FavoritesColumns{
 	Id:         "id",
 	UserId:     "user_id",
@@ -38,7 +38,7 @@ var favoritesColumns = FavoritesColumns{
 func NewFavoritesDao() *FavoritesDao {
 	return &FavoritesDao{
 		group:   "default",
-		table:   "favorite",
+		table:   "favorites",
 		columns: favoritesColumns,
 	}
 }
