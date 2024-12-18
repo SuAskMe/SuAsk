@@ -27,6 +27,9 @@ func (cHistory) Get(cxt context.Context, req *v1.LoadHistoryQuestionReq) (res *v
 	}
 	res = &v1.LoadHistoryQuestionRes{
 		HistoryQuestionList: out.Question,
+		Total:               out.Total,
+		Size:                out.Size,
+		PageNum:             out.PageNum,
 		RemainPage:          out.RemainPage,
 	}
 	return
