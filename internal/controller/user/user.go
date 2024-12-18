@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/util/gconv"
 	v1 "suask/api/user/v1"
 	"suask/internal/consts"
@@ -55,7 +56,7 @@ func (c *cUser) GetUserInfoById(ctx context.Context, req *v1.UserInfoByIdReq) (r
 	UserId := model.UserInfoInput{Id: req.Id}
 	out, err := service.User().GetUser(ctx, UserId)
 	if err != nil {
-		return nil, err
+		return nil, gerror.New("没有该用户")
 	}
 	res = &v1.UserInfoByIdRes{}
 	res.Id = out.Id
@@ -65,12 +66,14 @@ func (c *cUser) GetUserInfoById(ctx context.Context, req *v1.UserInfoByIdReq) (r
 	res.Introduction = out.Introduction
 	avatarId := out.AvatarFileId
 	if avatarId != 0 {
-		file, err1 := service.File().Get(ctx, model.FileGetInput{Id: avatarId})
-		if err1 != nil {
-			return nil, err1
+		file, err := service.File().Get(ctx, model.FileGetInput{Id: avatarId})
+		if err != nil {
+			return nil, err
 		}
 		avatarURL := file.URL
 		res.UserInfoBase.AvatarURL = avatarURL
+	} else {
+		res.AvatarURL = consts.DefaultAvatarURL
 	}
 	return res, nil
 }
