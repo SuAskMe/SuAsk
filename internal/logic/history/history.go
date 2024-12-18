@@ -66,20 +66,14 @@ func (sHistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHisto
 			ImageURLs: imageUrlMap[mqq[i].Id], //[]string
 		}
 	}
-	remain, err := md.Count()
-	if err != nil {
-		return nil, err
-	}
-	remainNum := remain - consts.NumOfQuestionsPerPage*in.Page
-	remain = remainNum / consts.NumOfQuestionsPerPage
-	if remainNum%consts.NumOfQuestionsPerPage > 0 {
-		remain += 1
-	}
 
 	limit := 10
 	total, err := dao.Questions.Ctx(ctx).Where(do.Questions{SrcUserId: in.UserId}).Count()
+	if err != nil {
+		return nil, err
+	}
 	pageNum := math.Ceil(float64(total) / float64(limit))
-	remain = int(pageNum) - in.Page
+	remain := int(pageNum) - in.Page
 
 	ultimate_out := model.GetHistoryOutput{
 		Question:   mhq,
