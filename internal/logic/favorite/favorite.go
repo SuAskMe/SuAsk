@@ -49,7 +49,7 @@ func (s *sFavorite) GetFavorite(ctx context.Context, id int) (out model.Favorite
 
 func (s *sFavorite) GetPageFavorite(ctx context.Context, in model.PageFavoriteQuestionInPut) (out model.PageFavoriteQuestionOutPut, err error) {
 	var pageFavorite []*MyFavoriteQuestion
-	limit := 5 // 后续写入全局参数
+	limit := 10 // 后续写入全局参数
 	err = dao.Favorites.Ctx(ctx).With(QuestionInfo{}).Where(do.Favorites{UserId: in.Id}).Page(in.PageIdx, limit).Scan(&pageFavorite)
 
 	var list []model.FavoriteQuestion
