@@ -60,7 +60,7 @@ func TruncateString(s string) string {
 	return s
 }
 
-func (sPublicQuestion) Get(ctx context.Context, input *model.GetInput) (*model.GetOutput, error) {
+func (sPublicQuestion) GetBase(ctx context.Context, input *model.GetBaseInput) (*model.GetBaseOutput, error) {
 	md := dao.Questions.Ctx(ctx).WhereNull("dst_user_id")
 	if input.Keyword != "" {
 		md = md.Where("title LIKE?", "%"+input.Keyword+"%")
@@ -100,26 +100,78 @@ func (sPublicQuestion) Get(ctx context.Context, input *model.GetInput) (*model.G
 	for i, pq := range q {
 		idMap[pq.Id] = i
 		pqs[i] = model.PublicQuestion{
-			ID:            pq.Id,
-			Title:         pq.Title,
-			Content:       TruncateString(pq.Contents),
-			CreatedAt:     pq.CreatedAt.TimestampMilli(),
-			Views:         pq.Views,
-			ImageURLs:     nil,
-			IsFavorited:   false,
-			AnswerNum:     len(pq.Answers),
-			AnswerAvatars: nil,
+			ID:        pq.Id,
+			Title:     pq.Title,
+			Content:   TruncateString(pq.Contents),
+			CreatedAt: pq.CreatedAt.TimestampMilli(),
+			Views:     pq.Views,
 		}
 	}
 	for _, f := range fav { // 填充IsFavorited字段
 		pqs[idMap[f.QuestionId]].IsFavorited = true
 	}
 
-	output := model.GetOutput{
-		Questions:  pqs,
-		RemainPage: remain,
+	output := model.GetBaseOutput{
+		QuestionIDs: qIDs,
+		IdMap:       idMap,
+		Questions:   pqs,
+		RemainPage:  remain,
 	}
 	return &output, nil
+}
+
+func (sPublicQuestion) GetImages(ctx context.Context, input *model.GetImagesInput) (*model.GetImagesOutput, error) {
+	md := dao.Attachments.Ctx(ctx).Where("question_id IN (?)", input.QuestionIDs)
+	var Images []*custom.Image
+	err := md.Scan(&Images)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(Images)
+	imageMap := make(map[int][]int)
+	for _, img := range Images {
+		if _, ok := imageMap[img.QuestionId]; !ok {
+			imageMap[img.QuestionId] = make([]int, 0, 8)
+		}
+		imageMap[img.QuestionId] = append(imageMap[img.QuestionId], img.FileID)
+	}
+	output := model.GetImagesOutput{
+		ImageMap: imageMap,
+	}
+	return &output, nil
+}
+
+func (sPublicQuestion) GetAnswers(ctx context.Context, input *model.GetAnswersInput) (*model.GetAnswersOutput, error) {
+	db := g.DB()
+	res, err := db.GetAll(ctx, "SELECT COUNT(1) as cnt, question_id FROM `answers` WHERE question_id IN (?) GROUP BY `question_id`;", input.QuestionIDs)
+	if err != nil {
+		return nil, err
+	}
+	countMap := make(map[int]int)
+	for _, row := range res {
+		countMap[row["question_id"].Int()] = row["cnt"].Int()
+	}
+
+	sqlStr := `
+SELECT al.question_id, u.avatar_file_id
+FROM (	SELECT user_id, question_id, ROW_NUMBER() OVER (PARTITION BY question_id) as rowCnt 
+		FROM answers WHERE question_id IN (?) ) al, users u
+WHERE al.rowCnt <= 5 AND al.user_id = u.id;`
+	res, err = db.GetAll(ctx, sqlStr, input.QuestionIDs)
+	if err != nil {
+		return nil, err
+	}
+	avatarsMap := make(map[int][]int)
+	for _, row := range res {
+		if _, ok := avatarsMap[row["question_id"].Int()]; !ok {
+			avatarsMap[row["question_id"].Int()] = make([]int, 0, 5)
+		}
+		avatarsMap[row["question_id"].Int()] = append(avatarsMap[row["question_id"].Int()], row["avatar_file_id"].Int())
+	}
+	return &model.GetAnswersOutput{
+		CountMap:   countMap,
+		AvatarsMap: avatarsMap,
+	}, nil
 }
 
 func (sPublicQuestion) GetKeyword(ctx context.Context, input *model.GetKeywordsInput) (*model.GetKeywordsOutput, error) {
