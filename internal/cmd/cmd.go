@@ -38,6 +38,7 @@ var (
 					register.Register,
 					user.User.GetUserInfoById,
 					file.File.GetFileById,
+					file.File.GetFileList,
 					questions.PublicQuestions,
 					favorite.Favorite.GetFavorite,
 					favorite.Favorite.GetPageFavorite,

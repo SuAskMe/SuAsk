@@ -14,6 +14,7 @@ type (
 	IFile interface {
 		UploadFile(ctx context.Context, in model.FileUploadInput) (out *model.FileUploadOutput, err error)
 		Get(ctx context.Context, in model.FileGetInput) (out model.FileGetOutput, err error)
+		GetList(ctx context.Context, in model.FileListGetInput) (out model.FileListGetOutput, err error)
 	}
 )
 

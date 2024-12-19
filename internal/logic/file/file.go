@@ -102,6 +102,26 @@ func (s *sFile) Get(ctx context.Context, in model.FileGetInput) (out model.FileG
 	return out, nil
 }
 
+func (s *sFile) GetList(ctx context.Context, in model.FileListGetInput) (out model.FileListGetOutput, err error) {
+	var fileList []entity.Files
+	err = dao.Files.Ctx(ctx).WhereIn(dao.Files.Columns().Id, in.IdList).Order(dao.Files.Columns().Id).Scan(&fileList)
+	if err != nil {
+		return model.FileListGetOutput{}, err
+	}
+	out = model.FileListGetOutput{}
+	for _, file := range fileList {
+		out.Name = append(out.Name, file.Name)
+		URL, err := files.GetURL(file.Hash, file.Name)
+		if err != nil {
+			return model.FileListGetOutput{}, err
+		}
+		out.URL = append(out.URL, URL)
+		out.UploaderId = append(out.UploaderId, file.UploaderId)
+		out.CreatedAt = append(out.CreatedAt, file.CreatedAt)
+	}
+	return out, nil
+}
+
 func init() {
 	service.RegisterFile(New())
 }

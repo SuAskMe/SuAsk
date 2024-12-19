@@ -26,3 +26,14 @@ type FileGetOutput struct {
 	UploaderId int         `json:"uploader_id" orm:"uploader_id"`
 	CreatedAt  *gtime.Time `json:"created_at" orm:"created_at"`
 }
+
+type FileListGetInput struct {
+	IdList []int `json:"id"`
+}
+
+type FileListGetOutput struct {
+	Name       []string      `json:"name"`
+	URL        []string      `json:"url"`
+	UploaderId []int         `json:"uploader_id"`
+	CreatedAt  []*gtime.Time `json:"created_at"`
+}
