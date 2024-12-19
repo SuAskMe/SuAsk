@@ -22,15 +22,15 @@ func (c *cUser) UpdateUserInfo(ctx context.Context, req *v1.UpdateUserReq) (res 
 		return nil, err
 	}
 	// 上传头像
-	if req.AvatarFile != nil {
-		avatarFile := model.FileUploadInput{File: req.AvatarFile}
-		data, err := service.File().UploadFile(ctx, avatarFile)
-		if err != nil {
-			return nil, err
-		}
-		avatarId := data.Id
-		userInfo.AvatarFileId = avatarId
-	}
+	//if req.AvatarFile != nil {
+	//	avatarFile := model.FileUploadInput{File: req.AvatarFile}
+	//	data, err := service.File().UploadFile(ctx, avatarFile)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	avatarId := data.Id
+	//	userInfo.AvatarFileId = avatarId
+	//}
 	out, err := service.User().UpdateUser(ctx, userInfo)
 	if err != nil {
 		return nil, err
