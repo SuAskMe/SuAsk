@@ -61,26 +61,44 @@ func TruncateString(s string) string {
 }
 
 func (sPublicQuestion) Get(ctx context.Context, input *model.GetInput) (*model.GetOutput, error) {
-	var q []*custom.PublicQuestions
 	md := dao.Questions.Ctx(ctx).WhereNull("dst_user_id")
 	if input.Keyword != "" {
 		md = md.Where("title LIKE?", "%"+input.Keyword+"%")
 	}
-	qList := md.Page(input.Page, consts.NumOfQuestionsPerPage)
-	qList = qList.WithAll()
-	qList = qList.Where(custom.UserFavorites{UserID: input.UserID})
-	err := sortByType(&qList, input.SortType)
+	md = md.Page(input.Page, consts.NumOfQuestionsPerPage)
+	md = md.WithAll()
+	err := sortByType(&md, input.SortType)
 	if err != nil {
 		return nil, err
 	}
-	err = qList.Scan(&q)
+	var q []*custom.PublicQuestions
+	var remain int
+	err = md.ScanAndCount(&q, &remain, true) // 先查不包含favorites的结果
 	if err != nil {
-		// fmt.Println(err)
 		return nil, err
 	}
-	pqs := make([]model.PublicQuestion, len(q))
+	// 计算剩余页数
+	remainNum := remain - consts.NumOfQuestionsPerPage*input.Page
+	remain = remainNum / consts.NumOfQuestionsPerPage
+	if remainNum%consts.NumOfQuestionsPerPage > 0 {
+		remain += 1
+	}
+	// 获取问题ID列表 （官方的静态联表也是这么做的）
+	qIDs := make([]int, len(q))
 	for i, pq := range q {
-		// fmt.Println(pq)
+		qIDs[i] = pq.Id
+	}
+	var fav []*custom.MyFavorites
+	md = dao.Favorites.Ctx(ctx).Where("question_id IN (?) AND user_id = ?", qIDs, input.UserID)
+	err = md.Scan(&fav) // 再查favorites
+	if err != nil {
+		return nil, err
+	}
+
+	pqs := make([]model.PublicQuestion, len(q)) // 用于存放最终结果
+	idMap := make(map[int]int)                  // 用于快速查找问题ID对应的索引
+	for i, pq := range q {
+		idMap[pq.Id] = i
 		pqs[i] = model.PublicQuestion{
 			ID:            pq.Id,
 			Title:         pq.Title,
@@ -88,22 +106,15 @@ func (sPublicQuestion) Get(ctx context.Context, input *model.GetInput) (*model.G
 			CreatedAt:     pq.CreatedAt.TimestampMilli(),
 			Views:         pq.Views,
 			ImageURLs:     nil,
-			IsFavorited:   len(pq.IsFavorited) == 1,
+			IsFavorited:   false,
 			AnswerNum:     len(pq.Answers),
 			AnswerAvatars: nil,
 		}
 	}
-	// fmt.Println(pqs)
-	remain, err := md.Count()
-	if err != nil {
-		return nil, err
+	for _, f := range fav { // 填充IsFavorited字段
+		pqs[idMap[f.QuestionId]].IsFavorited = true
 	}
-	remainNum := remain - consts.NumOfQuestionsPerPage*input.Page
-	remain = remainNum / consts.NumOfQuestionsPerPage
-	if remainNum%consts.NumOfQuestionsPerPage > 0 {
-		remain += 1
-	}
-	// fmt.Println(remain)
+
 	output := model.GetOutput{
 		Questions:  pqs,
 		RemainPage: remain,
