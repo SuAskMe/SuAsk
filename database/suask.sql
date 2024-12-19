@@ -83,6 +83,7 @@ CREATE TABLE `favorites`  (
   `user_id` int NOT NULL COMMENT '用户ID',
   `question_id` int NOT NULL COMMENT '问题ID',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `package` varchar(50) COLLATE utf8mb4_zh_0900_as_cs NOT NULL DEFAULT '默认收藏夹' COMMENT '收藏夹',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `user_id`(`user_id` ASC, `question_id` ASC) USING BTREE COMMENT '每个用户收藏同个问题最多一次',
   INDEX `question_id`(`question_id` ASC) USING BTREE,
