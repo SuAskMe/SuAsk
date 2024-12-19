@@ -28,3 +28,15 @@ type GetFileRes struct {
 	UploaderId int         `json:"uploader_id" dc:"文件上传者的id"`
 	CreatedAt  *gtime.Time `json:"created_at" dc:"文件的上传时间"`
 }
+
+type GetFileListReq struct {
+	g.Meta `path:"/file-list" method:"get" tags:"Files" summary:"通过文件IdList获取文件"`
+	Id     []int `json:"id"`
+}
+
+type GetFileListRes struct {
+	URL        []string      `json:"url" dc:"文件的URl"`
+	Name       []string      `json:"name" dc:"文件原始名称"`
+	UploaderId []int         `json:"uploader_id" dc:"文件上传者的id"`
+	CreatedAt  []*gtime.Time `json:"created_at" dc:"文件的上传时间"`
+}
