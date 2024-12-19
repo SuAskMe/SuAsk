@@ -51,11 +51,17 @@ func (s *sFile) UploadFile(ctx context.Context, in model.FileUploadInput) (out *
 		files.HashToString(fileHash)[0:2],
 		files.HashToString(fileHash)[2:4],
 	)
+	oldName := in.File.Filename
+	newName, err := files.RenameFiles(fileHash, in.File.Filename)
+	if err != nil {
+		return nil, err
+	}
+	in.File.Filename = newName
 	_, err = in.File.Save(filePath, false)
 	if err != nil {
 		return nil, err
 	}
-	fileName := in.File.Filename
+	fileName := oldName
 	// 入库
 	data := do.Files{
 		Name:       fileName,

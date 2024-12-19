@@ -41,7 +41,7 @@ func dataReturn(r *ghttp.Request, code int, req ...interface{}) *JsonRes {
 		data = req[1]
 	}
 	if code != 1 && !gconv.Bool(r.GetCtxVar("api_code")) {
-		code = 0
+		code = 50
 	}
 	response := &JsonRes{
 		Code:    code,
