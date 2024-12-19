@@ -2,6 +2,7 @@ package file
 
 import (
 	"context"
+	"fmt"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gfile"
@@ -104,20 +105,27 @@ func (s *sFile) Get(ctx context.Context, in model.FileGetInput) (out model.FileG
 
 func (s *sFile) GetList(ctx context.Context, in model.FileListGetInput) (out model.FileListGetOutput, err error) {
 	var fileList []entity.Files
-	err = dao.Files.Ctx(ctx).WhereIn(dao.Files.Columns().Id, in.IdList).Order(dao.Files.Columns().Id).Scan(&fileList)
+	var count int
+	err = dao.Files.Ctx(ctx).WhereIn(dao.Files.Columns().Id, in.IdList).Order(dao.Files.Columns().Id).ScanAndCount(&fileList, &count, false)
 	if err != nil {
 		return model.FileListGetOutput{}, err
 	}
-	out = model.FileListGetOutput{}
-	for _, file := range fileList {
-		out.Name = append(out.Name, file.Name)
+	fmt.Println(count)
+	out = model.FileListGetOutput{
+		Name:       make([]string, count),
+		URL:        make([]string, count),
+		UploaderId: make([]int, count),
+		CreatedAt:  make([]*gtime.Time, count),
+	}
+	for index, file := range fileList {
+		out.Name[index] = file.Name
 		URL, err := files.GetURL(file.Hash, file.Name)
 		if err != nil {
 			return model.FileListGetOutput{}, err
 		}
-		out.URL = append(out.URL, URL)
-		out.UploaderId = append(out.UploaderId, file.UploaderId)
-		out.CreatedAt = append(out.CreatedAt, file.CreatedAt)
+		out.URL[index] = URL
+		out.UploaderId[index] = file.UploaderId
+		out.CreatedAt[index] = file.CreatedAt
 	}
 	return out, nil
 }
