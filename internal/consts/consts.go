@@ -1,7 +1,7 @@
 package consts
 
 const (
-	DefaultAvatarURL      = "/src/assets/default_avatar.png"
+	DefaultAvatarURL      = "default-avatar"
 	NumOfQuestionsPerPage = 30
 	SortByTimeDsc         = 0
 	SortByTimeAsc         = 1
