@@ -26,10 +26,12 @@ type QuestionAnswers struct {
 	g.Meta `orm:"table:answers"`
 	Id     int          `orm:"id"          description:"回答ID"`    // 回答ID
 	Users  *AnswerUsers `orm:"with:user_id=id" description:"回答者"` // 回答者
+
 }
 
 type AnswerUsers struct {
 	g.Meta `orm:"table:users"`
+	Id     int `orm:"id"         `
 	Avatar int `orm:"avatar_file_id" description:"回答者头像文件ID"` // 回答者头像文件ID
 }
 
