@@ -11,7 +11,7 @@
  Target Server Version : 80403
  File Encoding         : 65001
 
- Date: 16/12/2024 11:28:06
+ Date: 20/12/2024 15:31:08
 */
 
 SET NAMES utf8mb4;
@@ -138,17 +138,15 @@ CREATE TABLE `questions`  (
   `is_private` bit(1) NOT NULL COMMENT '是否私密提问，仅在问教师时可为是',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `views` int NOT NULL DEFAULT 0 COMMENT '浏览量',
-  `upvotes` int NOT NULL DEFAULT 0 COMMENT '点赞量',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `src_user_id`(`src_user_id` ASC) USING BTREE,
   INDEX `dst_user_id`(`dst_user_id` ASC) USING BTREE,
   INDEX `views`(`views` DESC) USING BTREE COMMENT '按浏览量降序索引',
-  INDEX `upvotes`(`upvotes` DESC) USING BTREE COMMENT '按点赞量降序索引',
   FULLTEXT INDEX `contents`(`contents`) WITH PARSER `ngram` COMMENT '内容支持全文搜索，使用ngram parser以支持中文，默认token size为2',
   CONSTRAINT `questions_ibfk_1` FOREIGN KEY (`src_user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `questions_ibfk_2` FOREIGN KEY (`dst_user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `questions_chk_1` CHECK ((`dst_user_id` is not null) or (`is_private` = 0))
-) ENGINE = InnoDB AUTO_INCREMENT = 1000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for teachers
@@ -161,10 +159,10 @@ CREATE TABLE `teachers`  (
   `avatar_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '老师头像链接',
   `introduction` tinytext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '老师简介',
   `email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '老师邮箱',
-  `hidden` bit(1) NULL DEFAULT NULL COMMENT '是否隐藏',
+  `perm` enum('public','protected','private') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '提问箱权限',
   PRIMARY KEY (`id`) USING BTREE,
   CONSTRAINT `teachers_ibfk_1` FOREIGN KEY (`id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for upvotes
@@ -209,6 +207,6 @@ CREATE TABLE `users`  (
   INDEX `avatar_file_id`(`avatar_file_id` ASC) USING BTREE,
   INDEX `theme_id`(`theme_id` ASC) USING BTREE,
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`avatar_file_id`) REFERENCES `files` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 SET FOREIGN_KEY_CHECKS = 1;

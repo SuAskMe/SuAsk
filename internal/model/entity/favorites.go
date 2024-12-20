@@ -14,4 +14,5 @@ type Favorites struct {
 	UserId     int         `json:"userId"     orm:"user_id"     description:"用户ID"`     // 用户ID
 	QuestionId int         `json:"questionId" orm:"question_id" description:"问题ID"`     // 问题ID
 	CreatedAt  *gtime.Time `json:"createdAt"  orm:"created_at"  description:"创建时间"`     // 创建时间
+	Package    string      `json:"package"    orm:"package"     description:"收藏夹"`      // 收藏夹
 }

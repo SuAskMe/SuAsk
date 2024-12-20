@@ -24,6 +24,7 @@ type FavoritesColumns struct {
 	UserId     string // 用户ID
 	QuestionId string // 问题ID
 	CreatedAt  string // 创建时间
+	Package    string // 收藏夹
 }
 
 // favoritesColumns holds the columns for table favorites.
@@ -32,6 +33,7 @@ var favoritesColumns = FavoritesColumns{
 	UserId:     "user_id",
 	QuestionId: "question_id",
 	CreatedAt:  "created_at",
+	Package:    "package",
 }
 
 // NewFavoritesDao creates and returns a new DAO object for table data access.
