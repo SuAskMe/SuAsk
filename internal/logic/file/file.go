@@ -3,11 +3,6 @@ package file
 import (
 	"context"
 	"fmt"
-	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/os/gfile"
-	"github.com/gogf/gf/v2/os/gtime"
-	"github.com/gogf/gf/v2/util/gconv"
 	"strconv"
 	"suask/internal/consts"
 	"suask/internal/dao"
@@ -17,6 +12,12 @@ import (
 	"suask/internal/service"
 	files "suask/utility/files"
 	"time"
+
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type sFile struct{}
@@ -112,12 +113,14 @@ func (s *sFile) GetList(ctx context.Context, in model.FileListGetInput) (out mod
 	}
 	fmt.Println(count)
 	out = model.FileListGetOutput{
+		FileId:     make([]int, count),
 		Name:       make([]string, count),
 		URL:        make([]string, count),
 		UploaderId: make([]int, count),
 		CreatedAt:  make([]*gtime.Time, count),
 	}
 	for index, file := range fileList {
+		out.FileId[index] = file.Id
 		out.Name[index] = file.Name
 		URL, err := files.GetURL(file.Hash, file.Name)
 		if err != nil {

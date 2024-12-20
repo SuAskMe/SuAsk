@@ -26,7 +26,7 @@ type TeachersColumns struct {
 	AvatarUrl    string // 老师头像链接
 	Introduction string // 老师简介
 	Email        string // 老师邮箱
-	Hidden       string // 是否隐藏
+	Perm         string // 提问箱权限
 }
 
 // teachersColumns holds the columns for table teachers.
@@ -37,7 +37,7 @@ var teachersColumns = TeachersColumns{
 	AvatarUrl:    "avatar_url",
 	Introduction: "introduction",
 	Email:        "email",
-	Hidden:       "hidden",
+	Perm:         "perm",
 }
 
 // NewTeachersDao creates and returns a new DAO object for table data access.

@@ -2,7 +2,7 @@ package model
 
 type PublicQuestion struct {
 	ID            int      `json:"id"`
-	Title         string   `json:"title"` // 目前不支持标题
+	Title         string   `json:"title"`
 	Content       string   `json:"contents"`
 	Views         int      `json:"views"`
 	CreatedAt     int64    `json:"created_at"`
@@ -15,7 +15,6 @@ type PublicQuestion struct {
 type GetBaseInput struct {
 	SortType int    `json:"sort_type"`
 	Page     int    `json:"page"`
-	UserID   int    `json:"user_id"`
 	Keyword  string `json:"keyword"`
 }
 
@@ -24,23 +23,6 @@ type GetBaseOutput struct {
 	IdMap       map[int]int      `json:"id_map"`
 	Questions   []PublicQuestion `json:"questions"`
 	RemainPage  int              `json:"remain_page"`
-}
-
-type GetImagesInput struct {
-	QuestionIDs []int `json:"question_ids"`
-}
-
-type GetImagesOutput struct {
-	ImageMap map[int][]int `json:"image_map"`
-}
-
-type GetAnswersInput struct {
-	QuestionIDs []int `json:"question_ids"`
-}
-
-type GetAnswersOutput struct {
-	CountMap   map[int]int   `json:"count_map"`
-	AvatarsMap map[int][]int `json:"avatars_map"`
 }
 
 type GetKeywordsInput struct {
@@ -56,11 +38,11 @@ type GetKeywordsOutput struct {
 	Words []Keywords `json:"words"`
 }
 
-type FavoriteInput struct {
-	QuestionID int `json:"question_id"`
-	UserID     int `json:"user_id"`
+type GetAnswersInput struct {
+	QuestionIDs []int `json:"question_ids"`
 }
 
-type FavoriteOutput struct {
-	IsFavorited bool `json:"is_favorited"`
+type GetAnswersOutput struct {
+	CountMap   map[int]int   `json:"count_map"`
+	AvatarsMap map[int][]int `json:"avatars_map"`
 }

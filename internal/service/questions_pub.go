@@ -13,10 +13,8 @@ import (
 type (
 	IPublicQuestion interface {
 		GetBase(ctx context.Context, input *model.GetBaseInput) (*model.GetBaseOutput, error)
-		GetImages(ctx context.Context, input *model.GetImagesInput) (*model.GetImagesOutput, error)
 		GetAnswers(ctx context.Context, input *model.GetAnswersInput) (*model.GetAnswersOutput, error)
 		GetKeyword(ctx context.Context, input *model.GetKeywordsInput) (*model.GetKeywordsOutput, error)
-		Favorite(ctx context.Context, input *model.FavoriteInput) (*model.FavoriteOutput, error)
 	}
 )
 

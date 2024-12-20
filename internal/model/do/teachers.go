@@ -17,5 +17,5 @@ type Teachers struct {
 	AvatarUrl    interface{} // 老师头像链接
 	Introduction interface{} // 老师简介
 	Email        interface{} // 老师邮箱
-	Hidden       interface{} // 是否隐藏
+	Perm         interface{} // 提问箱权限
 }
