@@ -15,6 +15,15 @@ type FileUploadOutput struct {
 	URL  string
 }
 
+type FileListAddInput struct {
+	UploaderId int
+	FileList   []*ghttp.UploadFile
+}
+
+type FileListAddOutput struct {
+	IdList []int
+}
+
 type FileGetInput struct {
 	Id int `json:"id"`
 }

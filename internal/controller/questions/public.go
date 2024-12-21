@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 	v1 "suask/api/questions/v1"
+	"suask/internal/consts"
 	"suask/internal/model"
 	"suask/internal/service"
 
@@ -13,6 +14,38 @@ import (
 type cPublicQuestions struct{}
 
 var PublicQuestions = cPublicQuestions{}
+
+func (cPublicQuestions) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v1.AddQuestionRes, err error) {
+	questionInput := model.AddQuestionInput{}
+	err = gconv.Struct(req, &questionInput)
+	if err != nil {
+		return nil, err
+	}
+	questionId, err := service.PublicQuestion().AddQuestion(ctx, &questionInput)
+	if err != nil {
+		return nil, err
+	}
+	if req.Files != nil {
+		fileList := model.FileListAddInput{
+			FileList: req.Files,
+		}
+		fileIdList, err := service.File().UploadFileList(ctx, fileList)
+		if err != nil {
+			return nil, err
+		}
+		attachment := model.AddAttachmentInput{
+			QuestionId: questionId.ID,
+			Type:       consts.QuestionFileType,
+			FileId:     fileIdList.IdList,
+		}
+		_, err = service.Attachment().AddAttachments(ctx, attachment)
+		if err != nil {
+			return nil, err
+		}
+	}
+	res = &v1.AddQuestionRes{Id: questionId.ID}
+	return res, nil
+}
 
 func (cPublicQuestions) Get(ctx context.Context, req *v1.GetPageReq) (res *v1.GetPageRes, err error) {
 	baseInput := model.GetBaseInput{}

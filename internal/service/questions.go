@@ -17,6 +17,7 @@ type (
 		GetAnswers(ctx context.Context, input *model.GetAnswersInput) (*model.GetAnswersOutput, error)
 		GetKeyword(ctx context.Context, input *model.GetKeywordsInput) (*model.GetKeywordsOutput, error)
 		Favorite(ctx context.Context, input *model.FavoriteInput) (*model.FavoriteOutput, error)
+		AddQuestion(ctx context.Context, in *model.AddQuestionInput) (out *model.AddQuestionOutput, err error)
 	}
 )
 

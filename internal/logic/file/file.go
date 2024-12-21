@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -21,44 +22,33 @@ import (
 
 type sFile struct{}
 
-func (s *sFile) UploadFile(ctx context.Context, in model.FileUploadInput) (out *model.FileUploadOutput, err error) {
-	// 获取文件保存地址
-	uploadPath := g.Cfg().MustGet(ctx, "upload.path").String()
-	if uploadPath == "" {
-		return nil, gerror.New("配置不存在，请配置文件地址")
-	}
-	// 取得上传者Id
-	upLoaderId := gconv.String(ctx.Value(consts.CtxId))
-	if upLoaderId == "" {
-		return nil, gerror.New("未找到上传者")
-	}
-	// 限制上传数量
-	count, err := dao.Files.Ctx(ctx).
-		Where(dao.Files.Columns().UploaderId, upLoaderId).
-		WhereGTE(dao.Files.Columns().CreatedAt, gtime.Now().Add(-time.Minute)).Count()
-	if err != nil {
-		return nil, err
-	}
-	if count > consts.FileUploadMaxMinutes {
-		return nil, gerror.New("上传频繁，一分钟只能传" + strconv.Itoa(consts.FileUploadMaxMinutes) + "次")
-	}
-	// 获取文件并求 hash
-	file, err := in.File.Open()
+type File struct {
+	id   int
+	name string
+	URL  string
+}
+
+func uploadFile(upLoadFile *ghttp.UploadFile, upLoaderId int) (fileInfo *File, err error) {
+	file, err := upLoadFile.Open()
 	if err != nil {
 		return nil, gerror.New("文件未上传")
+	}
+	uploadPath := g.Cfg().MustGet(context.TODO(), "upload.path").String()
+	if uploadPath == "" {
+		return nil, gerror.New("配置不存在，请配置文件地址")
 	}
 	fileHash := files.HashFile(file)
 	filePath := gfile.Join(uploadPath,
 		files.HashToString(fileHash)[0:2],
 		files.HashToString(fileHash)[2:4],
 	)
-	oldName := in.File.Filename
-	newName, err := files.RenameFiles(fileHash, in.File.Filename)
+	oldName := upLoadFile.Filename
+	newName, err := files.RenameFiles(fileHash, upLoadFile.Filename)
 	if err != nil {
 		return nil, err
 	}
-	in.File.Filename = newName
-	_, err = in.File.Save(filePath, false)
+	upLoadFile.Filename = newName
+	_, err = upLoadFile.Save(filePath, false)
 	if err != nil {
 		return nil, err
 	}
@@ -73,15 +63,60 @@ func (s *sFile) UploadFile(ctx context.Context, in model.FileUploadInput) (out *
 	if err != nil {
 		return nil, err
 	}
-	id, err := dao.Files.Ctx(ctx).Data(data).OmitEmpty().InsertAndGetId()
+	id, err := dao.Files.Ctx(context.TODO()).Data(data).OmitEmpty().InsertAndGetId()
+	if err != nil {
+		return nil, err
+	}
+	fileInfo = &File{
+		id:   int(id),
+		name: fileName,
+		URL:  URL,
+	}
+	return fileInfo, nil
+}
+
+func (s *sFile) UploadFile(ctx context.Context, in model.FileUploadInput) (out *model.FileUploadOutput, err error) {
+	// 取得上传者Id
+	upLoaderId := gconv.Int(ctx.Value(consts.CtxId))
+	if upLoaderId == 0 {
+		return nil, gerror.New("未找到上传者")
+	}
+	// 限制上传数量
+	count, err := dao.Files.Ctx(ctx).
+		Where(dao.Files.Columns().UploaderId, upLoaderId).
+		WhereGTE(dao.Files.Columns().CreatedAt, gtime.Now().Add(-time.Minute)).Count()
+	if err != nil {
+		return nil, err
+	}
+	if count > consts.FileUploadMaxMinutes {
+		return nil, gerror.New("上传频繁，一分钟只能传" + strconv.Itoa(consts.FileUploadMaxMinutes) + "次")
+	}
+	fileInfo, err := uploadFile(in.File, upLoaderId)
 	if err != nil {
 		return nil, err
 	}
 	// 组合输出
-	out = &model.FileUploadOutput{}
-	out.Id = int(id)
-	out.Name = fileName
-	out.URL = URL
+	out = &model.FileUploadOutput{
+		Id:   fileInfo.id,
+		Name: fileInfo.name,
+		URL:  fileInfo.URL,
+	}
+	return out, nil
+}
+
+func (s *sFile) UploadFileList(_ context.Context, in model.FileListAddInput) (out model.FileListAddOutput, err error) {
+	fileCount := len(in.FileList)
+	out = model.FileListAddOutput{
+		IdList: make([]int, fileCount),
+	}
+	for fileIndex, file := range in.FileList {
+		fileInfo, err := uploadFile(file, in.UploaderId)
+		if err != nil {
+			return model.FileListAddOutput{}, err
+		}
+		out.IdList[fileIndex] = fileInfo.id
+		fmt.Println(out)
+	}
 	return out, nil
 }
 

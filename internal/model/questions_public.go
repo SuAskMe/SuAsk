@@ -1,5 +1,7 @@
 package model
 
+import "github.com/gogf/gf/v2/encoding/gbinary"
+
 type PublicQuestion struct {
 	ID            int      `json:"id"`
 	Title         string   `json:"title"` // 目前不支持标题
@@ -10,6 +12,18 @@ type PublicQuestion struct {
 	IsFavorited   bool     `json:"is_favorited"`
 	AnswerNum     int      `json:"answer_num"`
 	AnswerAvatars []string `json:"answer_avatars"`
+}
+
+type AddQuestionInput struct {
+	SrcUserID interface{} `json:"src_user_id" orm:"src_user_id"`
+	DstUserID interface{} `json:"dst_user_id" orm:"dst_user_id"`
+	Title     string      `json:"title" orm:"title"`
+	Content   string      `json:"content" orm:"content"`
+	IsPrivate gbinary.Bit `json:"is_private" orm:"is_private"`
+}
+
+type AddQuestionOutput struct {
+	ID int `json:"id"`
 }
 
 type GetBaseInput struct {
