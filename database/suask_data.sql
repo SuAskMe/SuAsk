@@ -4,9 +4,9 @@
 
 DELETE FROM users;
 
-INSERT INTO `users` VALUES (1, 'root', '1@suask.me', 'iqjbenzvfz', '6917ef8afa3ffeb3cb02643b9feb2a46', 'student', 'root', '# 这里是root', NULL, 0, '2024-12-19 03:25:28', '2024-12-19 03:25:42', NULL);
-INSERT INTO `users` VALUES (2, 'teacher', '2@suask.me', 'dDQCQ5zaNL', '26e6d44c96358cdfc6ea25d15fa2442a', 'student', 'teacher', '# 我是老师', NULL, 0, '2024-12-19 03:27:03', '2024-12-19 03:27:03', NULL);
-INSERT INTO `users` VALUES (1000, 'student', '3@suask.me', 'Ettykmu1Zc', '4fd5724ce6fdbe4ac6df655eb1dc31dc', 'student', 'student', '# 我是学生', NULL, 0, '2024-12-19 03:26:25', '2024-12-19 03:26:25', NULL);
+INSERT INTO `users` VALUES (1, 'root', '1@suask.me', 'iqjbenzvfz', '6917ef8afa3ffeb3cb02643b9feb2a46', 'student', 'root', '# 这里是root', NULL, 1, '2024-12-19 03:25:28', '2024-12-19 03:25:42', NULL);
+INSERT INTO `users` VALUES (2, 'teacher', '2@suask.me', 'dDQCQ5zaNL', '26e6d44c96358cdfc6ea25d15fa2442a', 'student', 'teacher', '# 我是老师', NULL, 1, '2024-12-19 03:27:03', '2024-12-19 03:27:03', NULL);
+INSERT INTO `users` VALUES (1000, 'student', '3@suask.me', 'Ettykmu1Zc', '4fd5724ce6fdbe4ac6df655eb1dc31dc', 'student', 'student', '# 我是学生', NULL, 1, '2024-12-19 03:26:25', '2024-12-19 03:26:25', NULL);
 
 -- ----------------------------
 -- Records of questions
