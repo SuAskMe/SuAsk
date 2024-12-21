@@ -34,7 +34,7 @@ const (
 
 // for register
 const (
-	DefaultThemeId = 0
+	DefaultThemeId = 1
 )
 
 // for file
