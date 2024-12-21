@@ -41,6 +41,7 @@ type FileListGetInput struct {
 }
 
 type FileListGetOutput struct {
+	FileId     []int         `json:"id"`
 	Name       []string      `json:"name"`
 	URL        []string      `json:"url"`
 	UploaderId []int         `json:"uploader_id"`

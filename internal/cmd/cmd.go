@@ -40,9 +40,11 @@ var (
 					file.File.GetFileById,
 					file.File.GetFileList,
 					questions.PublicQuestions,
+					questions.QuestionDetail,
 					favorite.Favorite.GetFavorite,
 					favorite.Favorite.GetPageFavorite,
 					favorite.Favorite.DelFavorite,
+
 					// test
 					history.History.Get,
 				)

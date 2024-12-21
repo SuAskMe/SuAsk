@@ -9,7 +9,6 @@ import (
 type GetPageBase struct {
 	SortType int `v:"required|min:0|max:3" json:"sort_type"`
 	Page     int `v:"required|min:1" json:"page"`
-	UserID   int `v:"required|min:1" json:"user_id"`
 }
 
 type GetPageReq struct {
@@ -48,7 +47,6 @@ type GetPageByKeywordRes struct {
 type FavoriteReq struct {
 	g.Meta     `path:"/questions/public/favorite" method:"post" tags:"public question" summary:"收藏公开问题" description:"收藏公开问题"`
 	QuestionID int `v:"required|min:1" json:"question_id"`
-	UserID     int `v:"required|min:1" json:"user_id"`
 }
 
 type FavoriteRes struct {

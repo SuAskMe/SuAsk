@@ -92,7 +92,9 @@ func (sPublicQuestion) GetBase(ctx context.Context, input *model.GetBaseInput) (
 		qIDs[i] = pq.Id
 	}
 	var fav []*custom.MyFavorites
-	md = dao.Favorites.Ctx(ctx).Where("question_id IN (?) AND user_id = ?", qIDs, input.UserID)
+	UserId := 1
+	// UserId := gconv.Int(ctx.Value(consts.CtxId))
+	md = dao.Favorites.Ctx(ctx).Where("question_id IN (?) AND user_id = ?", qIDs, UserId)
 	err = md.Scan(&fav) // 再查favorites
 	if err != nil {
 		return nil, err
@@ -123,25 +125,22 @@ func (sPublicQuestion) GetBase(ctx context.Context, input *model.GetBaseInput) (
 	return &output, nil
 }
 
-func (sPublicQuestion) GetImages(ctx context.Context, input *model.GetImagesInput) (*model.GetImagesOutput, error) {
-	md := dao.Attachments.Ctx(ctx).Where("question_id IN (?)", input.QuestionIDs)
-	var Images []*custom.Image
-	err := md.Scan(&Images)
+func (sPublicQuestion) GetKeyword(ctx context.Context, input *model.GetKeywordsInput) (*model.GetKeywordsOutput, error) {
+	// md := dao.Questions.Ctx(ctx).Cache(keywordCacheMode).WhereNull("dst_user_id")
+	md := dao.Questions.Ctx(ctx).WhereNull("dst_user_id")
+	// fmt.Println(input.Keyword)
+	err := sortByType(&md, input.SortType)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(Images)
-	imageMap := make(map[int][]int)
-	for _, img := range Images {
-		if _, ok := imageMap[img.QuestionId]; !ok {
-			imageMap[img.QuestionId] = make([]int, 0, 8)
-		}
-		imageMap[img.QuestionId] = append(imageMap[img.QuestionId], img.FileID)
+	words := make([]model.Keywords, 8)
+	err = md.Where("title LIKE ?", "%"+input.Keyword+"%").Limit(8).Scan(&words)
+	if err != nil {
+		return nil, err
 	}
-	output := model.GetImagesOutput{
-		ImageMap: imageMap,
-	}
-	return &output, nil
+	output := &model.GetKeywordsOutput{}
+	output.Words = words
+	return output, nil
 }
 
 func (sPublicQuestion) GetAnswers(ctx context.Context, input *model.GetAnswersInput) (*model.GetAnswersOutput, error) {
@@ -175,52 +174,6 @@ WHERE al.rowCnt <= 5 AND al.user_id = u.id;`
 		CountMap:   countMap,
 		AvatarsMap: avatarsMap,
 	}, nil
-}
-
-func (sPublicQuestion) GetKeyword(ctx context.Context, input *model.GetKeywordsInput) (*model.GetKeywordsOutput, error) {
-	// md := dao.Questions.Ctx(ctx).Cache(keywordCacheMode).WhereNull("dst_user_id")
-	md := dao.Questions.Ctx(ctx).WhereNull("dst_user_id")
-	// fmt.Println(input.Keyword)
-	err := sortByType(&md, input.SortType)
-	if err != nil {
-		return nil, err
-	}
-	words := make([]model.Keywords, 8)
-	err = md.Where("title LIKE ?", "%"+input.Keyword+"%").Limit(8).Scan(&words)
-	if err != nil {
-		return nil, err
-	}
-	output := &model.GetKeywordsOutput{}
-	output.Words = words
-	return output, nil
-}
-
-func (sPublicQuestion) Favorite(ctx context.Context, input *model.FavoriteInput) (*model.FavoriteOutput, error) {
-	md := dao.Favorites.Ctx(ctx)
-	cnt, err := md.Where("user_id = ? AND question_id = ?", input.UserID, input.QuestionID).Count()
-	if err != nil {
-		return nil, err
-	}
-	if cnt > 0 {
-		_, err = md.Delete("user_id = ? AND question_id = ?", input.UserID, input.QuestionID)
-		if err != nil {
-			return nil, err
-		}
-		return &model.FavoriteOutput{
-			IsFavorited: false,
-		}, nil
-	} else {
-		_, err = md.Insert(g.Map{
-			"user_id":     input.UserID,
-			"question_id": input.QuestionID,
-		})
-		if err != nil {
-			return nil, err
-		}
-		return &model.FavoriteOutput{
-			IsFavorited: true,
-		}, nil
-	}
 }
 
 func (sPublicQuestion) AddQuestion(ctx context.Context, in *model.AddQuestionInput) (out *model.AddQuestionOutput, err error) {
