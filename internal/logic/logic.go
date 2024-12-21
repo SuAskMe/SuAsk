@@ -5,6 +5,7 @@
 package logic
 
 import (
+	_ "suask/internal/logic/attachements"
 	_ "suask/internal/logic/favorite"
 	_ "suask/internal/logic/file"
 	_ "suask/internal/logic/history"

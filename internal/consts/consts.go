@@ -42,3 +42,8 @@ const (
 	FileUploadMaxMinutes = 10
 	FileServerPrefix     = "http://localhost:8080"
 )
+
+// for question
+
+const DefaultUserId = 1
+const QuestionFileType = "picture"

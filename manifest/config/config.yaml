@@ -107,7 +107,7 @@ database:
 #     debug:                 "(可选)开启调试模式"
 #     prefix:                "(可选)表名前缀"
 #     dryRun:                "(可选)ORM空跑(只读不写)"
-#     charset:               "(可选)数据库编码(如: utf8/gbk/gb2312)，一般设置为utf8"
+     charset:               "utf8mb4"
 #     protocol:              "(可选)数据库连接协议，默认为TCP"
 #     weight:                "(可选)负载均衡权重，用于负载均衡控制，不使用应用层的负载均衡机制请置空"
 #     timezone:              "(可选)时区配置，例如:Local"

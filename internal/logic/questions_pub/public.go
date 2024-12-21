@@ -1,12 +1,15 @@
-package questions_pub
+package public
 
 import (
 	"context"
 	"fmt"
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/text/gstr"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/model/custom"
+	"suask/internal/model/do"
 	"suask/internal/service"
 
 	"github.com/gogf/gf/v2/database/gdb"
@@ -171,6 +174,36 @@ WHERE al.rowCnt <= 5 AND al.user_id = u.id;`
 		CountMap:   countMap,
 		AvatarsMap: avatarsMap,
 	}, nil
+}
+
+func (sPublicQuestion) AddQuestion(ctx context.Context, in *model.AddQuestionInput) (out *model.AddQuestionOutput, err error) {
+	srcUserId := in.SrcUserID
+	if srcUserId == 0 {
+		srcUserId = consts.DefaultUserId
+	}
+	dstUserId := in.DstUserID
+	if dstUserId == 0 {
+		dstUserId = nil
+	}
+	question := do.Questions{
+		SrcUserId: srcUserId,
+		DstUserId: dstUserId,
+		Title:     in.Title,
+		Contents:  in.Content,
+		IsPrivate: in.IsPrivate,
+	}
+	out = &model.AddQuestionOutput{}
+	id, err := dao.Questions.Ctx(ctx).InsertAndGetId(question)
+	if err != nil {
+		if gstr.Contains(err.Error(), "FOREIGN KEY (`src_user_id`)") {
+			return nil, gerror.New("找不到发送者")
+		} else if gstr.Contains(err.Error(), "FOREIGN KEY (`dst_user_id`)") {
+			return nil, gerror.New("找不到老师")
+		}
+		return nil, err
+	}
+	out.ID = int(id)
+	return out, nil
 }
 
 func init() {

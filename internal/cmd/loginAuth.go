@@ -55,7 +55,7 @@ func loginFuncFrontend(r *ghttp.Request) (string, interface{}) {
 	// 查不到用户
 	if err != nil {
 		//r.Response.WriteJson(gtoken.Fail(err.Error()))
-		r.Response.WriteJson(response.JsonRes{Code: -1, Message: err.Error(), Data: nil})
+		r.Response.WriteJson(response.JsonRes{Code: -1, Message: consts.ErrLoginFaulMsg, Data: nil})
 		r.ExitAll()
 	}
 	// 密码校验失败
