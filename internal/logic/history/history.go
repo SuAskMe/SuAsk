@@ -67,7 +67,7 @@ func (sHistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHisto
 		}
 	}
 
-	limit := 30
+	limit := consts.NumOfQuestionsPerPage
 	total, err := dao.Questions.Ctx(ctx).Where(do.Questions{SrcUserId: in.UserId}).Count()
 	if err != nil {
 		return nil, err
