@@ -8,6 +8,7 @@ import (
 	"suask/internal/controller/history"
 	"suask/internal/controller/questions"
 	"suask/internal/controller/register"
+	"suask/internal/controller/teacher"
 	"suask/internal/controller/user"
 	"suask/internal/service"
 
@@ -44,6 +45,7 @@ var (
 					favorite.Favorite.GetFavorite,
 					favorite.Favorite.GetPageFavorite,
 					favorite.Favorite.DelFavorite,
+					teacher.Teacher.GetTeacher,
 
 					// test
 					history.History.Get,
