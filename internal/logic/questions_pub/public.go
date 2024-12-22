@@ -3,14 +3,15 @@ package public
 import (
 	"context"
 	"fmt"
-	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/text/gstr"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/model/custom"
 	"suask/internal/model/do"
 	"suask/internal/service"
+
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/text/gstr"
 
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
@@ -69,12 +70,11 @@ func (sPublicQuestion) GetBase(ctx context.Context, input *model.GetBaseInput) (
 		md = md.Where("title LIKE?", "%"+input.Keyword+"%")
 	}
 	md = md.Page(input.Page, consts.NumOfQuestionsPerPage)
-	md = md.WithAll()
 	err := sortByType(&md, input.SortType)
 	if err != nil {
 		return nil, err
 	}
-	var q []*custom.PublicQuestions
+	var q []*custom.Questions
 	var remain int
 	err = md.ScanAndCount(&q, &remain, true) // 先查不包含favorites的结果
 	if err != nil {

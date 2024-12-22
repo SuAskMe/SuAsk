@@ -2,6 +2,8 @@ package questions
 
 import (
 	"context"
+	"fmt"
+	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/model/custom"
@@ -42,6 +44,9 @@ func (sQuestionUtil) Favorite(ctx context.Context, input *model.FavoriteInput) (
 	md := dao.Favorites.Ctx(ctx)
 	UserId := 1
 	// UserId := gconv.Int(ctx.Value(consts.CtxId))
+	if UserId == consts.DefaultUserId {
+		return nil, fmt.Errorf("user not login")
+	}
 	cnt, err := md.Where("user_id = ? AND question_id = ?", UserId, input.QuestionID).Count()
 	if err != nil {
 		return nil, err
