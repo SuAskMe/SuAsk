@@ -69,7 +69,7 @@ func (sQuestionDetail) GetQuestionBase(ctx context.Context, in *model.GetQuestio
 }
 
 func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetailInput) (*model.GetAnswerDetailOutput, error) {
-	md := dao.Answers.Ctx(ctx).Where("question_id =?", in.QuestionId)
+	md := dao.Answers.Ctx(ctx).Where(dao.Answers.Columns().QuestionId, in.QuestionId)
 	var answers []entity.Answers
 	err := md.Scan(&answers)
 	if err != nil {
@@ -91,6 +91,7 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 		answerList[i] = model.AnswerWithDetails{
 			Id:        ans.Id,
 			UserId:    ans.UserId,
+			InReplyTo: ans.InReplyTo,
 			Contents:  ans.Contents,
 			CreatedAt: ans.CreatedAt.TimestampMilli(),
 			Upvotes:   ans.Upvotes,
@@ -224,7 +225,7 @@ func (sQuestionDetail) AddAnswerUpvote(ctx context.Context, in *model.UpvoteInpu
 }
 
 func (sQuestionDetail) ReplyQuestion(ctx context.Context, in *model.AddAnswerInput) (*model.AddAnswerOutput, error) {
-	md := dao.Questions.Ctx(ctx).Where("id =?", in.QuestionId).Fields("id, is_private, src_user_id, dst_user_id")
+	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().Id, in.QuestionId).Fields("id, is_private, src_user_id, dst_user_id")
 	var question entity.Questions
 	err := md.Scan(&question)
 	if err != nil {
@@ -242,6 +243,7 @@ func (sQuestionDetail) ReplyQuestion(ctx context.Context, in *model.AddAnswerInp
 		QuestionId: in.QuestionId,
 		UserId:     UserId,
 		Contents:   in.Content,
+		InReplyTo:  in.InReplyTo,
 	})
 	if err != nil {
 		return nil, err
