@@ -58,16 +58,16 @@ func (sHistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHisto
 	// MyQuestionList切片完成
 	for i := range mqq {
 		mhq[i] = model.MyHistoryQuestion{
-			Id:        mqq[i].Id,              //int
-			Title:     mqq[i].Title,           //string
-			Contents:  mqq[i].Contents,        //string
-			CreatedAt: mqq[i].CreatedAt,       //*gtime.Time
-			Views:     mqq[i].Views,           //int
-			ImageURLs: imageUrlMap[mqq[i].Id], //[]string
+			Id:        mqq[i].Id,                         //int
+			Title:     mqq[i].Title,                      //string
+			Contents:  mqq[i].Contents,                   //string
+			CreatedAt: mqq[i].CreatedAt.TimestampMilli(), //int64
+			Views:     mqq[i].Views,                      //int
+			ImageURLs: imageUrlMap[mqq[i].Id],            //[]string
 		}
 	}
 
-	limit := 30
+	limit := consts.NumOfQuestionsPerPage
 	total, err := dao.Questions.Ctx(ctx).Where(do.Questions{SrcUserId: in.UserId}).Count()
 	if err != nil {
 		return nil, err

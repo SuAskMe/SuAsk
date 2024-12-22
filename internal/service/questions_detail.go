@@ -14,6 +14,9 @@ type (
 	IQuestionDetail interface {
 		GetQuestionBase(ctx context.Context, in *model.GetQuestionBaseInput) (*model.GetQuestionBaseOutput, error)
 		GetAnswers(ctx context.Context, in *model.GetAnswerDetailInput) (*model.GetAnswerDetailOutput, error)
+		AddQuestionView(ctx context.Context, in *model.AddViewInput) (*model.AddViewOutput, error)
+		AddAnswerUpvote(ctx context.Context, in *model.UpvoteInput) (*model.UpvoteOutput, error)
+		ReplyQuestion(ctx context.Context, in *model.AddAnswerInput) (*model.AddAnswerOutput, error)
 	}
 )
 

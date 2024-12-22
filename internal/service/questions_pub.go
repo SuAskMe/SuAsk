@@ -13,8 +13,8 @@ import (
 type (
 	IPublicQuestion interface {
 		GetBase(ctx context.Context, input *model.GetBaseInput) (*model.GetBaseOutput, error)
-		GetAnswers(ctx context.Context, input *model.GetAnswersInput) (*model.GetAnswersOutput, error)
 		GetKeyword(ctx context.Context, input *model.GetKeywordsInput) (*model.GetKeywordsOutput, error)
+		GetAnswers(ctx context.Context, input *model.GetAnswersInput) (*model.GetAnswersOutput, error)
 		AddQuestion(ctx context.Context, in *model.AddQuestionInput) (out *model.AddQuestionOutput, err error)
 	}
 )
