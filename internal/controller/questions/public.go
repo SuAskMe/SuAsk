@@ -79,12 +79,22 @@ func GetQuestionImpl(ctx context.Context, req interface{}) (res interface{}, err
 		return
 	}
 	for k, v := range answersOutput.AvatarsMap {
-		urls, err_ := service.File().GetList(ctx, model.FileListGetInput{IdList: v})
+		idList := make([]int, 0, len(v))
+		URLs := make([]string, 0, len(v))
+		for _, u := range v {
+			if u != 0 {
+				idList = append(idList, u)
+			} else {
+				URLs = append(URLs, consts.DefaultAvatarURL)
+			}
+		}
+		urls, err_ := service.File().GetList(ctx, model.FileListGetInput{IdList: idList})
 		if err_ != nil {
 			return nil, err_
 		}
+		URLs = append(URLs, urls.URL...)
 		QuestionList[idMap[k]].AnswerNum = answersOutput.CountMap[k]
-		QuestionList[idMap[k]].AnswerAvatars = urls.URL
+		QuestionList[idMap[k]].AnswerAvatars = URLs
 	}
 	// 返回结果
 	res = &v1.GetPageRes{

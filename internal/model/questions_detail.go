@@ -19,6 +19,7 @@ type AnswerWithDetails struct {
 	ImageURLs   []string `json:"image_urls"`
 	IsUpvoted   bool     `json:"is_upvoted"`
 	TeacherName string   `json:"teacher_name"`
+	NickName    string   `json:"nickname"`
 }
 
 type GetQuestionBaseInput struct {

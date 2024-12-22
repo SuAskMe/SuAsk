@@ -16,5 +16,6 @@ import (
 	_ "suask/internal/logic/questions_teacher"
 	_ "suask/internal/logic/questions_util"
 	_ "suask/internal/logic/register"
+	_ "suask/internal/logic/teacher"
 	_ "suask/internal/logic/user"
 )

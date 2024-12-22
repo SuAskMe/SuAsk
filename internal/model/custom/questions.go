@@ -36,6 +36,7 @@ type UserInfo struct {
 	AvatarFileId int    `json:"avatarFileId" orm:"avatar_file_id"`
 	Role         string `json:"role" orm:"role"`
 	Name         string `json:"name" orm:"name"`
+	NickName     string `json:"nickName" orm:"nickname"`
 }
 
 type AnswerImage struct {

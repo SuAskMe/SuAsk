@@ -42,7 +42,7 @@ func GetQuestionOfTeacherImpl(ctx context.Context, req interface{}) (res interfa
 	return
 }
 
-func (cTeacherQuestion) Get(ctx context.Context, req *v1.GetPageReq) (res *v1.GetPageOfTeacherRes, err error) {
+func (cTeacherQuestion) Get(ctx context.Context, req *v1.GetPageOfTeacherReq) (res *v1.GetPageOfTeacherRes, err error) {
 	res_, err := GetQuestionImpl(ctx, req)
 	if err != nil {
 		return
