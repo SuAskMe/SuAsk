@@ -5,7 +5,7 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 )
 
-type PublicQuestions struct {
+type Questions struct {
 	g.Meta    `orm:"table:questions"`
 	Id        int         `json:"id"        orm:"id"          description:"问题ID"`  // 问题ID
 	Title     string      `json:"title"     orm:"title"       description:"问题标题"`  // 问题标题
