@@ -16,6 +16,7 @@ type AnswerWithDetails struct {
 	Contents    string   `json:"contents"`    // 回答内容
 	CreatedAt   int64    `json:"created_at"`  // 创建时间
 	Upvotes     int      `json:"upvotes"`     // 点赞量
+	InReplyTo   int      `json:"in_reply_to"` // 回复的回答id
 	ImageURLs   []string `json:"image_urls"`
 	IsUpvoted   bool     `json:"is_upvoted"`
 	TeacherName string   `json:"teacher_name"`
@@ -61,8 +62,9 @@ type UpvoteOutput struct {
 }
 
 type AddAnswerInput struct {
-	QuestionId int    `json:"question_id" orm:"dst_user_id"`
-	Content    string `json:"content" orm:"content"`
+	InReplyTo  interface{} `json:"in_reply_to" orm:"in_reply_to"`
+	QuestionId int         `json:"question_id" orm:"dst_user_id"`
+	Content    string      `json:"content" orm:"content"`
 }
 
 type AddAnswerOutput struct {

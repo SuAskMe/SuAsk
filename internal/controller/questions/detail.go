@@ -84,7 +84,10 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 		return nil, fmt.Errorf("content is empty")
 	}
 	input := model.AddAnswerInput{}
-	gconv.Scan(req, &input)
+	err = gconv.Scan(req, &input)
+	if err != nil {
+		return nil, err
+	}
 	output, err := service.QuestionDetail().ReplyQuestion(ctx, &input)
 	if err != nil {
 		return

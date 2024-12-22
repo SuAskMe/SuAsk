@@ -31,6 +31,7 @@ type UpvoteRes struct {
 type AddAnswerReq struct {
 	g.Meta     `path:"/answer/add" method:"post" tags:"Answer" summary:"添加一个回答"`
 	QuestionId int                 `json:"question_id" v:"required"`
+	InReplyTo  interface{}         `json:"in_reply_to" dc:"回复的回答ID，可为空"`
 	Content    string              `json:"content" v:"required"`
 	Files      []*ghttp.UploadFile `json:"files"`
 }
