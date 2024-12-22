@@ -2,6 +2,7 @@ package questions
 
 import (
 	"context"
+	"fmt"
 	v1 "suask/api/questions/v1"
 	"suask/internal/consts"
 	"suask/internal/model"
@@ -15,6 +16,11 @@ type cPublicQuestions struct{}
 var PublicQuestions = cPublicQuestions{}
 
 func (cPublicQuestions) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v1.AddQuestionRes, err error) {
+	// UserId := gconv.Int(ctx.Value(consts.CtxId))
+	UserId := 2
+	if UserId == consts.DefaultUserId {
+		return nil, fmt.Errorf("user not login")
+	}
 	questionInput := model.AddQuestionInput{}
 	err = gconv.Struct(req, &questionInput)
 	if err != nil {

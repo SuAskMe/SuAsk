@@ -15,7 +15,9 @@ type sQuestionUtil struct{}
 func (sQuestionUtil) GetImages(ctx context.Context, input *model.GetImagesInput) (*model.GetImagesOutput, error) {
 	idList := input.QuestionIDs
 	if len(idList) == 0 {
-		idList = input.AnswerIDs
+		return &model.GetImagesOutput{
+			ImageMap: make(map[int][]int),
+		}, nil
 	}
 	md := dao.Attachments.Ctx(ctx).Where("question_id IN (?)", idList)
 	var Images []*custom.Image
