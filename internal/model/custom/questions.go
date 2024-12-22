@@ -25,10 +25,17 @@ type MyFavorites struct {
 	QuestionId int `json:"question_id" orm:"question_id" description:"问题ID"` // 问题ID
 }
 
-type Avatars struct {
+type MyUpvotes struct {
+	g.Meta   `orm:"table:upvotes"`
+	AnswerId int `json:"answer_id" orm:"answer_id" description:"回答ID"` // 回答ID
+}
+
+type UserInfo struct {
 	g.Meta       `orm:"table:users"`
-	UserId       int `json:"userId" orm:"id"`
-	AvatarFileId int `json:"avatarFileId" orm:"avatar_file_id"`
+	UserId       int    `json:"userId" orm:"id"`
+	AvatarFileId int    `json:"avatarFileId" orm:"avatar_file_id"`
+	Role         string `json:"role" orm:"role"`
+	Name         string `json:"name" orm:"name"`
 }
 
 type AnswerImage struct {

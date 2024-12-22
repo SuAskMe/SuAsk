@@ -2,9 +2,13 @@ package questions
 
 import (
 	"context"
+	"fmt"
 	v1 "suask/api/questions/v1"
+	"suask/internal/consts"
 	"suask/internal/model"
 	"suask/internal/service"
+
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type cQuestionDetail struct{}
@@ -56,5 +60,55 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 		answerList[IdMap[k]].ImageURLs = url.URL
 	}
 	res.Answers = answerList
+	viewOutput, err := service.QuestionDetail().AddQuestionView(ctx, &model.AddViewInput{QuestionId: qid})
+	if err != nil {
+		return nil, err
+	}
+	res.Question.Views = viewOutput.Views
+	return
+}
+
+func (cQuestionDetail) Upvote(ctx context.Context, req *v1.UpvoteReq) (res *v1.UpvoteRes, err error) {
+	input := model.UpvoteInput{}
+	gconv.Scan(req, &input)
+	output, err := service.QuestionDetail().AddAnswerUpvote(ctx, &input)
+	if err != nil {
+		return
+	}
+	gconv.Scan(output, &res)
+	return
+}
+
+func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res *v1.AddAnswerRes, err error) {
+	if req.Content == "" {
+		return nil, fmt.Errorf("content is empty")
+	}
+	input := model.AddAnswerInput{}
+	gconv.Scan(req, &input)
+	output, err := service.QuestionDetail().ReplyQuestion(ctx, &input)
+	if err != nil {
+		return
+	}
+	if req.Files != nil {
+		fileList := model.FileListAddInput{
+			FileList: req.Files,
+		}
+		fileIdList, err := service.File().UploadFileList(ctx, fileList)
+		if err != nil {
+			return nil, err
+		}
+		attachment := model.AddAttachmentInput{
+			AnswerId: output.Id,
+			Type:     consts.QuestionFileType,
+			FileId:   fileIdList.IdList,
+		}
+		_, err = service.Attachment().AddAttachments(ctx, attachment)
+		if err != nil {
+			return nil, err
+		}
+	}
+	res = &v1.AddAnswerRes{
+		Success: true,
+	}
 	return
 }
