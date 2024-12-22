@@ -8,12 +8,12 @@ import (
 )
 
 type MyHistoryQuestion struct {
-	Id        int         `json:"id" dc:"问题ID"`
-	Title     string      `json:"title" dc:"标题"`
-	Contents  string      `json:"contents" dc:"问题内容"`
-	CreatedAt *gtime.Time `json:"create_at" dc:"创建时间"`
-	Views     int         `json:"views" dc:"浏览量"`
-	ImageURLs []string    `json:"image_urls" dc:"图片的url"`
+	Id        int      `json:"id" dc:"问题ID"`
+	Title     string   `json:"title" dc:"标题"`
+	Contents  string   `json:"contents" dc:"问题内容"`
+	CreatedAt int64    `json:"create_at" dc:"创建时间"`
+	Views     int      `json:"views" dc:"浏览量"`
+	ImageURLs []string `json:"image_urls" dc:"图片的url"`
 }
 
 type GetHistoryInput struct {
