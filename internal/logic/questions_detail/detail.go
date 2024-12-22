@@ -99,7 +99,7 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 	// 获取用户点赞信息
 	UserId := 2
 	// UserId := gconv.Int(ctx.Value(consts.CtxId))
-	md = dao.Upvotes.Ctx(ctx).WhereIn("answer_id IN (?)", IdList).Where("user_id =?", UserId)
+	md = dao.Upvotes.Ctx(ctx).WhereIn(dao.Upvotes.Columns().AnswerId, IdList).Where(dao.Upvotes.Columns().UserId, UserId)
 	var upvotes []custom.MyUpvotes
 	err = md.Scan(&upvotes)
 	if err != nil {
@@ -113,8 +113,8 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 	for k := range UserIdMap {
 		UserIdList = append(UserIdList, k)
 	}
-	md = dao.Users.Ctx(ctx).WhereIn("id IN (?)", UserIdList)
-	var userInfo []custom.UserInfo // 用户头像
+	md = dao.Users.Ctx(ctx).WhereIn(dao.Users.Columns().Id, UserIdList)
+	var userInfo []custom.UserInfo // 用户信息
 	err = md.Scan(&userInfo)
 	if err != nil {
 		return nil, err
@@ -122,6 +122,9 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 	AvatarMap := make(map[int][]int) // 头像ID对应的回答ID列表
 	for _, info := range userInfo {
 		AvatarMap[info.AvatarFileId] = UserIdMap[info.UserId]
+		for _, v := range UserIdMap[info.UserId] {
+			answerList[IdMap[v]].NickName = info.NickName
+		}
 		if info.Role == consts.TEACHER { // 如果是老师，则显示用户名
 			for _, v := range UserIdMap[info.UserId] {
 				answerList[IdMap[v]].TeacherName = info.Name
@@ -129,7 +132,7 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 		}
 	}
 	// 获取回答的图片
-	md = dao.Attachments.Ctx(ctx).WhereIn("answer_id IN (?)", IdList)
+	md = dao.Attachments.Ctx(ctx).WhereIn(dao.Attachments.Columns().AnswerId, IdList)
 	var imgList []custom.AnswerImage
 	err = md.Scan(&imgList)
 	if err != nil {

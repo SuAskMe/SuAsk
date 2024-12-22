@@ -3,7 +3,7 @@ package questions
 import (
 	"context"
 	"fmt"
-	v1 "suask/api/questions/v1"
+	v1 "suask/api/answer/v1"
 	"suask/internal/consts"
 	"suask/internal/model"
 	"suask/internal/service"
@@ -108,7 +108,7 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 		}
 	}
 	res = &v1.AddAnswerRes{
-		Success: true,
+		Id: output.Id,
 	}
 	return
 }

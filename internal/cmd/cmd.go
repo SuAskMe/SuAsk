@@ -46,6 +46,7 @@ var (
 					favorite.Favorite.GetPageFavorite,
 					favorite.Favorite.DelFavorite,
 					teacher.Teacher.GetTeacher,
+					questions.TeacherQuestion,
 
 					// test
 					history.History.Get,
