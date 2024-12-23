@@ -146,8 +146,8 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 		}
 		ImgMap[img.AnswerId] = append(ImgMap[img.AnswerId], img.FileID)
 	}
-
 	return &model.GetAnswerDetailOutput{
+		IdMap:      IdMap,
 		Answers:    answerList,
 		AvatarsMap: AvatarMap,
 		ImageMap:   ImgMap,
@@ -179,7 +179,7 @@ func (sQuestionDetail) AddAnswerUpvote(ctx context.Context, in *model.UpvoteInpu
 		if err != nil {
 			return nil, err
 		}
-		md = dao.Answers.Ctx(ctx).Where("id =?", in.AnswerId)
+		md = dao.Answers.Ctx(ctx).Where(dao.Answers.Columns().Id, in.AnswerId)
 		UpvoteLock.Lock()
 		_, err = md.Decrement("upvotes", 1)
 		if err != nil {

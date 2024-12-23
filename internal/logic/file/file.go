@@ -147,6 +147,7 @@ func (s *sFile) GetList(ctx context.Context, in model.FileListGetInput) (out mod
 	}
 	fmt.Println(count)
 	out = model.FileListGetOutput{
+		FileId:     make([]int, count),
 		Name:       make([]string, count),
 		URL:        make([]string, count),
 		UploaderId: make([]int, count),
@@ -158,6 +159,7 @@ func (s *sFile) GetList(ctx context.Context, in model.FileListGetInput) (out mod
 		if err != nil {
 			return model.FileListGetOutput{}, err
 		}
+		out.FileId[index] = file.Id
 		out.URL[index] = URL
 		out.UploaderId[index] = file.UploaderId
 		out.CreatedAt[index] = file.CreatedAt
