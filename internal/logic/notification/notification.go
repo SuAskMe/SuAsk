@@ -2,7 +2,6 @@ package notification
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/util/gconv"
 	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/model/do"
@@ -13,10 +12,10 @@ import (
 type sNotification struct{}
 
 func (s *sNotification) Add(ctx context.Context, in model.AddNotificationInput) (out model.AddNotificationOutput, err error) {
-	notification := do.Notifications{}
-	err = gconv.Scan(in, &notification)
-	if err != nil {
-		return model.AddNotificationOutput{}, err
+	notification := do.Notifications{
+		UserId:     in.UserId,
+		QuestionId: in.QuestionId,
+		AnswerId:   in.AnswerId,
 	}
 	id, err := dao.Notifications.Ctx(ctx).InsertAndGetId(notification)
 	if err != nil {
