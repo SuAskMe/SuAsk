@@ -28,8 +28,13 @@ type GetQuestionBaseInput struct {
 }
 
 type GetQuestionBaseOutput struct {
-	Question *QuestionBase `json:"question"`
-	CanReply bool
+	ID        int    `json:"id"`
+	Title     string `json:"title"`
+	Content   string `json:"contents"`
+	Views     int    `json:"views"`
+	CreatedAt int64  `json:"created_at"`
+	ImageList []int  `json:"image_list"`
+	CanReply  bool
 }
 
 type GetAnswerDetailInput struct {

@@ -3,6 +3,7 @@ package questions_detail
 import (
 	"context"
 	"fmt"
+	"github.com/gogf/gf/v2/util/gconv"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
@@ -45,7 +46,7 @@ func Validate(ctx context.Context, question *entity.Questions) (bool, error) {
 }
 
 func (sQuestionDetail) GetQuestionBase(ctx context.Context, in *model.GetQuestionBaseInput) (*model.GetQuestionBaseOutput, error) {
-	md := dao.Questions.Ctx(ctx).Where("id =?", in.QuestionId)
+	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().Id, in.QuestionId)
 	var question entity.Questions
 	err := md.Scan(&question)
 	if err != nil {
@@ -55,15 +56,24 @@ func (sQuestionDetail) GetQuestionBase(ctx context.Context, in *model.GetQuestio
 	if err != nil {
 		return nil, err
 	}
+	var imgList []custom.Image
+	var count int
+	err = dao.Attachments.Ctx(ctx).Where(dao.Attachments.Columns().QuestionId, question.Id).ScanAndCount(&imgList, &count, false)
+	if err != nil {
+		return nil, err
+	}
+	imgIdList := make([]int, len(imgList))
+	for _, img := range imgList {
+		imgIdList = append(imgIdList, img.FileID)
+	}
 	output := model.GetQuestionBaseOutput{
-		Question: &model.QuestionBase{
-			ID:        question.Id,
-			Title:     question.Title,
-			Content:   question.Contents,
-			Views:     question.Views,
-			CreatedAt: question.CreatedAt.TimestampMilli(),
-		},
-		CanReply: canReply,
+		ID:        question.Id,
+		Title:     question.Title,
+		Content:   question.Contents,
+		Views:     question.Views,
+		CreatedAt: question.CreatedAt.TimestampMilli(),
+		CanReply:  canReply,
+		ImageList: imgIdList,
 	}
 	return &output, nil
 }
@@ -236,8 +246,9 @@ func (sQuestionDetail) ReplyQuestion(ctx context.Context, in *model.AddAnswerInp
 		return nil, fmt.Errorf("you are not allowed to access this question")
 	}
 	// 保存回答
-	UserId := 2
-	// UserId := gconv.Int(ctx.Value(consts.CtxId))
+	//UserId := 2
+	UserId := gconv.Int(ctx.Value(consts.CtxId))
+	fmt.Println("id", UserId)
 	md = dao.Answers.Ctx(ctx)
 	id, err := md.InsertAndGetId(do.Answers{
 		QuestionId: in.QuestionId,
