@@ -15,6 +15,7 @@ type (
 		Add(ctx context.Context, in model.AddNotificationInput) (out model.AddNotificationOutput, err error)
 		Get(ctx context.Context, in model.GetNotificationsInput) (out model.GetNotificationsOutput, err error)
 		Update(ctx context.Context, in model.UpdateNotificationInput) (out model.UpdateNotificationOutput, err error)
+		Delete(ctx context.Context, in model.DeleteNotificationInput) (out model.DeleteNotificationOutput, err error)
 	}
 )
 
