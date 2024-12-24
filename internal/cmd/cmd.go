@@ -34,39 +34,39 @@ var (
 			s.Group("/", func(group *ghttp.RouterGroup) {
 				group.Middleware(
 					ghttp.MiddlewareHandlerResponse,
-					service.Middleware().CORS)
-				// 这里是不需要认证的接口
+					service.Middleware().CORS,
+				)
+				err := Middleware(gfToken, ctx, group)
+				if err != nil {
+					panic(err)
+				}
 				group.Bind(
 					register.Register,
 					user.User.GetUserInfoById,
 					file.File.GetFileById,
 					file.File.GetFileList,
-					questions.PublicQuestions,
-					questions.QuestionDetail,
-					favorite.Favorite.GetFavorite,
-					favorite.Favorite.GetPageFavorite,
-					favorite.Favorite.DelFavorite,
+					questions.PublicQuestions.Get,
+					questions.PublicQuestions.Add,
+					questions.PublicQuestions.GetKeywords,
+					questions.PublicQuestions.GetByKeyword,
+					questions.QuestionDetail.GetDetail,
 					teacher.Teacher.GetTeacher,
 					questions.TeacherQuestion,
 					notification.Notification,
+					hello.NewV1(),
+					user.User.Info,
+					user.User.UpdateUserInfo,
+					user.User.UpdatePassWord,
+					file.File.UpdateFile,
+					questions.PublicQuestions.Favorite,
+					questions.QuestionDetail.AddAnswer,
+					favorite.Favorite.GetFavorite,
+					favorite.Favorite.GetPageFavorite,
+					favorite.Favorite.DelFavorite,
 
 					// test
 					history.History.Get,
 				)
-				group.Group("/", func(group *ghttp.RouterGroup) {
-					err := gfToken.Middleware(ctx, group)
-					if err != nil {
-						panic(err)
-					}
-					group.Bind(
-						hello.NewV1(),
-						// 这里是需要认证的接口
-						user.User.Info,
-						user.User.UpdateUserInfo,
-						user.User.UpdatePassWord,
-						file.File.UpdateFile,
-					)
-				})
 			})
 			// 设置静态文件服务
 			s.SetIndexFolder(true)
