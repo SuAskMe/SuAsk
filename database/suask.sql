@@ -119,12 +119,22 @@ CREATE TABLE `notifications`  (
   `created_at` timestamp NULL DEFAULT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `user_id_2`(`user_id` ASC, `question_id` ASC) USING BTREE COMMENT '每个用户只能收到关于同一个问题的一条提醒',
+  UNIQUE INDEX `user_id_2`(`user_id` ASC, `question_id` ASC, `answer_id` ASC) USING BTREE COMMENT '每个用户只能收到关于同一个问题的一条提醒',
   INDEX `user_id`(`user_id` ASC) USING BTREE,
   INDEX `question_id`(`question_id` ASC) USING BTREE,
   CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `notifications_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
+
+DELIMITER //
+DROP TRIGGER IF EXISTS `set_notification_type`;
+CREATE TRIGGER set_notification_type
+BEFORE INSERT ON notifications
+FOR EACH ROW
+BEGIN
+  SET NEW.type = IF(NEW.answer_id IS NOT NULL, 'new_reply', 'new_question');
+END //
+DELIMITER ;
 
 -- ----------------------------
 -- Table structure for questions
