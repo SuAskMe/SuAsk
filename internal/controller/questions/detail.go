@@ -21,8 +21,20 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 	if err != nil {
 		return nil, err
 	}
+	imgList := questionBaseOutput.ImageList
+	fileList, err := service.File().GetList(ctx, model.FileListGetInput{IdList: imgList})
+	if err != nil {
+		return nil, err
+	}
 	res = &v1.GetDetailRes{
-		Question: *questionBaseOutput.Question,
+		Question: model.QuestionBase{
+			ID:        questionBaseOutput.ID,
+			Title:     questionBaseOutput.Title,
+			Content:   questionBaseOutput.Content,
+			Views:     questionBaseOutput.Views,
+			CreatedAt: questionBaseOutput.CreatedAt,
+			ImageURLs: fileList.URL,
+		},
 		CanReply: questionBaseOutput.CanReply,
 	}
 	answersOutput, err := service.QuestionDetail().GetAnswers(ctx, &model.GetAnswerDetailInput{QuestionId: qid})
@@ -59,6 +71,8 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 		}
 		answerList[IdMap[k]].ImageURLs = url.URL
 	}
+	fmt.Println(ImageMap)
+	fmt.Println(answerList)
 	res.Answers = answerList
 	viewOutput, err := service.QuestionDetail().AddQuestionView(ctx, &model.AddViewInput{QuestionId: qid})
 	if err != nil {
@@ -92,6 +106,8 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 	if err != nil {
 		return
 	}
+
+	// 上传文件
 	if req.Files != nil {
 		fileList := model.FileListAddInput{
 			FileList: req.Files,
@@ -106,6 +122,15 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 			FileId:   fileIdList.IdList,
 		}
 		_, err = service.Attachment().AddAttachments(ctx, attachment)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// 添加通知
+	UserId := gconv.Int(ctx.Value(consts.CtxId))
+	if UserId != 0 {
+		_, err = service.Notification().Add(ctx, model.AddNotificationInput{UserId: UserId, QuestionId: req.QuestionId, AnswerId: output.Id})
 		if err != nil {
 			return nil, err
 		}

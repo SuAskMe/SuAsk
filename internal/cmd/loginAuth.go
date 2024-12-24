@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"github.com/goflyfox/gtoken/gtoken"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/util/gconv"
 	"strconv"
+	"strings"
 	v1 "suask/api/login/v1"
 	"suask/internal/consts"
 	"suask/internal/dao"
@@ -19,15 +21,16 @@ import (
 
 func LoginToken() (gfToken *gtoken.GfToken, err error) {
 	gfToken = &gtoken.GfToken{
-		CacheMode:       consts.CacheMode,
-		ServerName:      consts.ServerName,
-		LoginPath:       "/login",
-		LoginBeforeFunc: loginFuncFrontend,
-		LoginAfterFunc:  loginAfterFunc,
-		LogoutPath:      "/user/logout",
-		MultiLogin:      true,
-		AuthAfterFunc:   authAfterFunc,
-		AuthPaths:       g.SliceStr{},
+		CacheMode:        consts.CacheMode,
+		ServerName:       consts.ServerName,
+		LoginPath:        "/login",
+		LoginBeforeFunc:  loginFuncFrontend,
+		LoginAfterFunc:   loginAfterFunc,
+		LogoutPath:       "/user/logout",
+		MultiLogin:       true,
+		AuthAfterFunc:    authAfterFunc,
+		AuthPaths:        g.SliceStr{},
+		AuthExcludePaths: g.SliceStr{},
 	}
 	err = gfToken.Start()
 	return
@@ -37,7 +40,6 @@ func loginFuncFrontend(r *ghttp.Request) (string, interface{}) {
 	name := r.Get("name").String()
 	email := r.Get("email").String()
 	password := r.Get("password").String()
-
 	ctx := context.TODO()
 	// 输入参数为空
 	if (password == "" && name == "") || (password == "" && email == "") {
@@ -106,13 +108,35 @@ func loginAfterFunc(r *ghttp.Request, respData gtoken.Resp) {
 func authAfterFunc(r *ghttp.Request, respData gtoken.Resp) {
 	var userInfo v1.LoginRes
 	err := gconv.Struct(respData.GetString("data"), &userInfo)
+	fmt.Println(respData)
 	if err != nil {
-		response.Auth(r)
-		return
+		if isMustLoginPath(r.URL.String()) {
+			response.Auth(r)
+			return
+		} else {
+			if respData.Code == gtoken.UNAUTHORIZED {
+				response.NeedReLogin(r)
+			}
+			r.SetCtxVar(consts.CtxId, consts.DefaultUserId)
+		}
 	}
-	//fmt.Printf("resp", userInfo)
-	r.SetCtxVar(consts.CtxId, userInfo.Id)
-	r.SetCtxVar(consts.CtxName, userInfo.Name)
-	r.SetCtxVar(consts.CtxRole, userInfo.Role)
+	if respData.Success() {
+		r.SetCtxVar(consts.CtxId, userInfo.Id)
+	}
+
+	fmt.Println("id", r.GetCtxVar(consts.CtxId))
+
 	r.Middleware.Next()
+}
+
+func isMustLoginPath(path string) bool {
+	mustLoginPath := []string{
+		"/favorite",
+	}
+	for _, v := range mustLoginPath {
+		if strings.HasPrefix(path, v) {
+			return true
+		}
+	}
+	return false
 }
