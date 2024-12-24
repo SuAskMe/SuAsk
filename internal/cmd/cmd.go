@@ -6,6 +6,7 @@ import (
 	"suask/internal/controller/file"
 	"suask/internal/controller/hello"
 	"suask/internal/controller/history"
+	"suask/internal/controller/notification"
 	"suask/internal/controller/questions"
 	"suask/internal/controller/register"
 	"suask/internal/controller/teacher"
@@ -47,6 +48,7 @@ var (
 					favorite.Favorite.DelFavorite,
 					teacher.Teacher.GetTeacher,
 					questions.TeacherQuestion,
+					notification.Notification,
 
 					// test
 					history.History.Get,

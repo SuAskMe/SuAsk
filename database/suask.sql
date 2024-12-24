@@ -70,7 +70,6 @@ CREATE TABLE `config`  (
   `default_theme_id` int NOT NULL COMMENT '默认主题ID',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `default_theme_id`(`default_theme_id` ASC) USING BTREE,
-  CONSTRAINT `config_ibfk_1` FOREIGN KEY (`default_theme_id`) REFERENCES `themes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `config_chk_1` CHECK (`id` = 0)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
@@ -114,7 +113,9 @@ CREATE TABLE `notifications`  (
   `id` int NOT NULL AUTO_INCREMENT COMMENT '提醒ID',
   `user_id` int NOT NULL COMMENT '用户ID',
   `question_id` int NOT NULL COMMENT '问题ID',
+  `answer_id` int COMMENT '问题ID',
   `type` enum('new_question','new_reply') CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '提醒类型（新提问或新回复）',
+  `is_read` bit(1) NOT NULL COMMENT '是否已读' DEFAULT 0,
   `created_at` timestamp NULL DEFAULT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
