@@ -12,7 +12,7 @@ import (
 
 type (
 	ITeacher interface {
-		GetTeacher(ctx context.Context, in model.TeacherGetInput) (out model.TeacherGetOutput, err error)
+		GetTeacher(ctx context.Context, _ model.TeacherGetInput) (out model.TeacherGetOutput, err error)
 	}
 )
 
