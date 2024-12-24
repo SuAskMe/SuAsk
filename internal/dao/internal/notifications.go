@@ -23,6 +23,7 @@ type NotificationsColumns struct {
 	Id         string // 提醒ID
 	UserId     string // 用户ID
 	QuestionId string // 问题ID
+	AnswerId   string // 问题ID
 	Type       string // 提醒类型（新提问或新回复）
 	IsRead     string // 是否已读
 	CreatedAt  string //
@@ -34,6 +35,7 @@ var notificationsColumns = NotificationsColumns{
 	Id:         "id",
 	UserId:     "user_id",
 	QuestionId: "question_id",
+	AnswerId:   "answer_id",
 	Type:       "type",
 	IsRead:     "is_read",
 	CreatedAt:  "created_at",

@@ -113,6 +113,7 @@ CREATE TABLE `notifications`  (
   `id` int NOT NULL AUTO_INCREMENT COMMENT '提醒ID',
   `user_id` int NOT NULL COMMENT '用户ID',
   `question_id` int NOT NULL COMMENT '问题ID',
+  `answer_id` int COMMENT '问题ID',
   `type` enum('new_question','new_reply') CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '提醒类型（新提问或新回复）',
   `is_read` bit(1) NOT NULL COMMENT '是否已读' DEFAULT 0,
   `created_at` timestamp NULL DEFAULT NULL,
