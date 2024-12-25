@@ -42,9 +42,6 @@ var (
 					teacher.Teacher.GetTeacher,
 					questions.TeacherQuestion,
 					notification.Notification,
-					favorite.Favorite.GetFavorite,
-					favorite.Favorite.GetPageFavorite,
-					favorite.Favorite.DelFavorite,
 
 					// test
 					history.History.Get,
@@ -69,6 +66,7 @@ var (
 						file.File.UpdateFile,
 						questions.PublicQuestions.Favorite,
 						questions.QuestionDetail.AddAnswer,
+						favorite.Favorite,
 					)
 				})
 			})
