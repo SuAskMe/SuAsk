@@ -115,7 +115,7 @@ func authAfterFunc(r *ghttp.Request, respData gtoken.Resp) {
 			return
 		} else {
 			if respData.Code == gtoken.UNAUTHORIZED {
-				response.NeedReLogin(r)
+				// response.NeedReLogin(r)
 			}
 			r.SetCtxVar(consts.CtxId, consts.DefaultUserId)
 		}
