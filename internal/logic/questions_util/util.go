@@ -3,6 +3,7 @@ package questions
 import (
 	"context"
 	"fmt"
+	"github.com/gogf/gf/v2/util/gconv"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
@@ -42,8 +43,8 @@ func (sQuestionUtil) GetImages(ctx context.Context, input *model.GetImagesInput)
 
 func (sQuestionUtil) Favorite(ctx context.Context, input *model.FavoriteInput) (*model.FavoriteOutput, error) {
 	md := dao.Favorites.Ctx(ctx)
-	UserId := 1
-	// UserId := gconv.Int(ctx.Value(consts.CtxId))
+	//UserId := 1
+	UserId := gconv.Int(ctx.Value(consts.CtxId))
 	if UserId == consts.DefaultUserId {
 		return nil, fmt.Errorf("user not login")
 	}

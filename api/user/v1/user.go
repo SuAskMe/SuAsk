@@ -5,7 +5,7 @@ import (
 )
 
 type UserInfoReq struct {
-	g.Meta `path:"/user/info" method:"GET" tags:"User" summary:"请求用户信息"`
+	g.Meta `path:"/user" method:"GET" tags:"User" summary:"请求用户信息"`
 }
 
 type UserInfoRes struct {
@@ -15,7 +15,7 @@ type UserInfoRes struct {
 }
 
 type UserInfoByIdReq struct {
-	g.Meta `path:"/user/get-user" method:"GET" tags:"User" summary:"通过Id获取用户信息"`
+	g.Meta `path:"/info/user" method:"GET" tags:"Info" summary:"通过Id获取用户信息"`
 	Id     int `json:"id" v:"required" dc:"用户ID"`
 }
 
@@ -33,7 +33,7 @@ type UserInfoBase struct {
 }
 
 type UpdateUserReq struct {
-	g.Meta        `path:"/user/update-user" method:"POST" tags:"User" summary:"更新用户信息"`
+	g.Meta        `path:"/user" method:"PUT" tags:"User" summary:"更新用户信息"`
 	Nickname      interface{} `json:"nickname"     orm:"nickname"       description:"昵称"`
 	Introduction  interface{} `json:"introduction" orm:"introduction"   description:"简介"`
 	AvatarFieldId interface{} `json:"avatarId"   description:"头像文件ID，为空时为配置的默认头像"`
@@ -45,7 +45,7 @@ type UpdateUserRes struct {
 }
 
 type UpdatePasswordReq struct {
-	g.Meta   `path:"/user/update-password" method:"POST" tags:"User" summary:"更新密码"`
+	g.Meta   `path:"/user/password" method:"PUT" tags:"User" summary:"更新密码"`
 	Id       string `json:"id" v:"required" dc:"用户ID"`
 	Password string `json:"password" v:"required" dc:"新的密码"`
 }

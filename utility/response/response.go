@@ -56,3 +56,8 @@ func Auth(r *ghttp.Request) {
 	res := dataReturn(r, 999, "请登录")
 	r.Response.WriteJsonExit(res)
 }
+
+func NeedReLogin(r *ghttp.Request) {
+	res := dataReturn(r, 999, "登录已过期，请重新登录")
+	r.Response.WriteJsonExit(res)
+}

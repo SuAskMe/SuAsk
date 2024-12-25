@@ -12,7 +12,7 @@ type TeacherBase struct {
 }
 
 type TeacherReq struct {
-	g.Meta `path:"/teacher" method:"GET" tags:"Teacher" summary:"请求教师信息"`
+	g.Meta `path:"/info/teacher" method:"GET" tags:"Info" summary:"请求教师信息"`
 }
 
 type TeacherRes struct {
