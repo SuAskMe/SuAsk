@@ -2,45 +2,45 @@ package model
 
 import "github.com/gogf/gf/v2/os/gtime"
 
-// model层：controller和logic之间的数据规范
-
-// “获取收藏”相关结构体
-
-type FavoriteQuestionInPut struct { // controller -> logic
-	Id int `json:"id" v:"required" dc:"用户ID"`
+type Favorite struct {
+	Id         int         `json:"id"          description:"收藏（置顶）ID"` // 收藏（置顶）ID
+	UserId     int         `json:"userId"      description:"用户ID"`     // 用户ID
+	QuestionId int         `json:"questionId"  description:"问题ID"`     // 问题ID
+	CreatedAt  *gtime.Time `json:"createdAt"   description:"创建时间"`     // 创建时间
+	Package    string      `json:"package"     description:"收藏夹"`      // 收藏夹
 }
 
-type FavoriteQuestionOutPut struct { // logic -> controller
-	FavoriteQuestionList []FavoriteQuestion `json:"favorite_question" dc:"返回收藏问题列表"`
+type GetFavoriteBaseInput struct {
+	SortType int    `json:"sort_type"`
+	Page     int    `json:"page"`
+	Keyword  string `json:"keyword"`
 }
 
-type PageFavoriteQuestionInPut struct {
-	Id      int `json:"id" v:"required" dc:"用户ID"`
-	PageIdx int `json:"page_idx"`
+type GetFavoriteBaseOutput struct {
+	QuestionIDs []int            `json:"question_ids"`
+	IdMap       map[int]int      `json:"id_map"`
+	Questions   []PublicQuestion `json:"questions"`
+	RemainPage  int              `json:"remain_page"`
 }
 
-type PageFavoriteQuestionOutPut struct {
-	PageFavoriteQuestionList []FavoriteQuestion `json:"page_favorite_question" dc:"返回收藏问题列表"`
-	Total                    int                `json:"total" dc:"总问题数"`
-	Size                     int                `json:"size" dc:"每页问题数"`
-	PageNum                  int                `json:"page_num" dc:"总页数"`
-	RemainPage               int                `json:"remain_page" dc:"剩余页数"`
+type GetFavoriteKeywordsInput struct {
+	Keyword  string `json:"keyword"`
+	SortType int    `json:"sort_type"`
 }
 
-type FavoriteQuestion struct {
-	ID         int         `json:"id" dc:"问题ID"`
-	Title      string      `json:"title" dc:"标题"`
-	Contents   string      `json:"contents" dc:"问题内容"`
-	Views      int         `json:"views" dc:"浏览量"`
-	FavoriteAt *gtime.Time `json:"favorite_at" dc:"收藏时间"`
+type FavoriteKeywords struct {
+	Value string `json:"value" orm:"title"`
 }
 
-// “删除收藏”相关结构体
-
-type DeleteFavoriteInput struct {
-	Id int `json:"id" v:"required" dc:"收藏Id"`
+type GetFavoriteKeywordsOutput struct {
+	Words []Keywords `json:"words"`
 }
 
-type DeleteFavoriteOutput struct {
-	String string `json:"string" dc:"提示信息"`
+type GetFavoriteAnswersInput struct {
+	QuestionIDs []int `json:"question_ids"`
+}
+
+type GetFavoriteAnswersOutput struct {
+	CountMap   map[int]int   `json:"count_map"`
+	AvatarsMap map[int][]int `json:"avatars_map"`
 }
