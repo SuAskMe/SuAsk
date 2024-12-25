@@ -24,6 +24,7 @@ func (s *sTeacher) GetTeacher(ctx context.Context, _ model.TeacherGetInput) (out
 	}
 	for i, teacher := range teacherList {
 		out.TeacherList[i] = v1.TeacherBase{
+			Id:           teacher.Id,
 			Responses:    teacher.Responses,
 			Name:         teacher.Name,
 			AvatarUrl:    teacher.AvatarUrl,

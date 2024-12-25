@@ -3,6 +3,7 @@ package v1
 import "github.com/gogf/gf/v2/frame/g"
 
 type TeacherBase struct {
+	Id           int    `json:"id"           orm:"id"           description:"教师Id"`   //
 	Responses    int    `json:"responses"    orm:"responses"    description:"回复数"`    // 回复数
 	Name         string `json:"name"         orm:"name"         description:"老师名字"`   // 老师名字
 	AvatarUrl    string `json:"avatarUrl"    orm:"avatar_url"   description:"老师头像链接"` // 老师头像链接
@@ -12,7 +13,7 @@ type TeacherBase struct {
 }
 
 type TeacherReq struct {
-	g.Meta `path:"/teacher" method:"GET" tags:"Teacher" summary:"请求教师信息"`
+	g.Meta `path:"/info/teacher" method:"GET" tags:"Info" summary:"请求教师信息"`
 }
 
 type TeacherRes struct {

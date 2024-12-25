@@ -36,6 +36,23 @@ func LoginToken() (gfToken *gtoken.GfToken, err error) {
 	return
 }
 
+//func MustLoginToken() (gfToken *gtoken.GfToken, err error) {
+//	gfToken = &gtoken.GfToken{
+//		CacheMode:        consts.CacheMode,
+//		ServerName:       consts.ServerName,
+//		LoginPath:        "/login",
+//		LoginBeforeFunc:  loginFuncFrontend,
+//		LoginAfterFunc:   loginAfterFunc,
+//		LogoutPath:       "/user/logout",
+//		MultiLogin:       true,
+//		AuthAfterFunc:    authAfterFuncMustLogin,
+//		AuthPaths:        g.SliceStr{},
+//		AuthExcludePaths: g.SliceStr{},
+//	}
+//	err = gfToken.Start()
+//	return
+//}
+
 func loginFuncFrontend(r *ghttp.Request) (string, interface{}) {
 	name := r.Get("name").String()
 	email := r.Get("email").String()
@@ -108,19 +125,16 @@ func loginAfterFunc(r *ghttp.Request, respData gtoken.Resp) {
 func authAfterFunc(r *ghttp.Request, respData gtoken.Resp) {
 	var userInfo v1.LoginRes
 	err := gconv.Struct(respData.GetString("data"), &userInfo)
-	fmt.Println(respData)
+	//fmt.Println("Not Must Login", respData)
 	if err != nil {
 		if isMustLoginPath(r.URL.String()) {
+			//fmt.Println("login fail, block")
 			response.Auth(r)
-			return
-		} else {
-			if respData.Code == gtoken.UNAUTHORIZED {
-				// response.NeedReLogin(r)
-			}
-			r.SetCtxVar(consts.CtxId, consts.DefaultUserId)
 		}
-	}
-	if respData.Success() {
+		//fmt.Println("login fail, set 1")
+		r.SetCtxVar(consts.CtxId, consts.DefaultUserId)
+	} else {
+		//fmt.Println("login success")
 		r.SetCtxVar(consts.CtxId, userInfo.Id)
 	}
 
@@ -130,8 +144,13 @@ func authAfterFunc(r *ghttp.Request, respData gtoken.Resp) {
 }
 
 func isMustLoginPath(path string) bool {
+	// 这里添加必须登陆的路由，前缀匹配
 	mustLoginPath := []string{
+		"/files",
+		"/user/info",
 		"/favorite",
+		"/history",
+		"/notification",
 	}
 	for _, v := range mustLoginPath {
 		if strings.HasPrefix(path, v) {

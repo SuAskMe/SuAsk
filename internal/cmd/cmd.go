@@ -4,7 +4,6 @@ import (
 	"context"
 	"suask/internal/controller/favorite"
 	"suask/internal/controller/file"
-	"suask/internal/controller/hello"
 	"suask/internal/controller/history"
 	"suask/internal/controller/notification"
 	"suask/internal/controller/questions"
@@ -36,37 +35,40 @@ var (
 					ghttp.MiddlewareHandlerResponse,
 					service.Middleware().CORS,
 				)
-				err := Middleware(gfToken, ctx, group)
-				if err != nil {
-					panic(err)
-				}
+				// 这里无需登录，不需要请求用户数据
 				group.Bind(
 					register.Register,
 					user.User.GetUserInfoById,
-					file.File.GetFileById,
-					file.File.GetFileList,
-					questions.PublicQuestions.Get,
-					questions.PublicQuestions.Add,
-					questions.PublicQuestions.GetKeywords,
-					questions.PublicQuestions.GetByKeyword,
-					questions.QuestionDetail.GetDetail,
 					teacher.Teacher.GetTeacher,
 					questions.TeacherQuestion,
 					notification.Notification,
-					hello.NewV1(),
-					user.User.Info,
-					user.User.UpdateUserInfo,
-					user.User.UpdatePassWord,
-					file.File.UpdateFile,
-					questions.PublicQuestions.Favorite,
-					questions.QuestionDetail.AddAnswer,
-					favorite.Favorite.GetFavorite,
-					favorite.Favorite.GetPageFavorite,
-					favorite.Favorite.DelFavorite,
 
 					// test
 					history.History.Get,
 				)
+				// 这里是登录和非登录共有接口
+				group.Group("/", func(group *ghttp.RouterGroup) {
+					err := Middleware(gfToken, ctx, group)
+					if err != nil {
+						panic(err)
+					}
+					group.Bind(
+						file.File.GetFileById,
+						file.File.GetFileList,
+						user.User.Info,
+						questions.PublicQuestions.Get,
+						questions.PublicQuestions.Add,
+						questions.PublicQuestions.GetKeywords,
+						questions.PublicQuestions.GetByKeyword,
+						questions.QuestionDetail.GetDetail,
+						user.User.UpdateUserInfo,
+						user.User.UpdatePassWord,
+						file.File.UpdateFile,
+						questions.PublicQuestions.Favorite,
+						questions.QuestionDetail.AddAnswer,
+						favorite.Favorite,
+					)
+				})
 			})
 			// 设置静态文件服务
 			s.SetIndexFolder(true)

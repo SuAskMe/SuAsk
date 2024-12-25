@@ -2,89 +2,105 @@ package favorite
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/os/gtime"
-	"math"
+	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
-	"suask/internal/model/do"
+	"suask/internal/model/custom"
 	"suask/internal/service"
+	"suask/utility"
 )
-
-type QuestionInfo struct {
-	g.Meta   `orm:"table:questions"`
-	ID       int    `json:"id" dc:"问题ID"`
-	Title    string `json:"title" dc:"标题"`
-	Contents string `json:"contents" dc:"问题内容"`
-	Views    int    `json:"views" dc:"浏览量"`
-}
-
-type MyFavoriteQuestion struct {
-	g.Meta     `orm:"table:favorites"`
-	QuestionId int         `json:"question_id"`
-	FavoriteAt *gtime.Time `json:"favorite_at"`
-
-	Questions *QuestionInfo `orm:"with:id=question_id" json:"questions"`
-}
 
 type sFavorite struct{}
 
-func (s *sFavorite) GetFavorite(ctx context.Context, id int) (out model.FavoriteQuestionOutPut, err error) {
-	var favorite []*MyFavoriteQuestion
-	err = dao.Favorites.Ctx(ctx).With(QuestionInfo{}).Where(do.Favorites{UserId: id}).Scan(&favorite)
-
-	var list []model.FavoriteQuestion
-	for _, v := range favorite {
-		var question model.FavoriteQuestion
-		question.ID = v.QuestionId
-		question.Title = v.Questions.Title
-		question.Contents = v.Questions.Contents
-		question.Views = v.Questions.Views
-		question.FavoriteAt = v.FavoriteAt
-		list = append(list, question)
-	}
-	FavoriteList := model.FavoriteQuestionOutPut{FavoriteQuestionList: list}
-	return FavoriteList, err
-}
-
-func (s *sFavorite) GetPageFavorite(ctx context.Context, in model.PageFavoriteQuestionInPut) (out model.PageFavoriteQuestionOutPut, err error) {
-	var pageFavorite []*MyFavoriteQuestion
-	limit := 10 // 后续写入全局参数
-	err = dao.Favorites.Ctx(ctx).With(QuestionInfo{}).Where(do.Favorites{UserId: in.Id}).Page(in.PageIdx, limit).Scan(&pageFavorite)
-
-	var list []model.FavoriteQuestion
-	for _, v := range pageFavorite {
-		var question model.FavoriteQuestion
-		question.ID = v.QuestionId
-		question.Title = v.Questions.Title
-		question.Contents = v.Questions.Contents
-		question.Views = v.Questions.Views
-		question.FavoriteAt = v.FavoriteAt
-		list = append(list, question)
-	}
-
-	total, err := dao.Favorites.Ctx(ctx).Where(do.Favorites{UserId: in.Id}).Count()
-	pageNum := math.Ceil(float64(total) / float64(limit))
-	remain := int(pageNum) - in.PageIdx
-	PageFavoriteList := model.PageFavoriteQuestionOutPut{
-		PageFavoriteQuestionList: list,
-		Total:                    total,
-		Size:                     limit,
-		PageNum:                  int(pageNum),
-		RemainPage:               remain,
-	}
-	return PageFavoriteList, err
-}
-
-func (s *sFavorite) DeleteFavorite(ctx context.Context, in model.DeleteFavoriteInput) (out model.DeleteFavoriteOutput, err error) {
-	_, err = dao.Favorites.Ctx(ctx).Where("id", in.Id).Delete()
+func (s *sFavorite) GetBase(ctx context.Context, in *model.GetFavoriteBaseInput) (out *model.GetFavoriteBaseOutput, err error) {
+	md := dao.Favorites.Ctx(ctx)
+	userId := 1
+	//userId := gconv.Int(ctx.Value(consts.CtxId))
+	md = md.Where(dao.Favorites.Columns().UserId, userId)
+	md = md.Page(in.Page, consts.NumOfQuestionsPerPage)
+	err = utility.SortByType(&md, in.SortType)
 	if err != nil {
-		return model.DeleteFavoriteOutput{}, err
+		return nil, err
 	}
-	res := model.DeleteFavoriteOutput{
-		String: "取消收藏成功",
+	var remain int
+	var f []*model.Favorite
+	err = md.ScanAndCount(&f, &remain, true)
+	if err != nil {
+		return nil, err
 	}
-	return res, err
+	remainNum := remain - consts.NumOfQuestionsPerPage*in.Page
+	remain = remainNum / consts.NumOfQuestionsPerPage
+	if remainNum%consts.NumOfQuestionsPerPage > 0 {
+		remain += 1
+	}
+	qIDs := make([]int, len(f))
+	for i, favorite := range f {
+		qIDs[i] = favorite.QuestionId
+	}
+	var q []*custom.Questions
+	md = dao.Questions.Ctx(ctx).WhereIn(dao.Questions.Columns().Id, qIDs)
+	err = md.Scan(&q)
+	if err != nil {
+		return nil, err
+	}
+	pqs := make([]model.PublicQuestion, len(q))
+	qMap := make(map[int]*custom.Questions, len(q))
+	for _, question := range q {
+		qMap[question.Id] = question
+	}
+	idMap := make(map[int]int)
+	for i, id := range qIDs {
+		if q, ok := qMap[id]; ok {
+			idMap[q.Id] = i
+			pqs[i] = model.PublicQuestion{
+				ID:          q.Id,
+				Title:       q.Title,
+				Content:     utility.TruncateString(q.Contents),
+				CreatedAt:   f[i].CreatedAt.TimestampMilli(),
+				Views:       q.Views,
+				IsFavorited: true,
+			}
+		}
+	}
+
+	output := &model.GetFavoriteBaseOutput{
+		QuestionIDs: qIDs,
+		Questions:   pqs,
+		IdMap:       idMap,
+		RemainPage:  remain,
+	}
+	return output, err
+}
+
+func (s *sFavorite) GetKeyWord(ctx context.Context, in *model.GetFavoriteKeywordsInput) (out *model.GetFavoriteKeywordsOutput, err error) {
+	md := dao.Favorites.Ctx(ctx)
+	userId := 1
+	//userId := gconv.Int(ctx.Value(consts.CtxId))
+	md = md.Where(dao.Favorites.Columns().UserId, userId)
+	err = utility.SortByType(&md, in.SortType)
+	if err != nil {
+		return nil, err
+	}
+	var f []*model.Favorite
+	var count int
+	err = md.ScanAndCount(&f, &count, true)
+	if err != nil {
+		return nil, err
+	}
+	qIDs := make([]int, count)
+	for i, favorite := range f {
+		qIDs[i] = favorite.QuestionId
+	}
+	words := make([]model.Keywords, 8)
+	md = dao.Questions.Ctx(ctx)
+	err = md.WhereIn(dao.Questions.Columns().Id, qIDs).WhereLike(dao.Questions.Columns().Title, "%"+in.Keyword+"%").Limit(8).Scan(&words)
+	if err != nil {
+		return nil, err
+	}
+	out = &model.GetFavoriteKeywordsOutput{
+		Words: words,
+	}
+	return out, nil
 }
 
 func init() {
