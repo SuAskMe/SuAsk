@@ -2,58 +2,23 @@ package questions_teacher
 
 import (
 	"context"
-	"fmt"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/model/custom"
 	"suask/internal/service"
-
-	"github.com/gogf/gf/v2/database/gdb"
+	"suask/utility"
 )
 
 type sTeacherQuestion struct{}
 
-func sortByType(md **gdb.Model, sortType int) error {
-	switch sortType {
-	case consts.SortByTimeDsc:
-		*md = (*md).Order("created_at DESC")
-	case consts.SortByTimeAsc:
-		*md = (*md).Order("created_at ASC")
-	case consts.SortByViewsDsc:
-		*md = (*md).Order("views DESC")
-	case consts.SortByViewsAsc:
-		*md = (*md).Order("views ASC")
-	default:
-		return fmt.Errorf("invalid sort type: %d", sortType)
-	}
-	return nil
-}
-
-// TruncateString 截断字符串：中文字符截断到 150 个字符，英文字符截断到 450 个字符
-func TruncateString(s string) string {
-	runes := []rune(s)
-	length := 0
-	for i, r := range runes {
-		if r <= 0x7F {
-			length++
-		} else {
-			length += 3
-		}
-		if length > 500 {
-			return string(runes[:i]) + "..."
-		}
-	}
-	return s
-}
-
 func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeacherInput) (*model.GetBaseOfTeacherOutput, error) {
-	md := dao.Questions.Ctx(ctx).Where("dst_user_id = ?", input.TeacherID)
+	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherID)
 	if input.Keyword != "" {
-		md = md.Where("title LIKE?", "%"+input.Keyword+"%")
+		md = md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%")
 	}
 	md = md.Page(input.Page, consts.NumOfQuestionsPerPage)
-	err := sortByType(&md, input.SortType)
+	err := utility.SortByType(&md, input.SortType)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +42,7 @@ func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeach
 	var fav []*custom.MyFavorites
 	UserId := 1
 	// UserId := gconv.Int(ctx.Value(consts.CtxId))
-	md = dao.Favorites.Ctx(ctx).Where("question_id IN (?) AND user_id = ?", qIDs, UserId)
+	md = dao.Favorites.Ctx(ctx).WhereIn(dao.Favorites.Columns().QuestionId, qIDs).WhereIn(dao.Favorites.Columns().UserId, UserId)
 	err = md.Scan(&fav) // 再查favorites
 	if err != nil {
 		return nil, err
@@ -90,7 +55,7 @@ func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeach
 		pqs[i] = model.TeacherQuestion{
 			ID:        pq.Id,
 			Title:     pq.Title,
-			Content:   TruncateString(pq.Contents),
+			Content:   utility.TruncateString(pq.Contents),
 			CreatedAt: pq.CreatedAt.TimestampMilli(),
 			Views:     pq.Views,
 		}
@@ -110,14 +75,14 @@ func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeach
 
 func (sTeacherQuestion) GetKeyword(ctx context.Context, input *model.GetKeywordsOfTeacherInput) (*model.GetKeywordsOutput, error) {
 	// md := dao.Questions.Ctx(ctx).Cache(keywordCacheMode).WhereNull("dst_user_id")
-	md := dao.Questions.Ctx(ctx).Where("dst_user_id = ?", input.TeacherID)
+	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherID)
 	// fmt.Println(input.Keyword)
-	err := sortByType(&md, input.SortType)
+	err := utility.SortByType(&md, input.SortType)
 	if err != nil {
 		return nil, err
 	}
 	words := make([]model.Keywords, 8)
-	err = md.Where("title LIKE ?", "%"+input.Keyword+"%").Limit(8).Scan(&words)
+	err = md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%").Limit(8).Scan(&words)
 	if err != nil {
 		return nil, err
 	}

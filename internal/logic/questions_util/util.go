@@ -22,7 +22,7 @@ func (sQuestionUtil) GetImages(ctx context.Context, input *model.GetImagesInput)
 			ImageMap: make(map[int][]int),
 		}, nil
 	}
-	md := dao.Attachments.Ctx(ctx).Where("question_id IN (?)", idList)
+	md := dao.Attachments.Ctx(ctx).WhereIn(dao.Attachments.Columns().QuestionId, idList)
 	var Images []*custom.Image
 	err := md.Scan(&Images)
 	if err != nil {
@@ -48,12 +48,12 @@ func (sQuestionUtil) Favorite(ctx context.Context, in *model.FavoriteInput) (out
 	if UserId == consts.DefaultUserId {
 		return nil, gerror.New("user not login")
 	}
-	cnt, err := md.Where("user_id = ? AND question_id = ?", UserId, in.QuestionID).Count()
+	cnt, err := md.Where(dao.Favorites.Columns().UserId, UserId).Where(dao.Favorites.Columns().QuestionId).Count()
 	if err != nil {
 		return nil, err
 	}
 	if cnt > 0 {
-		_, err = md.Delete("user_id = ? AND question_id = ?", UserId, in.QuestionID)
+		_, err = md.Where(dao.Favorites.Columns().UserId, UserId).Where(dao.Favorites.Columns().QuestionId, in.QuestionID).Delete()
 		if err != nil {
 			return nil, err
 		}
