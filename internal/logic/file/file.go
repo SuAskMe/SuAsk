@@ -2,7 +2,6 @@ package file
 
 import (
 	"context"
-	"fmt"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
@@ -115,7 +114,6 @@ func (s *sFile) UploadFileList(_ context.Context, in model.FileListAddInput) (ou
 			return model.FileListAddOutput{}, err
 		}
 		out.IdList[fileIndex] = fileInfo.id
-		fmt.Println(out)
 	}
 	return out, nil
 }
@@ -145,7 +143,6 @@ func (s *sFile) GetList(ctx context.Context, in model.FileListGetInput) (out mod
 	if err != nil {
 		return model.FileListGetOutput{}, err
 	}
-	fmt.Println(count)
 	out = model.FileListGetOutput{
 		FileId:     make([]int, count),
 		Name:       make([]string, count),
