@@ -248,7 +248,6 @@ func (sQuestionDetail) ReplyQuestion(ctx context.Context, in *model.AddAnswerInp
 	// 保存回答
 	//UserId := 2
 	UserId := gconv.Int(ctx.Value(consts.CtxId))
-	fmt.Println("id", UserId)
 	md = dao.Answers.Ctx(ctx)
 	id, err := md.InsertAndGetId(do.Answers{
 		QuestionId: in.QuestionId,

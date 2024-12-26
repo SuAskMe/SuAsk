@@ -71,8 +71,6 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 		}
 		answerList[IdMap[k]].ImageURLs = url.URL
 	}
-	fmt.Println(ImageMap)
-	fmt.Println(answerList)
 	res.Answers = answerList
 	viewOutput, err := service.QuestionDetail().AddQuestionView(ctx, &model.AddViewInput{QuestionId: qid})
 	if err != nil {
