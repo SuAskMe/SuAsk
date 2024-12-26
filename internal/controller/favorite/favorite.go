@@ -3,7 +3,7 @@ package favorite
 import (
 	"context"
 	"github.com/gogf/gf/v2/util/gconv"
-	v2 "suask/api/favorite/v2"
+	v1 "suask/api/favorite/v1"
 	"suask/internal/consts"
 	"suask/internal/model"
 	"suask/internal/service"
@@ -61,14 +61,14 @@ func GetFavoriteImpl(ctx context.Context, req interface{}) (res interface{}, err
 		QuestionList[idMap[k]].AnswerAvatars = URLs
 	}
 	// 返回结果
-	res = &v2.GetPageRes{
+	res = &v1.GetFavoritePageRes{
 		QuestionList: QuestionList,
 		RemainPage:   baseOutput.RemainPage,
 	}
 	return res, nil
 }
 
-func (c *cFavorite) Get(ctx context.Context, req *v2.GetPageReq) (res *v2.GetPageRes, err error) {
+func (c *cFavorite) Get(ctx context.Context, req *v1.GetFavoritePageReq) (res *v1.GetFavoritePageRes, err error) {
 	data, err := GetFavoriteImpl(ctx, req)
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (c *cFavorite) Get(ctx context.Context, req *v2.GetPageReq) (res *v2.GetPag
 	return res, err
 }
 
-func (c *cFavorite) GetKeyWords(ctx context.Context, req *v2.GetSearchKeywordsReq) (res *v2.GetSearchKeywordsRes, err error) {
+func (c *cFavorite) GetKeyWords(ctx context.Context, req *v1.GetFavoriteSearchKeywordsReq) (res *v1.GetFavoriteSearchKeywordsRes, err error) {
 	input := model.GetFavoriteKeywordsInput{}
 	err = gconv.Scan(req, &input)
 	if err != nil {
@@ -97,7 +97,7 @@ func (c *cFavorite) GetKeyWords(ctx context.Context, req *v2.GetSearchKeywordsRe
 	return res, nil
 }
 
-func (c *cFavorite) GetByKeyWord(ctx context.Context, req *v2.GetPageByKeywordReq) (res *v2.GetPageByKeywordRes, err error) {
+func (c *cFavorite) GetByKeyWord(ctx context.Context, req *v1.GetFavoritePageByKeywordReq) (res *v1.GetFavoritePageByKeywordRes, err error) {
 	data, err := GetFavoriteImpl(ctx, req)
 	if err != nil {
 		return nil, err
@@ -107,4 +107,21 @@ func (c *cFavorite) GetByKeyWord(ctx context.Context, req *v2.GetPageByKeywordRe
 		return nil, err
 	}
 	return res, err
+}
+
+func (c *cFavorite) Favorite(ctx context.Context, req *v1.FavoriteReq) (res *v1.FavoriteRes, err error) {
+	input := model.FavoriteInput{}
+	err = gconv.Scan(req, &input)
+	if err != nil {
+		return nil, err
+	}
+	output, err := service.QuestionUtil().Favorite(ctx, &input)
+	if err != nil {
+		return nil, err
+	}
+	err = gconv.Scan(output, &res)
+	if err != nil {
+		return nil, err
+	}
+	return
 }
