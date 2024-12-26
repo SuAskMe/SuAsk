@@ -2,6 +2,7 @@ package favorite
 
 import (
 	"context"
+	"github.com/gogf/gf/v2/util/gconv"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
@@ -14,8 +15,8 @@ type sFavorite struct{}
 
 func (s *sFavorite) GetBase(ctx context.Context, in *model.GetFavoriteBaseInput) (out *model.GetFavoriteBaseOutput, err error) {
 	md := dao.Favorites.Ctx(ctx)
-	userId := 1
-	//userId := gconv.Int(ctx.Value(consts.CtxId))
+	//userId := 1
+	userId := gconv.Int(ctx.Value(consts.CtxId))
 	md = md.Where(dao.Favorites.Columns().UserId, userId)
 	md = md.Page(in.Page, consts.NumOfQuestionsPerPage)
 	err = utility.SortByType(&md, in.SortType)
@@ -39,6 +40,7 @@ func (s *sFavorite) GetBase(ctx context.Context, in *model.GetFavoriteBaseInput)
 	}
 	var q []*custom.Questions
 	md = dao.Questions.Ctx(ctx).WhereIn(dao.Questions.Columns().Id, qIDs)
+	md = md.WhereLike(dao.Questions.Columns().Title, "%"+in.Keyword+"%")
 	err = md.Scan(&q)
 	if err != nil {
 		return nil, err
@@ -74,8 +76,8 @@ func (s *sFavorite) GetBase(ctx context.Context, in *model.GetFavoriteBaseInput)
 
 func (s *sFavorite) GetKeyWord(ctx context.Context, in *model.GetFavoriteKeywordsInput) (out *model.GetFavoriteKeywordsOutput, err error) {
 	md := dao.Favorites.Ctx(ctx)
-	userId := 1
-	//userId := gconv.Int(ctx.Value(consts.CtxId))
+	//userId := 1
+	userId := gconv.Int(ctx.Value(consts.CtxId))
 	md = md.Where(dao.Favorites.Columns().UserId, userId)
 	err = utility.SortByType(&md, in.SortType)
 	if err != nil {

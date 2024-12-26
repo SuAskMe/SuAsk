@@ -42,9 +42,6 @@ var (
 					teacher.Teacher.GetTeacher,
 					questions.TeacherQuestion,
 					notification.Notification,
-
-					// test
-					history.History.Get,
 				)
 				// 这里是登录和非登录共有接口
 				group.Group("/", func(group *ghttp.RouterGroup) {
@@ -66,6 +63,7 @@ var (
 						file.File.UpdateFile,
 						questions.QuestionDetail.AddAnswer,
 						favorite.Favorite,
+						history.History,
 					)
 				})
 			})

@@ -2,95 +2,100 @@ package history
 
 import (
 	"context"
-	"math"
+	"github.com/gogf/gf/v2/util/gconv"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
-	"suask/internal/model/do"
+	"suask/internal/model/custom"
 	"suask/internal/service"
+	"suask/utility"
 )
 
-type sHistoryOperation struct{}
+type sHistory struct{}
 
-// 查找历史提问模块需要的信息
-func (sHistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHistoryInput) (out *model.GetHistoryOutput, err error) {
+func (s *sHistory) GetBase(ctx context.Context, in *model.GetHistoryBaseInput) (out *model.GetHistoryBaseOutput, err error) {
+	//userId := 1
+	userId := gconv.Int(ctx.Value(consts.CtxId))
 
-	// 得到用户提问的所有提问记录
-	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().SrcUserId, in.UserId)
-
-	// 按照时间顺序降序，问题id降序
-	md = md.Order("created_at desc")
-
-	// 将排序之后的结果分页并得到对应的查询结果
-	// historyQuestionAll := md.Page(in.Page, consts.NumOfQuestionsPerPage)
-	historyQuestionAll := md.Page(in.Page, 10).WithAll()
-	var mqq []*model.MultiQueryQuestions
-
-	err = historyQuestionAll.Scan(&mqq)
+	md := dao.Questions.Ctx(ctx)
+	md = md.Where(dao.Questions.Columns().SrcUserId, userId)
+	if in.Keyword != "" {
+		md = md.WhereLike(dao.Questions.Columns().Title, "%"+in.Keyword+"%")
+	}
+	md = md.Page(in.Page, consts.NumOfQuestionsPerPage)
+	err = utility.SortByType(&md, in.SortType)
 	if err != nil {
 		return nil, err
 	}
-	// 初始化myhistoryquestion
-	mhq := make([]model.MyHistoryQuestion, len(mqq))
-
-	// key是问题的id  value是对应附件所有的url
-	imageUrlMap := make(map[int][]string)
-
-	for _, m := range mqq {
-		for i := range m.Images {
-			tempFileID := m.Images[i].FileID
-
-			// 得到结构体sFile的  用tempFileID做出来的
-			var tempFileGetInput = model.FileGetInput{
-				Id: tempFileID, // 确保 tempFileID 是 int 类型
-			}
-			var tempFileGetOutput = model.FileGetOutput{}
-			var tempUrl string
-			tempFileGetOutput, err = service.IFile.Get(service.File(), ctx, tempFileGetInput) // 这步放到controller
-			tempUrl = tempFileGetOutput.URL
-			if err != nil {
-				return nil, err
-			}
-			imageUrlMap[m.Id] = append(imageUrlMap[m.Id], tempUrl)
-		}
-	}
-
-	// MyQuestionList切片完成
-	for i := range mqq {
-		mhq[i] = model.MyHistoryQuestion{
-			Id:        mqq[i].Id,                         //int
-			Title:     mqq[i].Title,                      //string
-			Contents:  mqq[i].Contents,                   //string
-			CreatedAt: mqq[i].CreatedAt.TimestampMilli(), //int64
-			Views:     mqq[i].Views,                      //int
-			ImageURLs: imageUrlMap[mqq[i].Id],            //[]string
-		}
-	}
-
-	limit := consts.NumOfQuestionsPerPage
-	limit = 10
-	total, err := dao.Questions.Ctx(ctx).Where(do.Questions{SrcUserId: in.UserId}).Count()
+	var remain int
+	var q []*custom.Questions
+	err = md.ScanAndCount(&q, &remain, true)
 	if err != nil {
 		return nil, err
 	}
-	pageNum := math.Ceil(float64(total) / float64(limit))
-	remain := int(pageNum) - in.Page
-
-	ultimate_out := model.GetHistoryOutput{
-		Question:   mhq,
-		Total:      total,
-		Size:       limit,
-		PageNum:    int(pageNum),
-		RemainPage: remain,
+	remainNum := remain - consts.NumOfQuestionsPerPage*in.Page
+	remain = remainNum / consts.NumOfQuestionsPerPage
+	if remainNum%consts.NumOfQuestionsPerPage > 0 {
+		remain += 1
 	}
+	qIDs := make([]int, len(q))
+	for i, question := range q {
+		qIDs[i] = question.Id
+	}
+	var fav []*custom.MyFavorites
+	md = dao.Favorites.Ctx(ctx).WhereIn(dao.Favorites.Columns().QuestionId, qIDs).Where(dao.Favorites.Columns().UserId, userId)
+	err = md.Scan(&fav)
+	if err != nil {
+		return nil, err
+	}
+	pqs := make([]model.PublicQuestion, len(q))
+	idMap := make(map[int]int)
+	for i, pq := range q {
+		idMap[pq.Id] = i
+		pqs[i] = model.PublicQuestion{
+			ID:        pq.Id,
+			Title:     pq.Title,
+			Content:   utility.TruncateString(pq.Contents),
+			CreatedAt: pq.CreatedAt.TimestampMilli(),
+			Views:     pq.Views,
+		}
+	}
+	for _, f := range fav {
+		pqs[idMap[f.QuestionId]].IsFavorite = true
+	}
+	output := model.GetHistoryBaseOutput{
+		QuestionIDs: qIDs,
+		IdMap:       idMap,
+		Questions:   pqs,
+		RemainPage:  remain,
+	}
+	return &output, err
+}
 
-	return &ultimate_out, nil
+func (s *sHistory) GetKeyWord(ctx context.Context, in *model.GetHistoryKeywordsInput) (out *model.GetHistoryKeywordsOutput, err error) {
+	//userId := 1
+	userId := gconv.Int(ctx.Value(consts.CtxId))
+
+	md := dao.Questions.Ctx(ctx)
+	md = md.Where(dao.Questions.Columns().SrcUserId, userId)
+	err = utility.SortByType(&md, in.SortType)
+	if err != nil {
+		return nil, err
+	}
+	words := make([]model.Keywords, 8)
+	err = md.WhereLike(dao.Questions.Columns().Title, "%"+in.Keyword+"%").Limit(8).Scan(&words)
+	if err != nil {
+		return nil, err
+	}
+	output := &model.GetHistoryKeywordsOutput{}
+	output.Words = words
+	return output, nil
 }
 
 func init() {
-	service.RegisterHistoryOperation(New())
+	service.RegisterHistory(New())
 }
 
-func New() *sHistoryOperation {
-	return &sHistoryOperation{}
+func New() *sHistory {
+	return &sHistory{}
 }

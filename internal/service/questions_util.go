@@ -13,7 +13,7 @@ import (
 type (
 	IQuestionUtil interface {
 		GetImages(ctx context.Context, input *model.GetImagesInput) (*model.GetImagesOutput, error)
-		Favorite(ctx context.Context, input *model.FavoriteInput) (*model.FavoriteOutput, error)
+		Favorite(ctx context.Context, in *model.FavoriteInput) (out *model.FavoriteOutput, err error)
 	}
 )
 
