@@ -19,11 +19,11 @@ func (sHistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHisto
 	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().SrcUserId, in.UserId)
 
 	// 按照时间顺序降序，问题id降序
-	md.Order("CreatedAt desc, Id desc")
+	md = md.Order("created_at desc")
 
 	// 将排序之后的结果分页并得到对应的查询结果
 	// historyQuestionAll := md.Page(in.Page, consts.NumOfQuestionsPerPage)
-	historyQuestionAll := md.Page(in.Page, 10)
+	historyQuestionAll := md.Page(in.Page, 10).WithAll()
 	var mqq []*model.MultiQueryQuestions
 
 	err = historyQuestionAll.Scan(&mqq)
