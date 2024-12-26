@@ -130,10 +130,10 @@ func (cPublicQuestions) GetByKeyword(ctx context.Context, req *v1.GetPageByKeywo
 	return
 }
 
-func (cPublicQuestions) Favorite(ctx context.Context, req *v1.FavoriteReq) (res *v1.FavoriteRes, err error) {
-	input := model.FavoriteInput{}
-	gconv.Scan(req, &input)
-	output, err := service.QuestionUtil().Favorite(ctx, &input)
-	gconv.Scan(output, &res)
-	return
-}
+//func (cPublicQuestions) Favorite(ctx context.Context, req *v1.FavoriteReq) (res *v1.FavoriteRes, err error) {
+//	input := model.FavoriteInput{}
+//	gconv.Scan(req, &input)
+//	output, err := service.QuestionUtil().Favorite(ctx, &input)
+//	gconv.Scan(output, &res)
+//	return
+//}
