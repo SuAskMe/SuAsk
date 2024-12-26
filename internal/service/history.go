@@ -11,23 +11,23 @@ import (
 )
 
 type (
-	IHistoryOperation interface {
-		// 查找历史提问模块需要的信息
-		LoadHistoryInfo(ctx context.Context, in *model.GetHistoryInput) (out *model.GetHistoryOutput, err error)
+	IHistory interface {
+		GetBase(ctx context.Context, in *model.GetHistoryBaseInput) (out *model.GetHistoryBaseOutput, err error)
+		GetKeyWord(ctx context.Context, in *model.GetHistoryKeywordsInput) (out *model.GetHistoryKeywordsOutput, err error)
 	}
 )
 
 var (
-	localHistoryOperation IHistoryOperation
+	localHistory IHistory
 )
 
-func HistoryOperation() IHistoryOperation {
-	if localHistoryOperation == nil {
-		panic("implement not found for interface IHistoryOperation, forgot register?")
+func History() IHistory {
+	if localHistory == nil {
+		panic("implement not found for interface IHistory, forgot register?")
 	}
-	return localHistoryOperation
+	return localHistory
 }
 
-func RegisterHistoryOperation(i IHistoryOperation) {
-	localHistoryOperation = i
+func RegisterHistory(i IHistory) {
+	localHistory = i
 }

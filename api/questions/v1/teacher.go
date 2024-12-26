@@ -7,7 +7,7 @@ import (
 )
 
 type GetPageOfTeacherReq struct {
-	g.Meta `path:"/questions/teacher/get" method:"get" tags:"Teacher" summary:"获取老师问题列表"`
+	g.Meta `path:"/questions/teacher" method:"GET" tags:"Question" summary:"获取老师问题列表"`
 	GetPageBase
 	TeacherID int `v:"required|min:1" json:"teacher_id"`
 }
@@ -18,7 +18,7 @@ type GetPageOfTeacherRes struct {
 }
 
 type GetSearchKeywordsOfTeacherReq struct {
-	g.Meta    `path:"/questions/teacher/get/keywords" method:"get" tags:"Teacher" summary:"搜索老师问题"`
+	g.Meta    `path:"/questions/teacher/keywords" method:"GET" tags:"Question" summary:"搜索老师问题"`
 	Keyword   string `v:"required|length:1,100" json:"keyword"`
 	SortType  int    `v:"required|min:0|max:3" json:"sort_type"`
 	TeacherID int    `v:"required|min:1" json:"teacher_id"`
@@ -31,7 +31,7 @@ type GetSearchKeywordsOfTeacherRes struct {
 }
 
 type GetPageByKeywordOfTeacherReq struct {
-	g.Meta    `path:"/questions/teacher/search" method:"get" tags:"Teacher" summary:"根据关键字获取老师问题列表"`
+	g.Meta    `path:"/questions/teacher/search" method:"GET" tags:"Question" summary:"根据关键字获取老师问题列表"`
 	Keyword   string `v:"length:1,20" json:"keyword"`
 	TeacherID int    `v:"required|min:1" json:"teacher_id"`
 	GetPageBase
@@ -42,11 +42,11 @@ type GetPageByKeywordOfTeacherRes struct {
 	RemainPage   int                     `json:"remain_page"`
 }
 
-type FavoriteOfTeacherReq struct {
-	g.Meta     `path:"/questions/teacher/favorite" method:"post" tags:"Teacher" summary:"收藏老师问题"`
-	QuestionID int `v:"required|min:1" json:"question_id"`
-}
-
-type FavoriteOfTeacherRes struct {
-	IsFavorited bool `json:"is_favorited"`
-}
+//type FavoriteOfTeacherReq struct {
+//	g.Meta     `path:"/questions/teacher/favorite" method:"post" tags:"Teacher" summary:"收藏老师问题"`
+//	QuestionID int `v:"required|min:1" json:"question_id"`
+//}
+//
+//type FavoriteOfTeacherRes struct {
+//	IsFavorited bool `json:"is_favorited"`
+//}

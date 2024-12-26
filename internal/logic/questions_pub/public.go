@@ -2,7 +2,6 @@ package public
 
 import (
 	"context"
-	"fmt"
 	"github.com/gogf/gf/v2/util/gconv"
 	"suask/internal/consts"
 	"suask/internal/dao"
@@ -10,11 +9,11 @@ import (
 	"suask/internal/model/custom"
 	"suask/internal/model/do"
 	"suask/internal/service"
+	"suask/utility"
 
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/text/gstr"
 
-	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
 )
 
@@ -32,46 +31,13 @@ type sPublicQuestion struct{}
 // 	Force:    false,
 // }
 
-func sortByType(md **gdb.Model, sortType int) error {
-	switch sortType {
-	case consts.SortByTimeDsc:
-		*md = (*md).Order("created_at DESC")
-	case consts.SortByTimeAsc:
-		*md = (*md).Order("created_at ASC")
-	case consts.SortByViewsDsc:
-		*md = (*md).Order("views DESC")
-	case consts.SortByViewsAsc:
-		*md = (*md).Order("views ASC")
-	default:
-		return fmt.Errorf("invalid sort type: %d", sortType)
-	}
-	return nil
-}
-
-// TruncateString 截断字符串：中文字符截断到 150 个字符，英文字符截断到 450 个字符
-func TruncateString(s string) string {
-	runes := []rune(s)
-	length := 0
-	for i, r := range runes {
-		if r <= 0x7F {
-			length++
-		} else {
-			length += 3
-		}
-		if length > 500 {
-			return string(runes[:i]) + "..."
-		}
-	}
-	return s
-}
-
 func (sPublicQuestion) GetBase(ctx context.Context, input *model.GetBaseInput) (*model.GetBaseOutput, error) {
 	md := dao.Questions.Ctx(ctx).WhereNull("dst_user_id")
 	if input.Keyword != "" {
 		md = md.Where("title LIKE?", "%"+input.Keyword+"%")
 	}
 	md = md.Page(input.Page, consts.NumOfQuestionsPerPage)
-	err := sortByType(&md, input.SortType)
+	err := utility.SortByType(&md, input.SortType)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +74,7 @@ func (sPublicQuestion) GetBase(ctx context.Context, input *model.GetBaseInput) (
 		pqs[i] = model.PublicQuestion{
 			ID:        pq.Id,
 			Title:     pq.Title,
-			Content:   TruncateString(pq.Contents),
+			Content:   utility.TruncateString(pq.Contents),
 			CreatedAt: pq.CreatedAt.TimestampMilli(),
 			Views:     pq.Views,
 		}
@@ -128,9 +94,9 @@ func (sPublicQuestion) GetBase(ctx context.Context, input *model.GetBaseInput) (
 
 func (sPublicQuestion) GetKeyword(ctx context.Context, input *model.GetKeywordsInput) (*model.GetKeywordsOutput, error) {
 	// md := dao.Questions.Ctx(ctx).Cache(keywordCacheMode).WhereNull("dst_user_id")
-	md := dao.Questions.Ctx(ctx).WhereNull("dst_user_id")
+	md := dao.Questions.Ctx(ctx).WhereNull(dao.Questions.Columns().DstUserId)
 	// fmt.Println(input.Keyword)
-	err := sortByType(&md, input.SortType)
+	err := utility.SortByType(&md, input.SortType)
 	if err != nil {
 		return nil, err
 	}
