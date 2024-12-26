@@ -12,7 +12,7 @@ type GetPageBase struct {
 }
 
 type GetPageReq struct {
-	g.Meta `path:"/questions/public" method:"get" tags:"Public Question" summary:"获取公开问题列表" description:"获取公开问题列表"`
+	g.Meta `path:"/questions/public" method:"get" tags:"Question" summary:"获取公开问题列表" description:"获取公开问题列表"`
 	GetPageBase
 }
 
@@ -22,7 +22,7 @@ type GetPageRes struct {
 }
 
 type GetSearchKeywordsReq struct {
-	g.Meta   `path:"/questions/public/keywords" method:"get" tags:"Public Question" summary:"搜索公开问题" description:"搜索公开问题"`
+	g.Meta   `path:"/questions/public/keywords" method:"get" tags:"Question" summary:"搜索公开问题" description:"搜索公开问题"`
 	Keyword  string `v:"required|length:1,100" json:"keyword"`
 	SortType int    `v:"required|min:0|max:3" json:"sort_type"`
 }
@@ -34,7 +34,7 @@ type GetSearchKeywordsRes struct {
 }
 
 type GetPageByKeywordReq struct {
-	g.Meta  `path:"/questions/public/search" method:"get" tags:"Public Question" summary:"根据关键字获取公开问题列表" description:"根据关键字获取公开问题列表"`
+	g.Meta  `path:"/questions/public/search" method:"get" tags:"Question" summary:"根据关键字获取公开问题列表" description:"根据关键字获取公开问题列表"`
 	Keyword string `v:"length:1,40" json:"keyword"`
 	GetPageBase
 }
