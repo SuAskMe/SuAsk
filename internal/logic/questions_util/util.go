@@ -2,7 +2,7 @@ package questions
 
 import (
 	"context"
-	"fmt"
+	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/util/gconv"
 	"suask/internal/consts"
 	"suask/internal/dao"
@@ -41,36 +41,36 @@ func (sQuestionUtil) GetImages(ctx context.Context, input *model.GetImagesInput)
 	return &output, nil
 }
 
-func (sQuestionUtil) Favorite(ctx context.Context, input *model.FavoriteInput) (*model.FavoriteOutput, error) {
+func (sQuestionUtil) Favorite(ctx context.Context, in *model.FavoriteInput) (out *model.FavoriteOutput, err error) {
 	md := dao.Favorites.Ctx(ctx)
 	//UserId := 1
 	UserId := gconv.Int(ctx.Value(consts.CtxId))
 	if UserId == consts.DefaultUserId {
-		return nil, fmt.Errorf("user not login")
+		return nil, gerror.New("user not login")
 	}
-	cnt, err := md.Where("user_id = ? AND question_id = ?", UserId, input.QuestionID).Count()
+	cnt, err := md.Where("user_id = ? AND question_id = ?", UserId, in.QuestionID).Count()
 	if err != nil {
 		return nil, err
 	}
 	if cnt > 0 {
-		_, err = md.Delete("user_id = ? AND question_id = ?", UserId, input.QuestionID)
+		_, err = md.Delete("user_id = ? AND question_id = ?", UserId, in.QuestionID)
 		if err != nil {
 			return nil, err
 		}
 		return &model.FavoriteOutput{
-			IsFavorited: false,
+			IsFavorite: false,
 		}, nil
 	} else {
 		_, err = md.Insert(g.Map{
 			"user_id":     UserId,
-			"question_id": input.QuestionID,
+			"question_id": in.QuestionID,
 			"package":     "默认收藏夹",
 		})
 		if err != nil {
 			return nil, err
 		}
 		return &model.FavoriteOutput{
-			IsFavorited: true,
+			IsFavorite: true,
 		}, nil
 	}
 }

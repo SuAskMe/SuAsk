@@ -35,7 +35,7 @@ type GetSearchKeywordsRes struct {
 
 type GetPageByKeywordReq struct {
 	g.Meta  `path:"/questions/public/search" method:"get" tags:"Public Question" summary:"根据关键字获取公开问题列表" description:"根据关键字获取公开问题列表"`
-	Keyword string `v:"length:1,20" json:"keyword"`
+	Keyword string `v:"length:1,40" json:"keyword"`
 	GetPageBase
 }
 
@@ -50,7 +50,7 @@ type FavoriteReq struct {
 }
 
 type FavoriteRes struct {
-	IsFavorited bool `json:"is_favorited"`
+	IsFavorite bool `json:"is_favorite"`
 }
 
 // type UpvoteReq struct {

@@ -3,6 +3,7 @@ package public
 import (
 	"context"
 	"fmt"
+	"github.com/gogf/gf/v2/util/gconv"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
@@ -113,7 +114,7 @@ func (sPublicQuestion) GetBase(ctx context.Context, input *model.GetBaseInput) (
 		}
 	}
 	for _, f := range fav { // 填充IsFavorited字段
-		pqs[idMap[f.QuestionId]].IsFavorited = true
+		pqs[idMap[f.QuestionId]].IsFavorite = true
 	}
 
 	output := model.GetBaseOutput{
@@ -203,6 +204,14 @@ func (sPublicQuestion) AddQuestion(ctx context.Context, in *model.AddQuestionInp
 		return nil, err
 	}
 	out.ID = int(id)
+
+	// 添加通知
+	if in.SrcUserID != nil {
+		_, err := service.Notification().Add(ctx, model.AddNotificationInput{UserId: gconv.Int(in.SrcUserID), QuestionId: id})
+		if err != nil {
+			return nil, err
+		}
+	}
 	return out, nil
 }
 

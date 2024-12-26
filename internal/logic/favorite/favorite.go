@@ -53,12 +53,12 @@ func (s *sFavorite) GetBase(ctx context.Context, in *model.GetFavoriteBaseInput)
 		if q, ok := qMap[id]; ok {
 			idMap[q.Id] = i
 			pqs[i] = model.PublicQuestion{
-				ID:          q.Id,
-				Title:       q.Title,
-				Content:     utility.TruncateString(q.Contents),
-				CreatedAt:   f[i].CreatedAt.TimestampMilli(),
-				Views:       q.Views,
-				IsFavorited: true,
+				ID:         q.Id,
+				Title:      q.Title,
+				Content:    utility.TruncateString(q.Contents),
+				CreatedAt:  f[i].CreatedAt.TimestampMilli(),
+				Views:      q.Views,
+				IsFavorite: true,
 			}
 		}
 	}

@@ -14,5 +14,5 @@ type FavoriteInput struct {
 }
 
 type FavoriteOutput struct {
-	IsFavorited bool `json:"is_favorited"`
+	IsFavorite bool `json:"is_favorite"`
 }

@@ -5,32 +5,49 @@ import (
 	"suask/internal/model"
 )
 
+type GetPageBase struct {
+	SortType int `v:"required|min:0|max:3" json:"sort_type"`
+	Page     int `v:"required|min:1" json:"page"`
+}
+
+type GetFavoritePageReq struct {
+	g.Meta `path:"/favorites" method:"GET" tags:"Favorite" summary:"获取收藏列表"`
+	GetPageBase
+}
+
+type GetFavoritePageRes struct {
+	QuestionList []model.PublicQuestion `json:"favorite_list"`
+	RemainPage   int                    `json:"remain_page"`
+}
+
+type GetFavoriteSearchKeywordsReq struct {
+	g.Meta   `path:"/favorites/keywords" method:"GET" tags:"Favorite" summary:"搜索收藏"`
+	Keyword  string `v:"required|length:1,100" json:"keyword"`
+	SortType int    `v:"required|min:0|max:3" json:"sort_type"`
+}
+
+type GetFavoriteSearchKeywordsRes struct {
+	Words []struct {
+		Value string `json:"value"`
+	} `json:"words"`
+}
+
+type GetFavoritePageByKeywordReq struct {
+	g.Meta  `path:"/favorites/search" method:"GET" tags:"Favorite" summary:"根据关键字获取收藏列表"`
+	Keyword string `v:"length:1,20" json:"keyword"`
+	GetPageBase
+}
+
+type GetFavoritePageByKeywordRes struct {
+	QuestionList []model.PublicQuestion `json:"favorite_list"`
+	RemainPage   int                    `json:"remain_page"`
+}
+
 type FavoriteReq struct {
-	g.Meta `path:"/favorite/get" method:"GET" tags:"Favorite" summary:"查询收藏列表"`
+	g.Meta     `path:"/favorites" method:"POST" tags:"Favorite" summary:"收藏问题"`
+	QuestionID int `v:"required|min:1" json:"question_id"`
 }
 
 type FavoriteRes struct {
-	FavoriteQuestionList []model.FavoriteQuestion `json:"favorite_question_list"`
-}
-
-type PageFavoriteReq struct {
-	g.Meta  `path:"/favorite/getPage" method:"GET" tags:"Favorite" summary:"分页查询收藏列表"`
-	PageIdx int `json:"page_idx"`
-}
-
-type PageFavoriteRes struct {
-	PageFavoriteQuestionList []model.FavoriteQuestion `json:"page_favorite_question_list"`
-	Total                    int                      `json:"total" dc:"总问题数"`
-	Size                     int                      `json:"size" dc:"每页问题数"`
-	RemainPage               int                      `json:"remain_page" dc:"剩余页数"`
-	PageNum                  int                      `json:"page_num" dc:"总页数"`
-}
-
-type DeleteFavoriteReq struct {
-	g.Meta `path:"/favorite/delete" method:"DELETE" tags:"Favorite" summary:"删除收藏"`
-	Id     int `json:"id"`
-}
-
-type DeleteFavoriteRes struct {
-	String string `json:"string"`
+	IsFavorite bool `json:"is_favorite"`
 }
