@@ -12,7 +12,7 @@ type GetPageBase struct {
 }
 
 type GetPageReq struct {
-	g.Meta `path:"/questions/public/get" method:"get" tags:"Public Question" summary:"获取公开问题列表" description:"获取公开问题列表"`
+	g.Meta `path:"/questions/public" method:"get" tags:"Public Question" summary:"获取公开问题列表" description:"获取公开问题列表"`
 	GetPageBase
 }
 
@@ -22,7 +22,7 @@ type GetPageRes struct {
 }
 
 type GetSearchKeywordsReq struct {
-	g.Meta   `path:"/questions/public/get/keywords" method:"get" tags:"Public Question" summary:"搜索公开问题" description:"搜索公开问题"`
+	g.Meta   `path:"/questions/public/keywords" method:"get" tags:"Public Question" summary:"搜索公开问题" description:"搜索公开问题"`
 	Keyword  string `v:"required|length:1,100" json:"keyword"`
 	SortType int    `v:"required|min:0|max:3" json:"sort_type"`
 }
@@ -44,14 +44,14 @@ type GetPageByKeywordRes struct {
 	RemainPage   int                    `json:"remain_page"`
 }
 
-type FavoriteReq struct {
-	g.Meta     `path:"/questions/public/favorite" method:"post" tags:"Public Question" summary:"收藏公开问题" description:"收藏公开问题"`
-	QuestionID int `v:"required|min:1" json:"question_id"`
-}
-
-type FavoriteRes struct {
-	IsFavorite bool `json:"is_favorite"`
-}
+//type FavoriteReq struct {
+//	g.Meta     `path:"/questions/public/favorite" method:"post" tags:"Public Question" summary:"收藏公开问题" description:"收藏公开问题"`
+//	QuestionID int `v:"required|min:1" json:"question_id"`
+//}
+//
+//type FavoriteRes struct {
+//	IsFavorite bool `json:"is_favorite"`
+//}
 
 // type UpvoteReq struct {
 // 	g.Meta     `path:"/questions/public/upvote" method:"post" tags:"Public Question" summary:"点赞公开问题" description:"点赞公开问题"`

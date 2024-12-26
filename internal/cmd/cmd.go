@@ -64,7 +64,6 @@ var (
 						user.User.UpdateUserInfo,
 						user.User.UpdatePassWord,
 						file.File.UpdateFile,
-						questions.PublicQuestions.Favorite,
 						questions.QuestionDetail.AddAnswer,
 						favorite.Favorite,
 					)
