@@ -28,6 +28,7 @@ type QuestionsColumns struct {
 	IsPrivate string // 是否私密提问，仅在问教师时可为是
 	CreatedAt string // 创建时间
 	Views     string // 浏览量
+	ReplyCnt  string // 回复数
 }
 
 // questionsColumns holds the columns for table questions.
@@ -40,6 +41,7 @@ var questionsColumns = QuestionsColumns{
 	IsPrivate: "is_private",
 	CreatedAt: "created_at",
 	Views:     "views",
+	ReplyCnt:  "reply_cnt",
 }
 
 // NewQuestionsDao creates and returns a new DAO object for table data access.

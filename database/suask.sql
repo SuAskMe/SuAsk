@@ -11,7 +11,7 @@
  Target Server Version : 80403
  File Encoding         : 65001
 
- Date: 20/12/2024 15:31:08
+ Date: 27/12/2024 12:13:51
 */
 
 SET NAMES utf8mb4;
@@ -124,17 +124,7 @@ CREATE TABLE `notifications`  (
   INDEX `question_id`(`question_id` ASC) USING BTREE,
   CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `notifications_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
-
-DELIMITER //
-DROP TRIGGER IF EXISTS `set_notification_type`;
-CREATE TRIGGER set_notification_type
-BEFORE INSERT ON notifications
-FOR EACH ROW
-BEGIN
-  SET NEW.type = IF(NEW.answer_id IS NOT NULL, 'new_reply', 'new_question');
-END //
-DELIMITER ;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for questions
@@ -149,6 +139,7 @@ CREATE TABLE `questions`  (
   `is_private` bit(1) NOT NULL COMMENT '是否私密提问，仅在问教师时可为是',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `views` int NOT NULL DEFAULT 0 COMMENT '浏览量',
+  `reply_cnt` int NOT NULL DEFAULT 0 COMMENT '回复数',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `src_user_id`(`src_user_id` ASC) USING BTREE,
   INDEX `dst_user_id`(`dst_user_id` ASC) USING BTREE,
@@ -219,5 +210,27 @@ CREATE TABLE `users`  (
   INDEX `theme_id`(`theme_id` ASC) USING BTREE,
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`avatar_file_id`) REFERENCES `files` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Triggers structure for table answers
+-- ----------------------------
+DROP TRIGGER IF EXISTS `update_reply_cnt`;
+delimiter ;;
+CREATE TRIGGER `update_reply_cnt` AFTER INSERT ON `answers` FOR EACH ROW BEGIN
+	UPDATE questions SET reply_cnt = reply_cnt + 1 WHERE id = NEW.question_id;
+END
+;;
+delimiter ;
+
+-- ----------------------------
+-- Triggers structure for table notifications
+-- ----------------------------
+DROP TRIGGER IF EXISTS `set_notification_type`;
+delimiter ;;
+CREATE TRIGGER `set_notification_type` BEFORE INSERT ON `notifications` FOR EACH ROW BEGIN
+  SET NEW.type = IF(NEW.answer_id IS NOT NULL, 'new_reply', 'new_question');
+END
+;;
+delimiter ;
 
 SET FOREIGN_KEY_CHECKS = 1;
