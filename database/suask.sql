@@ -114,10 +114,10 @@ CREATE TABLE `notifications`  (
   `user_id` int NOT NULL COMMENT '用户ID',
   `question_id` int NOT NULL COMMENT '问题ID',
   `answer_id` int COMMENT '问题ID',
-  `type` enum('new_question','new_reply') CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '提醒类型（新提问或新回复）',
+  `type` enum('new_question','new_reply','new_answer') CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '提醒类型（新提问、新回复、新回答）',
   `is_read` bit(1) NOT NULL COMMENT '是否已读' DEFAULT 0,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `deleted_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间',
+  `deleted_at` timestamp NULL DEFAULT NULL COMMENT '删除时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `user_id_2`(`user_id` ASC, `question_id` ASC, `answer_id` ASC) USING BTREE COMMENT '每个用户只能收到关于同一个问题的一条提醒',
   INDEX `user_id`(`user_id` ASC) USING BTREE,
@@ -222,15 +222,15 @@ END
 ;;
 delimiter ;
 
--- ----------------------------
--- Triggers structure for table notifications
--- ----------------------------
-DROP TRIGGER IF EXISTS `set_notification_type`;
-delimiter ;;
-CREATE TRIGGER `set_notification_type` BEFORE INSERT ON `notifications` FOR EACH ROW BEGIN
-  SET NEW.type = IF(NEW.answer_id IS NOT NULL, 'new_reply', 'new_question');
-END
-;;
-delimiter ;
-
-SET FOREIGN_KEY_CHECKS = 1;
+# -- ----------------------------
+# -- Triggers structure for table notifications
+# -- ----------------------------
+# DROP TRIGGER IF EXISTS `set_notification_type`;
+# delimiter ;;
+# CREATE TRIGGER `set_notification_type` BEFORE INSERT ON `notifications` FOR EACH ROW BEGIN
+#   SET NEW.type = IF(NEW.answer_id IS NOT NULL, 'new_reply', 'new_question');
+# END
+# ;;
+# delimiter ;
+#
+# SET FOREIGN_KEY_CHECKS = 1;

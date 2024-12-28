@@ -38,3 +38,15 @@ func TruncateString(s string) string {
 	}
 	return s
 }
+
+func AddUnique[T comparable](slice []T, value T) []T {
+	uniqueMap := make(map[T]bool)
+	for _, v := range slice {
+		uniqueMap[v] = true
+	}
+	if !uniqueMap[value] {
+		slice = append(slice, value)
+	}
+
+	return slice
+}

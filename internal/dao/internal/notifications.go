@@ -24,10 +24,10 @@ type NotificationsColumns struct {
 	UserId     string // 用户ID
 	QuestionId string // 问题ID
 	AnswerId   string // 问题ID
-	Type       string // 提醒类型（新提问或新回复）
+	Type       string // 提醒类型（新提问、新回复、新回答）
 	IsRead     string // 是否已读
-	CreatedAt  string //
-	DeletedAt  string //
+	CreatedAt  string // 创建时间
+	DeletedAt  string // 删除时间
 }
 
 // notificationsColumns holds the columns for table notifications.
