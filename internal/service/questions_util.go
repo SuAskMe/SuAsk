@@ -8,12 +8,14 @@ package service
 import (
 	"context"
 	"suask/internal/model"
+	"suask/internal/model/entity"
 )
 
 type (
 	IQuestionUtil interface {
 		GetImages(ctx context.Context, input *model.GetImagesInput) (*model.GetImagesOutput, error)
 		Favorite(ctx context.Context, in *model.FavoriteInput) (out *model.FavoriteOutput, err error)
+		GetQuestion(ctx context.Context, questionID int) (out *entity.Questions, err error)
 	}
 )
 

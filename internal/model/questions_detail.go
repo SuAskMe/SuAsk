@@ -67,6 +67,7 @@ type UpvoteOutput struct {
 }
 
 type AddAnswerInput struct {
+	UserId     int         `json:"user_id" orm:"user_id"`
 	InReplyTo  interface{} `json:"in_reply_to" orm:"in_reply_to"`
 	QuestionId int         `json:"question_id" orm:"dst_user_id"`
 	Content    string      `json:"content" orm:"content"`

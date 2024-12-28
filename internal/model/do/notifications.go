@@ -15,6 +15,7 @@ type Notifications struct {
 	Id         interface{} // 提醒ID
 	UserId     interface{} // 用户ID
 	QuestionId interface{} // 问题ID
+	ReplyToId  interface{} // 回复问题的ID
 	AnswerId   interface{} // 问题ID
 	Type       interface{} // 提醒类型（新提问、新回复、新回答）
 	IsRead     interface{} // 是否已读

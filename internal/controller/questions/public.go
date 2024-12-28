@@ -2,7 +2,6 @@ package questions
 
 import (
 	"context"
-	"fmt"
 	v1 "suask/api/questions/v1"
 	"suask/internal/consts"
 	"suask/internal/model"
@@ -16,13 +15,14 @@ type cPublicQuestions struct{}
 var PublicQuestions = cPublicQuestions{}
 
 func (cPublicQuestions) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v1.AddQuestionRes, err error) {
-	// UserId := gconv.Int(ctx.Value(consts.CtxId))
-	UserId := 2
-	if UserId == consts.DefaultUserId {
-		return nil, fmt.Errorf("user not login")
-	}
+	UserId := gconv.Int(ctx.Value(consts.CtxId))
+	//UserId := 2
+	//if UserId == consts.DefaultUserId {
+	//	return nil, fmt.Errorf("user not login")
+	//}
 	questionInput := model.AddQuestionInput{}
 	err = gconv.Struct(req, &questionInput)
+	questionInput.SrcUserID = UserId
 	if err != nil {
 		return nil, err
 	}
@@ -49,6 +49,18 @@ func (cPublicQuestions) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v
 		}
 	}
 	res = &v1.AddQuestionRes{Id: questionId.ID}
+
+	// 添加通知
+	if req.DstUserId != 0 {
+		_, err := service.Notification().Add(ctx, model.AddNotificationInput{
+			UserId:     req.DstUserId,
+			QuestionId: questionId.ID,
+			Type:       consts.NewQuestion,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
 	return res, nil
 }
 
