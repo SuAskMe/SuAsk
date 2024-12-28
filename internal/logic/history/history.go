@@ -2,13 +2,14 @@ package history
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/util/gconv"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/model/custom"
 	"suask/internal/service"
 	"suask/utility"
+
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type sHistory struct{}
@@ -58,6 +59,7 @@ func (s *sHistory) GetBase(ctx context.Context, in *model.GetHistoryBaseInput) (
 			Content:   utility.TruncateString(pq.Contents),
 			CreatedAt: pq.CreatedAt.TimestampMilli(),
 			Views:     pq.Views,
+			AnswerNum: pq.ReplyCnt,
 		}
 	}
 	for _, f := range fav {

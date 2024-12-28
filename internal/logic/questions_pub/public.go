@@ -2,7 +2,6 @@ package public
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/util/gconv"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
@@ -10,6 +9,8 @@ import (
 	"suask/internal/model/do"
 	"suask/internal/service"
 	"suask/utility"
+
+	"github.com/gogf/gf/v2/util/gconv"
 
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/text/gstr"
@@ -53,11 +54,23 @@ func (sPublicQuestion) GetBase(ctx context.Context, input *model.GetBaseInput) (
 	if remainNum%consts.NumOfQuestionsPerPage > 0 {
 		remain += 1
 	}
-	// 获取问题ID列表 （官方的静态联表也是这么做的）
-	qIDs := make([]int, len(q))
+
+	qIDs := make([]int, len(q))                 // 获取问题ID列表 （官方的静态联表也是这么做的）
+	pqs := make([]model.PublicQuestion, len(q)) // 用于存放最终结果
+	idMap := make(map[int]int)                  // 用于快速查找问题ID对应的索引
 	for i, pq := range q {
+		idMap[pq.Id] = i
 		qIDs[i] = pq.Id
+		pqs[i] = model.PublicQuestion{
+			ID:        pq.Id,
+			Title:     pq.Title,
+			Content:   utility.TruncateString(pq.Contents),
+			CreatedAt: pq.CreatedAt.TimestampMilli(),
+			Views:     pq.Views,
+			AnswerNum: pq.ReplyCnt,
+		}
 	}
+
 	var fav []*custom.MyFavorites
 	UserId := 1
 	// UserId := gconv.Int(ctx.Value(consts.CtxId))
@@ -67,18 +80,6 @@ func (sPublicQuestion) GetBase(ctx context.Context, input *model.GetBaseInput) (
 		return nil, err
 	}
 
-	pqs := make([]model.PublicQuestion, len(q)) // 用于存放最终结果
-	idMap := make(map[int]int)                  // 用于快速查找问题ID对应的索引
-	for i, pq := range q {
-		idMap[pq.Id] = i
-		pqs[i] = model.PublicQuestion{
-			ID:        pq.Id,
-			Title:     pq.Title,
-			Content:   utility.TruncateString(pq.Contents),
-			CreatedAt: pq.CreatedAt.TimestampMilli(),
-			Views:     pq.Views,
-		}
-	}
 	for _, f := range fav { // 填充IsFavorited字段
 		pqs[idMap[f.QuestionId]].IsFavorite = true
 	}
@@ -112,21 +113,12 @@ func (sPublicQuestion) GetKeyword(ctx context.Context, input *model.GetKeywordsI
 
 func (sPublicQuestion) GetAnswers(ctx context.Context, input *model.GetAnswersInput) (*model.GetAnswersOutput, error) {
 	db := g.DB()
-	res, err := db.GetAll(ctx, "SELECT COUNT(1) as cnt, question_id FROM `answers` WHERE question_id IN (?) GROUP BY `question_id`;", input.QuestionIDs)
-	if err != nil {
-		return nil, err
-	}
-	countMap := make(map[int]int)
-	for _, row := range res {
-		countMap[row["question_id"].Int()] = row["cnt"].Int()
-	}
-
 	sqlStr := `
 SELECT al.question_id, u.avatar_file_id
 FROM (	SELECT user_id, question_id, ROW_NUMBER() OVER (PARTITION BY question_id) as rowCnt 
 		FROM answers WHERE question_id IN (?) ) al, users u
 WHERE al.rowCnt <= 5 AND al.user_id = u.id;`
-	res, err = db.GetAll(ctx, sqlStr, input.QuestionIDs)
+	res, err := db.GetAll(ctx, sqlStr, input.QuestionIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +130,6 @@ WHERE al.rowCnt <= 5 AND al.user_id = u.id;`
 		avatarsMap[row["question_id"].Int()] = append(avatarsMap[row["question_id"].Int()], row["avatar_file_id"].Int())
 	}
 	return &model.GetAnswersOutput{
-		CountMap:   countMap,
 		AvatarsMap: avatarsMap,
 	}, nil
 }

@@ -3,7 +3,6 @@ package questions_detail
 import (
 	"context"
 	"fmt"
-	"github.com/gogf/gf/v2/util/gconv"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
@@ -12,6 +11,8 @@ import (
 	"suask/internal/model/entity"
 	"suask/internal/service"
 	"sync"
+
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type sQuestionDetail struct{}
@@ -92,20 +93,19 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 	UserIdMap := make(map[int][]int)    // 用户ID所对应的回答ID列表
 	for i, ans := range answers {
 		IdList[i] = ans.Id
+		IdMap[ans.Id] = i
 		if _, ok := UserIdMap[ans.UserId]; !ok {
 			UserIdMap[ans.UserId] = []int{ans.Id}
 		} else {
 			UserIdMap[ans.UserId] = append(UserIdMap[ans.UserId], ans.Id)
 		}
-		IdMap[ans.Id] = i
-		answerList[i] = model.AnswerWithDetails{
-			Id:        ans.Id,
-			UserId:    ans.UserId,
-			InReplyTo: ans.InReplyTo,
-			Contents:  ans.Contents,
-			CreatedAt: ans.CreatedAt.TimestampMilli(),
-			Upvotes:   ans.Upvotes,
-		}
+
+		answerList[i].Id = ans.Id
+		answerList[i].UserId = ans.UserId
+		answerList[i].InReplyTo = ans.InReplyTo
+		answerList[i].Contents = ans.Contents
+		answerList[i].CreatedAt = ans.CreatedAt.TimestampMilli()
+		answerList[i].Upvotes = ans.Upvotes
 	}
 	// 获取用户点赞信息
 	UserId := 2

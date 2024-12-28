@@ -57,6 +57,5 @@ type GetAnswersInput struct {
 }
 
 type GetAnswersOutput struct {
-	CountMap   map[int]int   `json:"count_map"`
 	AvatarsMap map[int][]int `json:"avatars_map"`
 }

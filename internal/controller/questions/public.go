@@ -93,7 +93,6 @@ func GetQuestionImpl(ctx context.Context, req interface{}) (res interface{}, err
 			return nil, err_
 		}
 		URLs = append(URLs, urls.URL...)
-		QuestionList[idMap[k]].AnswerNum = answersOutput.CountMap[k]
 		QuestionList[idMap[k]].AnswerAvatars = URLs
 	}
 	// 返回结果
