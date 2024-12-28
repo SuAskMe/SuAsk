@@ -128,12 +128,43 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 	}
 
 	// 添加通知
-	UserId := gconv.Int(ctx.Value(consts.CtxId))
-	if UserId != 0 {
-		_, err = service.Notification().Add(ctx, model.AddNotificationInput{UserId: UserId, QuestionId: req.QuestionId, AnswerId: output.Id})
+	question, err := service.QuestionUtil().GetQuestion(ctx, req.QuestionId)
+	if err != nil {
+		return nil, err
+	}
+	// 给发帖的人通知有回答
+	if question.SrcUserId != consts.DefaultUserId {
+		_, err = service.Notification().Add(ctx, model.AddNotificationInput{
+			UserId:     question.SrcUserId,
+			QuestionId: req.QuestionId,
+			AnswerId:   output.Id,
+			Type:       consts.NewAnswer,
+		})
+	}
+
+	// 如果是回复别人的回答
+	if req.InReplyTo != nil {
+		answer, err := service.Answer().GetAnswer(ctx, gconv.Int(req.InReplyTo))
 		if err != nil {
 			return nil, err
 		}
+		// 回复不是默认用户或自己发的
+		if answer.UserId != consts.DefaultUserId && answer.UserId != UserId {
+			_, err := service.Notification().Add(ctx, model.AddNotificationInput{
+				UserId:     answer.UserId,
+				AnswerId:   answer.Id,
+				ReplyToId:  output.Id,
+				QuestionId: answer.QuestionId,
+				Type:       consts.NewReply,
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	if err != nil {
+		return nil, err
 	}
 	res = &v1.AddAnswerRes{
 		Id: output.Id,

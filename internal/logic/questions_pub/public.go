@@ -10,8 +10,6 @@ import (
 	"suask/internal/service"
 	"suask/utility"
 
-	"github.com/gogf/gf/v2/util/gconv"
-
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/text/gstr"
 
@@ -135,16 +133,16 @@ WHERE al.rowCnt <= 5 AND al.user_id = u.id;`
 }
 
 func (sPublicQuestion) AddQuestion(ctx context.Context, in *model.AddQuestionInput) (out *model.AddQuestionOutput, err error) {
-	srcUserId := in.SrcUserID
-	if srcUserId == 0 {
-		srcUserId = consts.DefaultUserId
-	}
+	//srcUserId := in.SrcUserID
+	//if srcUserId == 0 {
+	//	srcUserId = consts.DefaultUserId
+	//}
 	dstUserId := in.DstUserID
 	if dstUserId == 0 {
 		dstUserId = nil
 	}
 	question := do.Questions{
-		SrcUserId: srcUserId,
+		SrcUserId: in.SrcUserID,
 		DstUserId: dstUserId,
 		Title:     in.Title,
 		Contents:  in.Content,
@@ -161,14 +159,6 @@ func (sPublicQuestion) AddQuestion(ctx context.Context, in *model.AddQuestionInp
 		return nil, err
 	}
 	out.ID = int(id)
-
-	// 添加通知
-	if in.SrcUserID != nil {
-		_, err := service.Notification().Add(ctx, model.AddNotificationInput{UserId: gconv.Int(in.SrcUserID), QuestionId: id})
-		if err != nil {
-			return nil, err
-		}
-	}
 	return out, nil
 }
 
