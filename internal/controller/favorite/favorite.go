@@ -2,11 +2,12 @@ package favorite
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/util/gconv"
 	v1 "suask/api/favorite/v1"
 	"suask/internal/consts"
 	"suask/internal/model"
 	"suask/internal/service"
+
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type cFavorite struct{}
@@ -57,7 +58,6 @@ func GetFavoriteImpl(ctx context.Context, req interface{}) (res interface{}, err
 			return nil, err_
 		}
 		URLs = append(URLs, urls.URL...)
-		QuestionList[idMap[k]].AnswerNum = answersOutput.CountMap[k]
 		QuestionList[idMap[k]].AnswerAvatars = URLs
 	}
 	// 返回结果

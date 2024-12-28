@@ -9,6 +9,12 @@ const (
 	SortByViewsAsc        = 3
 )
 
+const (
+	Answered   = "已回答"
+	Unanswered = "未回答"
+	OnTop      = "置顶"
+)
+
 // for User Role
 
 const (
