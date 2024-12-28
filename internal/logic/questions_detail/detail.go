@@ -11,8 +11,6 @@ import (
 	"suask/internal/model/entity"
 	"suask/internal/service"
 	"sync"
-
-	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type sQuestionDetail struct{}
@@ -20,8 +18,8 @@ type sQuestionDetail struct{}
 var UpvoteLock = sync.Mutex{}
 
 func Validate(ctx context.Context, question *entity.Questions) (bool, error) {
-	UserId := 2
-	// UserId := gconv.Int(ctx.Value(consts.CtxId))
+	//UserId := 2
+	UserId := gconv.Int(ctx.Value(consts.CtxId))
 	if question.IsPrivate && question.SrcUserId != UserId { // 私有问题，且不是自己提问
 		return false, fmt.Errorf("you are not allowed to access this question")
 	}
