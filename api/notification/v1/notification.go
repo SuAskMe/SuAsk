@@ -11,9 +11,9 @@ type NotificationGetReq struct {
 }
 
 type NotificationGetRes struct {
-	NewQuestion []model.Notification `json:"new_question" dc:"新的问题"`
-	NewReply    []model.Notification `json:"new_reply" dc:"新的回复"`
-	NewAnswer   []model.Notification `json:"new_answer" dc:"新的回答"`
+	NewQuestion []model.NotificationNewQuestion `json:"new_question" dc:"新的问题"`
+	NewReply    []model.NotificationNewReply    `json:"new_reply" dc:"新的回复"`
+	NewAnswer   []model.NotificationNewAnswer   `json:"new_answer" dc:"新的回答"`
 }
 
 type NotificationUpdateReq struct {

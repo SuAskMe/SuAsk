@@ -53,3 +53,10 @@ const (
 
 const DefaultUserId = 1
 const QuestionFileType = "picture"
+
+// for notification
+const (
+	NewQuestion = "new_question"
+	NewAnswer   = "new_answer"
+	NewReply    = "new_reply"
+)

@@ -17,6 +17,8 @@ func (s *sNotification) Add(ctx context.Context, in model.AddNotificationInput) 
 		UserId:     in.UserId,
 		QuestionId: in.QuestionId,
 		AnswerId:   in.AnswerId,
+		ReplyToId:  in.ReplyToId,
+		Type:       in.Type,
 	}
 	id, err := dao.Notifications.Ctx(ctx).InsertAndGetId(notification)
 	if err != nil {
@@ -66,6 +68,7 @@ func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput)
 	for _, n := range newReply {
 		qIDList = utility.AddUnique(qIDList, n.QuestionId)
 		aIDList = utility.AddUnique(aIDList, n.AnswerId)
+		aIDList = utility.AddUnique(aIDList, n.ReplyToId)
 	}
 	//fmt.Println("qIDSet:", qIDList)
 	//fmt.Println("aIDSet:", aIDList)
@@ -84,51 +87,85 @@ func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput)
 	// 查出的结果存入 Map
 	qMap := make(map[int]*entity.Questions)
 	aMap := make(map[int]*entity.Answers)
+
 	for _, q := range q {
 		qMap[q.Id] = q
 	}
 	for _, a := range a {
 		aMap[a.Id] = a
 	}
+
+	// 获取用户信息
+	var userIDs []int
+	var u []entity.Users
+	userMap := make(map[int]*entity.Users)
+	for _, n := range qMap {
+		userIDs = utility.AddUnique(userIDs, n.DstUserId)
+	}
+	for _, n := range aMap {
+		userIDs = utility.AddUnique(userIDs, n.UserId)
+	}
+	err = dao.Users.Ctx(ctx).WhereIn(dao.Users.Columns().Id, userIDs).Scan(&u)
+	if err != nil {
+		return model.GetNotificationsOutput{}, err
+	}
+	for _, u := range u {
+		userMap[u.Id] = &u
+	}
+
 	// 开辟 out 的内存
 	out = model.GetNotificationsOutput{
-		NewQuestion: make([]model.Notification, nqc),
-		NewAnswer:   make([]model.Notification, nac),
-		NewReply:    make([]model.Notification, nrc),
+		NewQuestion: make([]model.NotificationNewQuestion, nqc),
+		NewAnswer:   make([]model.NotificationNewAnswer, nac),
+		NewReply:    make([]model.NotificationNewReply, nrc),
 	}
 	// 塞入内容
 	for i, n := range newQuestion {
-		out.NewQuestion[i] = model.Notification{
-			Id:              n.Id,
-			QuestionId:      n.QuestionId,
-			QuestionTitle:   qMap[n.QuestionId].Title,
-			QuestionContent: qMap[n.QuestionId].Contents,
-			IsRead:          n.IsRead,
-			CreatedAt:       n.CreatedAt.TimestampMilli(),
+		out.NewQuestion[i] = model.NotificationNewQuestion{
+			NotificationBase: model.NotificationBase{
+				Id:              n.Id,
+				QuestionId:      n.QuestionId,
+				QuestionTitle:   qMap[n.QuestionId].Title,
+				QuestionContent: qMap[n.QuestionId].Contents,
+				IsRead:          n.IsRead,
+				CreatedAt:       n.CreatedAt.TimestampMilli(),
+			},
+			UserName: userMap[qMap[n.QuestionId].DstUserId].Name,
+			UserId:   userMap[qMap[n.QuestionId].DstUserId].Id,
 		}
 	}
 	for i, n := range newAnswer {
-		out.NewAnswer[i] = model.Notification{
-			Id:              n.Id,
-			QuestionId:      n.QuestionId,
-			QuestionTitle:   qMap[n.QuestionId].Title,
-			QuestionContent: qMap[n.QuestionId].Contents,
-			AnswerId:        n.AnswerId,
-			AnswerContent:   aMap[n.AnswerId].Contents,
-			IsRead:          n.IsRead,
-			CreatedAt:       n.CreatedAt.TimestampMilli(),
+		out.NewAnswer[i] = model.NotificationNewAnswer{
+			NotificationBase: model.NotificationBase{
+				Id:              n.Id,
+				QuestionId:      n.QuestionId,
+				QuestionTitle:   qMap[n.QuestionId].Title,
+				QuestionContent: qMap[n.QuestionId].Contents,
+				IsRead:          n.IsRead,
+				CreatedAt:       n.CreatedAt.TimestampMilli(),
+			},
+			AnswerId:       n.AnswerId,
+			AnswerContent:  aMap[n.AnswerId].Contents,
+			RespondentName: userMap[aMap[n.UserId].UserId].Nickname,
+			RespondentId:   userMap[aMap[n.UserId].UserId].Id,
 		}
 	}
 	for i, n := range newReply {
-		out.NewReply[i] = model.Notification{
-			Id:              n.Id,
-			QuestionId:      n.QuestionId,
-			QuestionTitle:   qMap[n.QuestionId].Title,
-			QuestionContent: qMap[n.QuestionId].Contents,
-			AnswerId:        n.AnswerId,
-			AnswerContent:   aMap[n.AnswerId].Contents,
-			IsRead:          n.IsRead,
-			CreatedAt:       n.CreatedAt.TimestampMilli(),
+		out.NewReply[i] = model.NotificationNewReply{
+			NotificationBase: model.NotificationBase{
+				Id:              n.Id,
+				QuestionId:      n.QuestionId,
+				QuestionTitle:   qMap[n.QuestionId].Title,
+				QuestionContent: qMap[n.QuestionId].Contents,
+				IsRead:          n.IsRead,
+				CreatedAt:       n.CreatedAt.TimestampMilli(),
+			},
+			AnswerId:       n.AnswerId,
+			AnswerContent:  aMap[n.AnswerId].Contents,
+			ReplyToId:      n.ReplyToId,
+			ReplyToContent: aMap[n.ReplyToId].Contents,
+			RespondentName: userMap[aMap[n.ReplyToId].UserId].Nickname,
+			RespondentId:   userMap[aMap[n.ReplyToId].UserId].Id,
 		}
 	}
 	return out, nil
