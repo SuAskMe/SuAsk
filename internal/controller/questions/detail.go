@@ -97,6 +97,8 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 	}
 	input := model.AddAnswerInput{}
 	err = gconv.Scan(req, &input)
+	UserId := gconv.Int(ctx.Value(consts.CtxId))
+	input.UserId = UserId
 	if err != nil {
 		return nil, err
 	}

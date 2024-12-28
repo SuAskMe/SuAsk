@@ -246,12 +246,10 @@ func (sQuestionDetail) ReplyQuestion(ctx context.Context, in *model.AddAnswerInp
 		return nil, fmt.Errorf("you are not allowed to access this question")
 	}
 	// 保存回答
-	//UserId := 2
-	UserId := gconv.Int(ctx.Value(consts.CtxId))
 	md = dao.Answers.Ctx(ctx)
 	id, err := md.InsertAndGetId(do.Answers{
 		QuestionId: in.QuestionId,
-		UserId:     UserId,
+		UserId:     in.UserId,
 		Contents:   in.Content,
 		InReplyTo:  in.InReplyTo,
 	})
