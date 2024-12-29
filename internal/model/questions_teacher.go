@@ -63,3 +63,11 @@ type GetQFMKeywordsInput struct {
 	Keyword  string `json:"keyword"`
 	SortType int    `json:"sort_type"`
 }
+
+type PinQFMInput struct {
+	QuestionId int `json:"question_id"`
+}
+
+type PinQFMOutput struct {
+	IsPinned bool `json:"is_pinned"`
+}
