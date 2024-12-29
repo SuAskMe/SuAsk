@@ -14,7 +14,7 @@ type cTeacherSelf struct{}
 
 var TeacherSelf = cTeacherSelf{}
 
-func GetQFMImpl(ctx context.Context, in *model.GetQFMInput) (res interface{}, err error) {
+func GetQFMImpl(ctx context.Context, in *model.GetQFMInput) (res *v1.QFMBase, err error) {
 	out, err := service.TeacherQuestionSelf().GetQFMAll(ctx, in)
 	if err != nil {
 		return
@@ -33,10 +33,11 @@ func GetQFMImpl(ctx context.Context, in *model.GetQFMInput) (res interface{}, er
 		}
 		qfm[idMap[k]].ImageURLs = urls.URL
 	}
-	_res := &v1.GetQFMRes{}
-	_res.QFMList = qfm
-	_res.RemainPage = out.RemainPage
-	return _res, nil
+	res = &v1.QFMBase{
+		QFMList:    qfm,
+		RemainPage: out.RemainPage,
+	}
+	return
 }
 
 func (cTeacherSelf) GetQFMAll(ctx context.Context, req *v1.GetQFMReq) (res *v1.GetQFMRes, err error) {
@@ -46,7 +47,9 @@ func (cTeacherSelf) GetQFMAll(ctx context.Context, req *v1.GetQFMReq) (res *v1.G
 	if err != nil {
 		return
 	}
-	gconv.Scan(_res, &res)
+	res = &v1.GetQFMRes{
+		QFMBase: *_res,
+	}
 	return
 }
 
@@ -58,7 +61,9 @@ func (cTeacherSelf) GetQFMAnswered(ctx context.Context, req *v1.GetQFMAnsweredRe
 	if err != nil {
 		return
 	}
-	gconv.Scan(_res, &res)
+	res = &v1.GetQFMAnsweredRes{
+		QFMBase: *_res,
+	}
 	return
 }
 
@@ -70,7 +75,9 @@ func (cTeacherSelf) GetQFMUnanswered(ctx context.Context, req *v1.GetQFMUnanswer
 	if err != nil {
 		return
 	}
-	gconv.Scan(_res, &res)
+	res = &v1.GetQFMUnansweredRes{
+		QFMBase: *_res,
+	}
 	return
 }
 
@@ -106,7 +113,7 @@ func (cTeacherSelf) GetQFMKeywords(ctx context.Context, req *v1.GetQFMSearchKeyw
 	if err != nil {
 		return
 	}
-	gconv.Scan(out, &res)
+	gconv.Scan(out, res)
 	return
 }
 
@@ -117,6 +124,17 @@ func (cTeacherSelf) GetQFMByKeyword(ctx context.Context, req *v1.SearchQFMReq) (
 	if err != nil {
 		return
 	}
-	gconv.Scan(_res, &res)
+	res = &v1.SearchQFMRes{
+		QFMBase: *_res,
+	}
+	return
+}
+
+func (cTeacherSelf) PinQFMInput(ctx context.Context, req *v1.PinQFMReq) (res *v1.PinQFMRes, err error) {
+	out, err := service.TeacherQuestionSelf().PinQFM(ctx, &model.PinQFMInput{QuestionId: req.QuestionId})
+	if err != nil {
+		return
+	}
+	res = &v1.PinQFMRes{IsPinned: out.IsPinned}
 	return
 }

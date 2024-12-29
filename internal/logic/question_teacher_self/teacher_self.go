@@ -2,18 +2,39 @@ package questions_teacher_self
 
 import (
 	"context"
+	"fmt"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/model/custom"
+	"suask/internal/model/do"
 	"suask/internal/service"
 	"suask/utility"
 )
 
 type sTeacherQuestionSelf struct{}
 
+func Validate(ctx context.Context) error {
+	// Tid := gconv.Int(ctx.Value(consts.CtxId))
+	Tid := 2
+	md := dao.Users.Ctx(ctx).Where(dao.Users.Columns().Id, Tid).Fields(dao.Users.Columns().Role)
+	var role string
+	err := md.Scan(&role)
+	if err != nil {
+		return err
+	}
+	if role != consts.TEACHER {
+		return fmt.Errorf("user is not a teacher")
+	}
+	return nil
+}
+
 func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMInput) (*model.GetQFMOutput, error) {
-	Tid := 1
+	err := Validate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	Tid := 2
 	// Tid := gconv.Int(ctx.Value(consts.CtxId))
 	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, Tid)
 	switch input.Tag {
@@ -26,7 +47,7 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 		md = md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%")
 	}
 	md = md.Page(input.Page, consts.NumOfQuestionsPerPage)
-	err := utility.SortByType(&md, input.SortType)
+	err = utility.SortByType(&md, input.SortType)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +92,7 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 		return nil, err
 	}
 	for _, f := range fav { // 填充IsFavorited字段
-		pqs[idMap[f.QuestionId]].Tag = consts.OnTop
+		// pqs[idMap[f.QuestionId]].Tag = consts.OnTop
 		pqs[idMap[f.QuestionId]].IsPinned = true
 	}
 	output := model.GetQFMOutput{
@@ -85,12 +106,16 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 
 func (sTeacherQuestionSelf) GetQFMPinned(ctx context.Context, _ *model.GetQFMInput) (*model.GetQFMOutput, error) {
 	// 置顶问题，不分页，直接返回全部
-	Tid := 1
+	err := Validate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	Tid := 2
 	// Tid := gconv.Int(ctx.Value(consts.CtxId))
 	md := dao.Favorites.Ctx(ctx).Where(dao.Favorites.Columns().UserId, Tid)
 	md = md.Where(dao.Favorites.Columns().Package, consts.OnTop)
 	var fav []custom.MyFavorites
-	err := md.Scan(&fav)
+	err = md.Scan(&fav)
 	if err != nil {
 		return nil, err
 	}
@@ -127,11 +152,15 @@ func (sTeacherQuestionSelf) GetQFMPinned(ctx context.Context, _ *model.GetQFMInp
 }
 
 func (sTeacherQuestionSelf) GetKeyword(ctx context.Context, input *model.GetQFMKeywordsInput) (*model.GetKeywordsOutput, error) {
-	Tid := 1
+	err := Validate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	Tid := 2
 	// Tid := gconv.Int(ctx.Value(consts.CtxId))
 	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, Tid)
 	md = md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%").Limit(8)
-	err := utility.SortByType(&md, input.SortType)
+	err = utility.SortByType(&md, input.SortType)
 	if err != nil {
 		return nil, err
 	}
@@ -143,6 +172,44 @@ func (sTeacherQuestionSelf) GetKeyword(ctx context.Context, input *model.GetQFMK
 	output := &model.GetKeywordsOutput{}
 	output.Words = words
 	return output, nil
+}
+
+func (sTeacherQuestionSelf) PinQFM(ctx context.Context, input *model.PinQFMInput) (*model.PinQFMOutput, error) {
+	err := Validate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	Tid := 2
+	// Tid := gconv.Int(ctx.Value(consts.CtxId))
+	md := dao.Favorites.Ctx(ctx).Where(dao.Favorites.Columns().UserId, Tid)
+	md = md.Where(dao.Favorites.Columns().QuestionId, input.QuestionId)
+	md = md.Where(dao.Favorites.Columns().Package, consts.OnTop)
+	cnt, err := md.Count()
+	if err != nil {
+		return nil, err
+	}
+	if cnt > 0 {
+		_, err = md.Delete()
+		if err != nil {
+			return nil, err
+		}
+		return &model.PinQFMOutput{
+			IsPinned: false,
+		}, nil
+	} else {
+		md = dao.Favorites.Ctx(ctx)
+		_, err = md.Insert(do.Favorites{
+			UserId:     Tid,
+			QuestionId: input.QuestionId,
+			Package:    consts.OnTop,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return &model.PinQFMOutput{
+			IsPinned: true,
+		}, nil
+	}
 }
 
 func init() {

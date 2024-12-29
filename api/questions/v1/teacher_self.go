@@ -73,3 +73,12 @@ type GetQFMTopReq struct {
 type GetQFMTopRes struct {
 	QFMBase
 }
+
+type PinQFMReq struct {
+	g.Meta     `path:"/teacher/question/pin" method:"POST" tags:"Teacher Self" summary:"置顶提问"`
+	QuestionId int `json:"question_id" v:"required|min:1"`
+}
+
+type PinQFMRes struct {
+	IsPinned bool `json:"is_pinned"`
+}
