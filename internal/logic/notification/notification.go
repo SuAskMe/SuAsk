@@ -2,6 +2,7 @@ package notification
 
 import (
 	"context"
+	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/model/do"
@@ -31,7 +32,7 @@ func (s *sNotification) Add(ctx context.Context, in model.AddNotificationInput) 
 }
 
 func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput) (out model.GetNotificationsOutput, err error) {
-	md := dao.Notifications.Ctx(ctx).Where(dao.Notifications.Columns().UserId, in.UserId).OrderDesc(dao.Notifications.Columns().CreatedAt)
+	md := dao.Notifications.Ctx(ctx).Where(dao.Notifications.Columns().UserId, in.UserId).OrderAsc(dao.Notifications.Columns().IsRead).OrderDesc(dao.Notifications.Columns().CreatedAt)
 	var newQuestion []*entity.Notifications
 	var newAnswer []*entity.Notifications
 	var newReply []*entity.Notifications
