@@ -1,10 +1,10 @@
 package model
 
 type AddNotificationInput struct {
-	UserId     int         `json:"userId"     orm:"user_id"     dc:"用户ID"`
-	QuestionId int         `json:"questionId" orm:"question_id" dc:"问题ID"`
-	ReplyToId  interface{} `json:"replyToId"  orm:"reply_to_id" dc:"回复问题的ID"`
-	AnswerId   interface{} `json:"answerId"   orm:"answer_id"   dc:"回复ID"`
+	UserId     int         `json:"user_id"     orm:"user_id"     dc:"用户ID"`
+	QuestionId int         `json:"question_id" orm:"question_id" dc:"问题ID"`
+	ReplyToId  interface{} `json:"reply_to_id"  orm:"reply_to_id" dc:"回复问题的ID"`
+	AnswerId   interface{} `json:"answer_id"   orm:"answer_id"   dc:"回复ID"`
 	Type       string      `json:"type"       orm:"type"        dc:"提醒类型（新提问、新回复、新回答）"`
 }
 
@@ -13,16 +13,16 @@ type AddNotificationOutput struct {
 }
 
 type GetNotificationsInput struct {
-	UserId int `json:"userId"     orm:"user_id"     dc:"用户ID"`
+	UserId int `json:"user_id"     orm:"user_id"     dc:"用户ID"`
 }
 
 type NotificationBase struct {
 	Id              int    `json:"id"         orm:"id"          dc:"提醒ID"`
-	QuestionId      int    `json:"questionId" orm:"question_id" dc:"问题ID"`
+	QuestionId      int    `json:"question_id" orm:"question_id" dc:"问题ID"`
 	QuestionTitle   string `json:"question_title"                dc:"问题标题"`
 	QuestionContent string `json:"question_content"              dc:"问题内容"`
-	IsRead          bool   `json:"isRead"     orm:"is_read"     dc:"是否已读"`
-	CreatedAt       int64  `json:"createdAt"  orm:"created_at"  dc:"提醒创建时间"`
+	IsRead          bool   `json:"is_read"     orm:"is_read"     dc:"是否已读"`
+	CreatedAt       int64  `json:"created_at"  orm:"created_at"  dc:"提醒创建时间"`
 }
 
 type NotificationNewQuestion struct {
@@ -72,3 +72,13 @@ type DeleteNotificationInput struct {
 }
 
 type DeleteNotificationOutput struct{}
+
+type NewNotificationCountInput struct {
+	UserId int `json:"user_id" dc:"用户ID"`
+}
+
+type NewNotificationCountOutput struct {
+	NewQuestionCount int `json:"new_question_count" dc:"新问题数目"`
+	NewReplyCount    int `json:"new_reply_count" dc:"新回复数目"`
+	NewAnswerCount   int `json:"new_answer_count" dc:"新回答数目"`
+}

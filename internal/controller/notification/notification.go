@@ -48,3 +48,16 @@ func (c *cNotification) Delete(ctx context.Context, req *v1.NotificationDeleteRe
 	}
 	return &v1.NotificationDeleteRes{}, nil
 }
+
+func (c *cNotification) GetCount(ctx context.Context, req *v1.NotificationGetCountReq) (res *v1.NotificationGetCountRes, err error) {
+	in := model.NewNotificationCountInput{UserId: req.UserId}
+	out, err := service.Notification().NewNotificationCount(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	err = gconv.Scan(out, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
