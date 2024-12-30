@@ -2,6 +2,7 @@ package notification
 
 import (
 	"context"
+	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/model/do"
@@ -31,7 +32,7 @@ func (s *sNotification) Add(ctx context.Context, in model.AddNotificationInput) 
 }
 
 func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput) (out model.GetNotificationsOutput, err error) {
-	md := dao.Notifications.Ctx(ctx).Where(dao.Notifications.Columns().UserId, in.UserId).OrderDesc(dao.Notifications.Columns().CreatedAt)
+	md := dao.Notifications.Ctx(ctx).Where(dao.Notifications.Columns().UserId, in.UserId).OrderAsc(dao.Notifications.Columns().IsRead).OrderDesc(dao.Notifications.Columns().CreatedAt)
 	var newQuestion []*entity.Notifications
 	var newAnswer []*entity.Notifications
 	var newReply []*entity.Notifications
@@ -183,11 +184,33 @@ func (s *sNotification) Update(ctx context.Context, in model.UpdateNotificationI
 }
 
 func (s *sNotification) Delete(ctx context.Context, in model.DeleteNotificationInput) (out model.DeleteNotificationOutput, err error) {
-	_, err = dao.Notifications.Ctx(ctx).Delete(in.Id)
+	_, err = dao.Notifications.Ctx(ctx).WherePri(in.Id).Delete()
 	if err != nil {
 		return model.DeleteNotificationOutput{}, err
 	}
 	out = model.DeleteNotificationOutput{}
+	return out, nil
+}
+
+func (s *sNotification) NewNotificationCount(ctx context.Context, in model.NewNotificationCountInput) (out model.NewNotificationCountOutput, err error) {
+	md := dao.Notifications.Ctx(ctx).Where(dao.Notifications.Columns().UserId, in.UserId).Where(dao.Notifications.Columns().IsRead, false)
+	newQuestionCount, err := md.Where(dao.Notifications.Columns().Type, consts.NewQuestion).Count()
+	if err != nil {
+		return model.NewNotificationCountOutput{}, err
+	}
+	newAnswerCount, err := md.Where(dao.Notifications.Columns().Type, consts.NewAnswer).Count()
+	if err != nil {
+		return model.NewNotificationCountOutput{}, err
+	}
+	newReplyCount, err := md.Where(dao.Notifications.Columns().Type, consts.NewReply).Count()
+	if err != nil {
+		return model.NewNotificationCountOutput{}, err
+	}
+	out = model.NewNotificationCountOutput{
+		NewQuestionCount: newQuestionCount,
+		NewAnswerCount:   newAnswerCount,
+		NewReplyCount:    newReplyCount,
+	}
 	return out, nil
 }
 

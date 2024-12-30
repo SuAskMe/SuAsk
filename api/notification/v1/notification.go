@@ -32,3 +32,13 @@ type NotificationDeleteReq struct {
 }
 
 type NotificationDeleteRes struct{}
+
+type NotificationGetCountReq struct {
+	g.Meta `path:"/notification/count" method:"GET" tags:"Notification" summary:"获取提醒数目"`
+	UserId int `json:"user_id" dc:"用户ID"`
+}
+type NotificationGetCountRes struct {
+	NewQuestionCount int `json:"new_question_count" dc:"新问题数目"`
+	NewReplyCount    int `json:"new_reply_count" dc:"新回复数目"`
+	NewAnswerCount   int `json:"new_answer_count" dc:"新回答数目"`
+}

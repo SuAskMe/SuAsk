@@ -27,12 +27,14 @@ func GetQuestionOfTeacherImpl(ctx context.Context, req interface{}) (res interfa
 	if err != nil {
 		return
 	}
-	for k, v := range imagesOutput.ImageMap {
-		urls, err_ := service.File().GetList(ctx, model.FileListGetInput{IdList: v})
-		if err_ != nil {
-			return nil, err_
+	if imagesOutput != nil {
+		for k, v := range imagesOutput.ImageMap {
+			urls, err_ := service.File().GetList(ctx, model.FileListGetInput{IdList: v})
+			if err_ != nil {
+				return nil, err_
+			}
+			QuestionList[idMap[k]].ImageURLs = urls.URL
 		}
-		QuestionList[idMap[k]].ImageURLs = urls.URL
 	}
 	// 返回结果
 	res = &v1.GetPageOfTeacherRes{

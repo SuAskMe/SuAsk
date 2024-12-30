@@ -43,22 +43,24 @@ func GetHistoryImpl(ctx context.Context, req interface{}) (res interface{}, err 
 	if err != nil {
 		return
 	}
-	for k, v := range answersOutput.AvatarsMap {
-		idList := make([]int, 0, len(v))
-		URLs := make([]string, 0, len(v))
-		for _, u := range v {
-			if u != 0 {
-				idList = append(idList, u)
-			} else {
-				URLs = append(URLs, consts.DefaultAvatarURL)
+	if answersOutput != nil {
+		for k, v := range answersOutput.AvatarsMap {
+			idList := make([]int, 0, len(v))
+			URLs := make([]string, 0, len(v))
+			for _, u := range v {
+				if u != 0 {
+					idList = append(idList, u)
+				} else {
+					URLs = append(URLs, consts.DefaultAvatarURL)
+				}
 			}
+			urls, err_ := service.File().GetList(ctx, model.FileListGetInput{IdList: idList})
+			if err_ != nil {
+				return nil, err_
+			}
+			URLs = append(URLs, urls.URL...)
+			QuestionList[idMap[k]].AnswerAvatars = URLs
 		}
-		urls, err_ := service.File().GetList(ctx, model.FileListGetInput{IdList: idList})
-		if err_ != nil {
-			return nil, err_
-		}
-		URLs = append(URLs, urls.URL...)
-		QuestionList[idMap[k]].AnswerAvatars = URLs
 	}
 	// 返回结果
 	res = &v1.GetHistoryPageRes{

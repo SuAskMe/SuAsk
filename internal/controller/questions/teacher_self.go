@@ -26,12 +26,14 @@ func GetQFMImpl(ctx context.Context, in *model.GetQFMInput) (res *v1.QFMBase, er
 	if err != nil {
 		return
 	}
-	for k, v := range imagesOutput.ImageMap {
-		urls, err_ := service.File().GetList(ctx, model.FileListGetInput{IdList: v})
-		if err_ != nil {
-			return nil, err_
+	if imagesOutput != nil {
+		for k, v := range imagesOutput.ImageMap {
+			urls, err_ := service.File().GetList(ctx, model.FileListGetInput{IdList: v})
+			if err_ != nil {
+				return nil, err_
+			}
+			qfm[idMap[k]].ImageURLs = urls.URL
 		}
-		qfm[idMap[k]].ImageURLs = urls.URL
 	}
 	res = &v1.QFMBase{
 		QFMList:    qfm,

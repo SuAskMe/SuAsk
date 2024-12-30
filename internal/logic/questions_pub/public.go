@@ -110,6 +110,9 @@ func (sPublicQuestion) GetKeyword(ctx context.Context, input *model.GetKeywordsI
 }
 
 func (sPublicQuestion) GetAnswers(ctx context.Context, input *model.GetAnswersInput) (*model.GetAnswersOutput, error) {
+	if len(input.QuestionIDs) == 0 {
+		return nil, nil
+	}
 	db := g.DB()
 	sqlStr := `
 SELECT al.question_id, u.avatar_file_id
