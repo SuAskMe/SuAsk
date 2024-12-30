@@ -3,11 +3,14 @@ package consts
 const (
 	DefaultAvatarURL      = "default-avatar"
 	NumOfQuestionsPerPage = 30
+	NumOfKeywordsPerReq   = 8
 	SortByTimeDsc         = 0
 	SortByTimeAsc         = 1
 	SortByViewsDsc        = 2
 	SortByViewsAsc        = 3
 )
+
+// for question status
 
 const (
 	Answered   = "已回答"

@@ -33,7 +33,7 @@ type FavoriteKeywords struct {
 }
 
 type GetFavoriteKeywordsOutput struct {
-	Words []Keywords `json:"words"`
+	Words []Keyword `json:"words"`
 }
 
 type GetFavoriteAnswersInput struct {

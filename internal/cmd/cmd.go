@@ -42,6 +42,7 @@ var (
 					teacher.Teacher.GetTeacher,
 					questions.TeacherQuestion,
 					notification.Notification,
+					questions.TeacherSelf,
 				)
 				// 这里是登录和非登录共有接口
 				group.Group("/", func(group *ghttp.RouterGroup) {

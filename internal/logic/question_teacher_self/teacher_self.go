@@ -17,13 +17,15 @@ type sTeacherQuestionSelf struct{}
 func Validate(ctx context.Context) error {
 	// Tid := gconv.Int(ctx.Value(consts.CtxId))
 	Tid := 2
-	md := dao.Users.Ctx(ctx).Where(dao.Users.Columns().Id, Tid).Fields(dao.Users.Columns().Role)
-	var role string
-	err := md.Scan(&role)
+	md := dao.Users.Ctx(ctx).Where(dao.Users.Columns().Id, Tid)
+	var user struct {
+		Role string `orm:"role"`
+	}
+	err := md.Scan(&user)
 	if err != nil {
 		return err
 	}
-	if role != consts.TEACHER {
+	if user.Role != consts.TEACHER {
 		return fmt.Errorf("user is not a teacher")
 	}
 	return nil
@@ -41,7 +43,7 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 	case consts.Unanswered:
 		md = md.Where(dao.Questions.Columns().ReplyCnt, 0)
 	case consts.Answered:
-		md = md.Where(dao.Questions.Columns().ReplyCnt, ">", 0)
+		md = md.WhereGT(dao.Questions.Columns().ReplyCnt, 0)
 	}
 	if input.Keyword != "" {
 		md = md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%")
@@ -136,12 +138,17 @@ func (sTeacherQuestionSelf) GetQFMPinned(ctx context.Context, _ *model.GetQFMInp
 	for i, pq := range q {
 		idMap[pq.Id] = i
 		qIDs[i] = pq.Id
-		pqs[i].Tag = consts.OnTop
 		pqs[i].ID = pq.Id
 		pqs[i].Title = pq.Title
 		pqs[i].Content = utility.TruncateString(pq.Contents)
 		pqs[i].CreatedAt = pq.CreatedAt.TimestampMilli()
 		pqs[i].Views = pq.Views
+		pqs[i].IsPinned = true
+		if pq.ReplyCnt > 0 {
+			pqs[i].Tag = consts.Answered
+		} else {
+			pqs[i].Tag = consts.Unanswered
+		}
 	}
 	output := model.GetQFMOutput{
 		QuestionIDs: qIDs,
@@ -164,10 +171,11 @@ func (sTeacherQuestionSelf) GetKeyword(ctx context.Context, input *model.GetQFMK
 	if err != nil {
 		return nil, err
 	}
-	words := make([]model.Keywords, 8)
+	words := make([]model.Keyword, consts.NumOfKeywordsPerReq)
 	err = md.Scan(&words)
 	if err != nil {
-		return nil, err
+		fmt.Println(err)
+		return nil, nil
 	}
 	output := &model.GetKeywordsOutput{}
 	output.Words = words

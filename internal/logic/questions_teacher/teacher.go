@@ -81,7 +81,7 @@ func (sTeacherQuestion) GetKeyword(ctx context.Context, input *model.GetKeywords
 	if err != nil {
 		return nil, err
 	}
-	words := make([]model.Keywords, 8)
+	words := make([]model.Keyword, consts.NumOfKeywordsPerReq)
 	err = md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%").Limit(8).Scan(&words)
 	if err != nil {
 		return nil, err

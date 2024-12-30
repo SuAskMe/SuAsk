@@ -33,7 +33,7 @@ type HistoryKeywords struct {
 }
 
 type GetHistoryKeywordsOutput struct {
-	Words []Keywords `json:"words"`
+	Words []Keyword `json:"words"`
 }
 
 type GetHistoryAnswersInput struct {

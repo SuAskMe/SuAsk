@@ -95,7 +95,7 @@ func (s *sFavorite) GetKeyWord(ctx context.Context, in *model.GetFavoriteKeyword
 	for i, favorite := range f {
 		qIDs[i] = favorite.QuestionId
 	}
-	words := make([]model.Keywords, 8)
+	words := make([]model.Keyword, consts.NumOfKeywordsPerReq)
 	md = dao.Questions.Ctx(ctx)
 	err = md.WhereIn(dao.Questions.Columns().Id, qIDs).WhereLike(dao.Questions.Columns().Title, "%"+in.Keyword+"%").Limit(8).Scan(&words)
 	if err != nil {

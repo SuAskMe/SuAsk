@@ -44,12 +44,12 @@ type GetKeywordsInput struct {
 	SortType int    `json:"sort_type"`
 }
 
-type Keywords struct {
+type Keyword struct {
 	Value string `json:"value" orm:"title"`
 }
 
 type GetKeywordsOutput struct {
-	Words []Keywords `json:"words"`
+	Words []Keyword `json:"words"`
 }
 
 type GetAnswersInput struct {

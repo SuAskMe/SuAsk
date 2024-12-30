@@ -84,7 +84,7 @@ func (s *sHistory) GetKeyWord(ctx context.Context, in *model.GetHistoryKeywordsI
 	if err != nil {
 		return nil, err
 	}
-	words := make([]model.Keywords, 8)
+	words := make([]model.Keyword, consts.NumOfKeywordsPerReq)
 	err = md.WhereLike(dao.Questions.Columns().Title, "%"+in.Keyword+"%").Limit(8).Scan(&words)
 	if err != nil {
 		return nil, err
