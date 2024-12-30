@@ -8,6 +8,7 @@ import (
 	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/model/custom"
+	"suask/internal/model/entity"
 	"suask/internal/service"
 
 	"github.com/gogf/gf/v2/frame/g"
@@ -73,6 +74,15 @@ func (sQuestionUtil) Favorite(ctx context.Context, in *model.FavoriteInput) (out
 			IsFavorite: true,
 		}, nil
 	}
+}
+
+func (sQuestionUtil) GetQuestion(ctx context.Context, questionID int) (out *entity.Questions, err error) {
+	out = &entity.Questions{}
+	err = dao.Questions.Ctx(ctx).WherePri(questionID).Scan(&out)
+	if err != nil {
+		return &entity.Questions{}, err
+	}
+	return out, nil
 }
 
 func init() {
