@@ -99,7 +99,7 @@ func (sPublicQuestion) GetKeyword(ctx context.Context, input *model.GetKeywordsI
 	if err != nil {
 		return nil, err
 	}
-	words := make([]model.Keywords, 8)
+	words := make([]model.Keyword, consts.NumOfKeywordsPerReq)
 	err = md.Where("title LIKE ?", "%"+input.Keyword+"%").Limit(8).Scan(&words)
 	if err != nil {
 		return nil, err

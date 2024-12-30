@@ -47,7 +47,7 @@ type SearchQFMRes struct {
 }
 
 type GetQFMUnansweredReq struct {
-	g.Meta   `path:"/teacher/question/unanswered" method:"GET" tags:"Teacher Self" summary:"获取未读提问"`
+	g.Meta   `path:"/teacher/question/unanswered" method:"GET" tags:"Teacher Self" summary:"获取未回复提问"`
 	Page     int `json:"page" v:"required|min:1"`
 	SortType int `v:"required|min:0|max:3" json:"sort_type"`
 }
@@ -57,7 +57,7 @@ type GetQFMUnansweredRes struct {
 }
 
 type GetQFMAnsweredReq struct {
-	g.Meta   `path:"/teacher/question/answered" method:"GET" tags:"Teacher Self" summary:"获取已读提问"`
+	g.Meta   `path:"/teacher/question/answered" method:"GET" tags:"Teacher Self" summary:"获取已回复提问"`
 	Page     int `json:"page" v:"required|min:1"`
 	SortType int `v:"required|min:0|max:3" json:"sort_type"`
 }

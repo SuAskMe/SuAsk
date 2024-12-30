@@ -110,10 +110,7 @@ func (cTeacherSelf) GetQFMKeywords(ctx context.Context, req *v1.GetQFMSearchKeyw
 	var in model.GetQFMKeywordsInput
 	gconv.Scan(req, &in)
 	out, err := service.TeacherQuestionSelf().GetKeyword(ctx, &in)
-	if err != nil {
-		return
-	}
-	gconv.Scan(out, res)
+	gconv.Scan(out, &res)
 	return
 }
 
