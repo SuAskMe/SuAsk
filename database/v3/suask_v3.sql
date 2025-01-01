@@ -172,6 +172,17 @@ CREATE TABLE `upvotes`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
+-- Table structure for user_relation
+-- ----------------------------
+DROP TABLE IF EXISTS `user_relation`;
+CREATE TABLE `user_relation`  (
+  `question_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  INDEX `question_id`(`question_id` ASC) USING BTREE,
+  INDEX `user_id`(`user_id` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '记录每个问题的前n个回复' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
 -- Table structure for users
 -- ----------------------------
 DROP TABLE IF EXISTS `users`;
