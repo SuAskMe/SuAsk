@@ -11,6 +11,8 @@ import (
 	"suask/internal/model/entity"
 	"suask/internal/service"
 	"sync"
+
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type sQuestionDetail struct{}
