@@ -82,49 +82,42 @@ func (c *cFavorite) Get(ctx context.Context, req *v1.GetFavoritePageReq) (res *v
 	return res, err
 }
 
-func (c *cFavorite) GetKeyWords(ctx context.Context, req *v1.GetFavoriteSearchKeywordsReq) (res *v1.GetFavoriteSearchKeywordsRes, err error) {
-	input := model.GetFavoriteKeywordsInput{}
-	err = gconv.Scan(req, &input)
-	if err != nil {
-		return nil, err
-	}
-	out, err := service.Favorite().GetKeyWord(ctx, &input)
-	if err != nil {
-		return nil, err
-	}
-	err = gconv.Scan(out, &res)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
-}
+// func (c *cFavorite) GetKeyWords(ctx context.Context, req *v1.GetFavoriteSearchKeywordsReq) (res *v1.GetFavoriteSearchKeywordsRes, err error) {
+// 	input := model.GetFavoriteKeywordsInput{}
+// 	err = gconv.Scan(req, &input)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	out, err := service.Favorite().GetKeyWord(ctx, &input)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	err = gconv.Scan(out, &res)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return res, nil
+// }
 
-func (c *cFavorite) GetByKeyWord(ctx context.Context, req *v1.GetFavoritePageByKeywordReq) (res *v1.GetFavoritePageByKeywordRes, err error) {
-	data, err := GetFavoriteImpl(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	err = gconv.Scan(data, &res)
-	if err != nil {
-		return nil, err
-	}
-	return res, err
-}
+// func (c *cFavorite) GetByKeyWord(ctx context.Context, req *v1.GetFavoritePageByKeywordReq) (res *v1.GetFavoritePageByKeywordRes, err error) {
+// 	data, err := GetFavoriteImpl(ctx, req)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	err = gconv.Scan(data, &res)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return res, err
+// }
 
 func (c *cFavorite) Favorite(ctx context.Context, req *v1.FavoriteReq) (res *v1.FavoriteRes, err error) {
-	input := model.FavoriteInput{}
-	err = gconv.Scan(req, &input)
+	output, err := service.QuestionUtil().Favorite(ctx, &model.FavoriteInput{QuestionID: req.QuestionID})
 	if err != nil {
 		return nil, err
 	}
-	output, err := service.QuestionUtil().Favorite(ctx, &input)
-	if err != nil {
-		return nil, err
-	}
-	err = gconv.Scan(output, &res)
-	res.QuestionID = req.QuestionID
-	if err != nil {
-		return nil, err
+	res = &v1.FavoriteRes{
+		IsFavorite: output.IsFavorite,
 	}
 	return
 }

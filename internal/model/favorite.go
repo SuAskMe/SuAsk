@@ -23,9 +23,9 @@ type Favorite struct {
 }
 
 type GetFavoriteBaseInput struct {
-	SortType int    `json:"sort_type"`
-	Page     int    `json:"page"`
-	Keyword  string `json:"keyword"`
+	SortType int `json:"sort_type"`
+	Page     int `json:"page"`
+	// Keyword  string `json:"keyword"`
 }
 
 type GetFavoriteBaseOutput struct {

@@ -30,18 +30,15 @@ func (s *sFavorite) GetBase(ctx context.Context, in *model.GetFavoriteBaseInput)
 	if err != nil {
 		return nil, err
 	}
-	remainNum := remain - consts.NumOfQuestionsPerPage*in.Page
-	remain = remainNum / consts.NumOfQuestionsPerPage
-	if remainNum%consts.NumOfQuestionsPerPage > 0 {
-		remain += 1
-	}
+
+	remain = utility.CountRemainPage(remain, in.Page)
+
 	qIDs := make([]int, len(f))
 	for i, favorite := range f {
 		qIDs[i] = favorite.QuestionId
 	}
 	var q []*custom.Questions
 	md = dao.Questions.Ctx(ctx).WhereIn(dao.Questions.Columns().Id, qIDs)
-	md = md.WhereLike(dao.Questions.Columns().Title, "%"+in.Keyword+"%")
 	err = md.Scan(&q)
 	if err != nil {
 		return nil, err
@@ -54,6 +51,10 @@ func (s *sFavorite) GetBase(ctx context.Context, in *model.GetFavoriteBaseInput)
 	idMap := make(map[int]int)
 	for i, id := range qIDs {
 		if q, ok := qMap[id]; ok {
+			if q.DstUserId != 0 && q.ReplyCnt == 0 { // 严防通过favorite获取到未回复的对老师的提问
+				qIDs = append(qIDs[:i], qIDs[i+1:]...)
+				continue
+			}
 			idMap[q.Id] = i
 			pqs[i] = model.FavoriteQuestion{
 				ID:         q.Id,
@@ -76,36 +77,36 @@ func (s *sFavorite) GetBase(ctx context.Context, in *model.GetFavoriteBaseInput)
 	return output, err
 }
 
-func (s *sFavorite) GetKeyWord(ctx context.Context, in *model.GetFavoriteKeywordsInput) (out *model.GetFavoriteKeywordsOutput, err error) {
-	md := dao.Favorites.Ctx(ctx)
-	//userId := 1
-	userId := gconv.Int(ctx.Value(consts.CtxId))
-	md = md.Where(dao.Favorites.Columns().UserId, userId)
-	err = utility.SortByType(&md, in.SortType)
-	if err != nil {
-		return nil, err
-	}
-	var f []*model.Favorite
-	var count int
-	err = md.ScanAndCount(&f, &count, true)
-	if err != nil {
-		return nil, err
-	}
-	qIDs := make([]int, count)
-	for i, favorite := range f {
-		qIDs[i] = favorite.QuestionId
-	}
-	words := make([]model.Keyword, consts.NumOfKeywordsPerReq)
-	md = dao.Questions.Ctx(ctx)
-	err = md.WhereIn(dao.Questions.Columns().Id, qIDs).WhereLike(dao.Questions.Columns().Title, "%"+in.Keyword+"%").Limit(8).Scan(&words)
-	if err != nil {
-		return nil, err
-	}
-	out = &model.GetFavoriteKeywordsOutput{
-		Words: words,
-	}
-	return out, nil
-}
+// func (s *sFavorite) GetKeyWord(ctx context.Context, in *model.GetFavoriteKeywordsInput) (out *model.GetFavoriteKeywordsOutput, err error) {
+// 	md := dao.Favorites.Ctx(ctx)
+// 	//userId := 1
+// 	userId := gconv.Int(ctx.Value(consts.CtxId))
+// 	md = md.Where(dao.Favorites.Columns().UserId, userId)
+// 	err = utility.SortByType(&md, in.SortType)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	var f []*model.Favorite
+// 	var count int
+// 	err = md.ScanAndCount(&f, &count, true)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	qIDs := make([]int, count)
+// 	for i, favorite := range f {
+// 		qIDs[i] = favorite.QuestionId
+// 	}
+// 	words := make([]model.Keyword, consts.NumOfKeywordsPerReq)
+// 	md = dao.Questions.Ctx(ctx)
+// 	err = md.WhereIn(dao.Questions.Columns().Id, qIDs).WhereLike(dao.Questions.Columns().Title, "%"+in.Keyword+"%").Limit(8).Scan(&words)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	out = &model.GetFavoriteKeywordsOutput{
+// 		Words: words,
+// 	}
+// 	return out, nil
+// }
 
 func init() {
 	service.RegisterFavorite(New())

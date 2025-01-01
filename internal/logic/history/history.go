@@ -34,11 +34,9 @@ func (s *sHistory) GetBase(ctx context.Context, in *model.GetHistoryBaseInput) (
 	if err != nil {
 		return nil, err
 	}
-	remainNum := remain - consts.NumOfQuestionsPerPage*in.Page
-	remain = remainNum / consts.NumOfQuestionsPerPage
-	if remainNum%consts.NumOfQuestionsPerPage > 0 {
-		remain += 1
-	}
+
+	remain = utility.CountRemainPage(remain, in.Page)
+
 	qIDs := make([]int, len(q))
 	for i, question := range q {
 		qIDs[i] = question.Id

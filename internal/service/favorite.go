@@ -13,7 +13,6 @@ import (
 type (
 	IFavorite interface {
 		GetBase(ctx context.Context, in *model.GetFavoriteBaseInput) (out *model.GetFavoriteBaseOutput, err error)
-		GetKeyWord(ctx context.Context, in *model.GetFavoriteKeywordsInput) (out *model.GetFavoriteKeywordsOutput, err error)
 	}
 )
 

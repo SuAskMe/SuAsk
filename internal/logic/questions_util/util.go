@@ -2,14 +2,15 @@ package questions
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/util/gconv"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/model/custom"
 	"suask/internal/model/entity"
 	"suask/internal/service"
+
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/util/gconv"
 
 	"github.com/gogf/gf/v2/frame/g"
 )
@@ -72,7 +73,6 @@ func (sQuestionUtil) Favorite(ctx context.Context, in *model.FavoriteInput) (out
 		}
 		return &model.FavoriteOutput{
 			IsFavorite: true,
-			QuestionID: in.QuestionID,
 		}, nil
 	}
 }
