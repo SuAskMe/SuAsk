@@ -46,7 +46,7 @@ func (s *sFavorite) GetBase(ctx context.Context, in *model.GetFavoriteBaseInput)
 	if err != nil {
 		return nil, err
 	}
-	pqs := make([]model.PublicQuestion, len(q))
+	pqs := make([]model.FavoriteQuestion, len(q))
 	qMap := make(map[int]*custom.Questions, len(q))
 	for _, question := range q {
 		qMap[question.Id] = question
@@ -55,7 +55,7 @@ func (s *sFavorite) GetBase(ctx context.Context, in *model.GetFavoriteBaseInput)
 	for i, id := range qIDs {
 		if q, ok := qMap[id]; ok {
 			idMap[q.Id] = i
-			pqs[i] = model.PublicQuestion{
+			pqs[i] = model.FavoriteQuestion{
 				ID:         q.Id,
 				Title:      q.Title,
 				Content:    utility.TruncateString(q.Contents),

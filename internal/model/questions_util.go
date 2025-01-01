@@ -15,4 +15,5 @@ type FavoriteInput struct {
 
 type FavoriteOutput struct {
 	IsFavorite bool `json:"is_favorite"`
+	QuestionID int  `json:"question_id"`
 }

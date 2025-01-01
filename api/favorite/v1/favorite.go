@@ -16,8 +16,8 @@ type GetFavoritePageReq struct {
 }
 
 type GetFavoritePageRes struct {
-	QuestionList []model.PublicQuestion `json:"favorite_list"`
-	RemainPage   int                    `json:"remain_page"`
+	QuestionList []model.FavoriteQuestion `json:"favorite_list"`
+	RemainPage   int                      `json:"remain_page"`
 }
 
 type GetFavoriteSearchKeywordsReq struct {
@@ -39,8 +39,8 @@ type GetFavoritePageByKeywordReq struct {
 }
 
 type GetFavoritePageByKeywordRes struct {
-	QuestionList []model.PublicQuestion `json:"favorite_list"`
-	RemainPage   int                    `json:"remain_page"`
+	QuestionList []model.FavoriteQuestion `json:"favorite_list"`
+	RemainPage   int                      `json:"remain_page"`
 }
 
 type FavoriteReq struct {
@@ -49,5 +49,6 @@ type FavoriteReq struct {
 }
 
 type FavoriteRes struct {
+	QuestionID int  `json:"question_id"`
 	IsFavorite bool `json:"is_favorite"`
 }

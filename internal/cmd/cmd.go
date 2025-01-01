@@ -65,6 +65,7 @@ var (
 						questions.QuestionDetail.AddAnswer,
 						favorite.Favorite,
 						history.History,
+						questions.QuestionDetail.Upvote,
 					)
 				})
 			})

@@ -39,14 +39,14 @@ func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeach
 	for i, pq := range q {
 		qIDs[i] = pq.Id
 	}
-	var fav []*custom.MyFavorites
-	UserId := 1
-	// UserId := gconv.Int(ctx.Value(consts.CtxId))
-	md = dao.Favorites.Ctx(ctx).WhereIn(dao.Favorites.Columns().QuestionId, qIDs).WhereIn(dao.Favorites.Columns().UserId, UserId)
-	err = md.Scan(&fav) // 再查favorites
-	if err != nil {
-		return nil, err
-	}
+	//var fav []*custom.MyFavorites
+	//UserId := 1
+	//// UserId := gconv.Int(ctx.Value(consts.CtxId))
+	//md = dao.Favorites.Ctx(ctx).WhereIn(dao.Favorites.Columns().QuestionId, qIDs).WhereIn(dao.Favorites.Columns().UserId, UserId)
+	//err = md.Scan(&fav) // 再查favorites
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	pqs := make([]model.TeacherQuestion, len(q)) // 用于存放最终结果
 	idMap := make(map[int]int)                   // 用于快速查找问题ID对应的索引
@@ -60,9 +60,9 @@ func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeach
 			Views:     pq.Views,
 		}
 	}
-	for _, f := range fav { // 填充IsFavorited字段
-		pqs[idMap[f.QuestionId]].IsFavorited = true
-	}
+	//for _, f := range fav { // 填充IsFavorited字段
+	//	pqs[idMap[f.QuestionId]].IsFavorited = true
+	//}
 
 	output := model.GetBaseOfTeacherOutput{
 		QuestionIDs: qIDs,

@@ -3,6 +3,7 @@ package questions_detail
 import (
 	"context"
 	"fmt"
+	"github.com/gogf/gf/v2/util/gconv"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
@@ -65,14 +66,25 @@ func (sQuestionDetail) GetQuestionBase(ctx context.Context, in *model.GetQuestio
 	for _, img := range imgList {
 		imgIdList = append(imgIdList, img.FileID)
 	}
+	isFavorite := false
+	if in.UserId != consts.DefaultUserId {
+		one, err := dao.Favorites.Ctx(ctx).Where(dao.Favorites.Columns().QuestionId, in.QuestionId).Where(dao.Favorites.Columns().UserId, in.UserId).One()
+		if !one.IsEmpty() {
+			isFavorite = true
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
 	output := model.GetQuestionBaseOutput{
-		ID:        question.Id,
-		Title:     question.Title,
-		Content:   question.Contents,
-		Views:     question.Views,
-		CreatedAt: question.CreatedAt.TimestampMilli(),
-		CanReply:  canReply,
-		ImageList: imgIdList,
+		ID:         question.Id,
+		Title:      question.Title,
+		Content:    question.Contents,
+		Views:      question.Views,
+		CreatedAt:  question.CreatedAt.TimestampMilli(),
+		CanReply:   canReply,
+		ImageList:  imgIdList,
+		IsFavorite: isFavorite,
 	}
 	return &output, nil
 }
@@ -106,8 +118,8 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 		answerList[i].Upvotes = ans.Upvotes
 	}
 	// 获取用户点赞信息
-	UserId := 2
-	// UserId := gconv.Int(ctx.Value(consts.CtxId))
+	//UserId := 2
+	UserId := gconv.Int(ctx.Value(consts.CtxId))
 	md = dao.Upvotes.Ctx(ctx).WhereIn(dao.Upvotes.Columns().AnswerId, IdList).Where(dao.Upvotes.Columns().UserId, UserId)
 	var upvotes []custom.MyUpvotes
 	err = md.Scan(&upvotes)
@@ -172,8 +184,8 @@ func (sQuestionDetail) AddQuestionView(ctx context.Context, in *model.AddViewInp
 }
 
 func (sQuestionDetail) AddAnswerUpvote(ctx context.Context, in *model.UpvoteInput) (*model.UpvoteOutput, error) {
-	UserId := 2
-	// UserId := gconv.Int(ctx.Value(consts.CtxId))
+	//UserId := 2
+	UserId := gconv.Int(ctx.Value(consts.CtxId))
 	if UserId == consts.DefaultUserId {
 		return nil, fmt.Errorf("you are not allowed to access this question")
 	}

@@ -49,11 +49,11 @@ func (s *sHistory) GetBase(ctx context.Context, in *model.GetHistoryBaseInput) (
 	if err != nil {
 		return nil, err
 	}
-	pqs := make([]model.PublicQuestion, len(q))
+	pqs := make([]model.HistoryQuestion, len(q))
 	idMap := make(map[int]int)
 	for i, pq := range q {
 		idMap[pq.Id] = i
-		pqs[i] = model.PublicQuestion{
+		pqs[i] = model.HistoryQuestion{
 			ID:        pq.Id,
 			Title:     pq.Title,
 			Content:   utility.TruncateString(pq.Contents),

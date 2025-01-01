@@ -69,18 +69,18 @@ func (sPublicQuestion) GetBase(ctx context.Context, input *model.GetBaseInput) (
 		}
 	}
 
-	var fav []*custom.MyFavorites
-	UserId := 1
-	// UserId := gconv.Int(ctx.Value(consts.CtxId))
-	md = dao.Favorites.Ctx(ctx).Where("question_id IN (?) AND user_id = ?", qIDs, UserId)
-	err = md.Scan(&fav) // 再查favorites
-	if err != nil {
-		return nil, err
-	}
-
-	for _, f := range fav { // 填充IsFavorited字段
-		pqs[idMap[f.QuestionId]].IsFavorite = true
-	}
+	//var fav []*custom.MyFavorites
+	//UserId := 1
+	//// UserId := gconv.Int(ctx.Value(consts.CtxId))
+	//md = dao.Favorites.Ctx(ctx).Where("question_id IN (?) AND user_id = ?", qIDs, UserId)
+	//err = md.Scan(&fav) // 再查favorites
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//for _, f := range fav { // 填充IsFavorited字段
+	//	pqs[idMap[f.QuestionId]].IsFavorite = true
+	//}
 
 	output := model.GetBaseOutput{
 		QuestionIDs: qIDs,

@@ -1,12 +1,13 @@
 package model
 
 type QuestionBase struct {
-	ID        int      `json:"id"`
-	Title     string   `json:"title"`
-	Content   string   `json:"contents"`
-	Views     int      `json:"views"`
-	CreatedAt int64    `json:"created_at"`
-	ImageURLs []string `json:"image_urls"`
+	ID         int      `json:"id"`
+	Title      string   `json:"title"`
+	Content    string   `json:"contents"`
+	Views      int      `json:"views"`
+	CreatedAt  int64    `json:"created_at"`
+	ImageURLs  []string `json:"image_urls"`
+	IsFavorite bool     `json:"is_favorite"`
 }
 
 type AnswerWithDetails struct {
@@ -25,16 +26,18 @@ type AnswerWithDetails struct {
 
 type GetQuestionBaseInput struct {
 	QuestionId int `json:"question_id"`
+	UserId     int `json:"user_id"`
 }
 
 type GetQuestionBaseOutput struct {
-	ID        int    `json:"id"`
-	Title     string `json:"title"`
-	Content   string `json:"contents"`
-	Views     int    `json:"views"`
-	CreatedAt int64  `json:"created_at"`
-	ImageList []int  `json:"image_list"`
-	CanReply  bool
+	ID         int    `json:"id"`
+	Title      string `json:"title"`
+	Content    string `json:"contents"`
+	Views      int    `json:"views"`
+	CreatedAt  int64  `json:"created_at"`
+	ImageList  []int  `json:"image_list"`
+	IsFavorite bool   `json:"is_favorite"`
+	CanReply   bool
 }
 
 type GetAnswerDetailInput struct {
