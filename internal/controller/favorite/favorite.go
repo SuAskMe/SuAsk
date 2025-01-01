@@ -122,6 +122,7 @@ func (c *cFavorite) Favorite(ctx context.Context, req *v1.FavoriteReq) (res *v1.
 		return nil, err
 	}
 	err = gconv.Scan(output, &res)
+	res.QuestionID = req.QuestionID
 	if err != nil {
 		return nil, err
 	}

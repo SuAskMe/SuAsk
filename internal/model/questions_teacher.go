@@ -1,13 +1,12 @@
 package model
 
 type TeacherQuestion struct {
-	ID          int      `json:"id"`
-	Title       string   `json:"title"`
-	Content     string   `json:"contents"`
-	Views       int      `json:"views"`
-	CreatedAt   int64    `json:"created_at"`
-	ImageURLs   []string `json:"image_urls"`
-	IsFavorited bool     `json:"is_favorited"`
+	ID        int      `json:"id"`
+	Title     string   `json:"title"`
+	Content   string   `json:"contents"`
+	Views     int      `json:"views"`
+	CreatedAt int64    `json:"created_at"`
+	ImageURLs []string `json:"image_urls"`
 }
 
 type GetBaseOfTeacherInput struct {

@@ -49,7 +49,7 @@ func (sQuestionUtil) Favorite(ctx context.Context, in *model.FavoriteInput) (out
 	if UserId == consts.DefaultUserId {
 		return nil, gerror.New("user not login")
 	}
-	cnt, err := md.Where(dao.Favorites.Columns().UserId, UserId).Where(dao.Favorites.Columns().QuestionId).Count()
+	cnt, err := md.Where(dao.Favorites.Columns().UserId, UserId).Where(dao.Favorites.Columns().QuestionId, in.QuestionID).Count()
 	if err != nil {
 		return nil, err
 	}
@@ -72,6 +72,7 @@ func (sQuestionUtil) Favorite(ctx context.Context, in *model.FavoriteInput) (out
 		}
 		return &model.FavoriteOutput{
 			IsFavorite: true,
+			QuestionID: in.QuestionID,
 		}, nil
 	}
 }

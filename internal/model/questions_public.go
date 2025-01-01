@@ -9,7 +9,6 @@ type PublicQuestion struct {
 	Views         int      `json:"views"`
 	CreatedAt     int64    `json:"created_at"`
 	ImageURLs     []string `json:"image_urls"`
-	IsFavorite    bool     `json:"is_favorite"`
 	AnswerNum     int      `json:"answer_num"`
 	AnswerAvatars []string `json:"answer_avatars"`
 }
