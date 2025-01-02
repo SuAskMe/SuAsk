@@ -41,9 +41,9 @@ func TruncateString(s string) string {
 }
 
 func CountRemainPage(remain, page int) int {
-	remainNum := remain - consts.NumOfQuestionsPerPage*page
-	remain = remainNum / consts.NumOfQuestionsPerPage
-	if remainNum%consts.NumOfQuestionsPerPage > 0 {
+	remainNum := remain - consts.MaxQuestionsPerPage*page
+	remain = remainNum / consts.MaxQuestionsPerPage
+	if remainNum%consts.MaxQuestionsPerPage > 0 {
 		remain += 1
 	}
 	return remain

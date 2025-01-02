@@ -33,9 +33,9 @@ type sPublicQuestion struct{}
 func (sPublicQuestion) GetBase(ctx context.Context, input *model.GetBaseInput) (*model.GetBaseOutput, error) {
 	md := dao.Questions.Ctx(ctx).WhereNull("dst_user_id")
 	if input.Keyword != "" {
-		md = md.Where("title LIKE?", "%"+input.Keyword+"%")
+		md = md.Where("match(title) against (? in boolean mode)", input.Keyword)
 	}
-	md = md.Page(input.Page, consts.NumOfQuestionsPerPage)
+	md = md.Page(input.Page, consts.MaxQuestionsPerPage)
 	err := utility.SortByType(&md, input.SortType)
 	if err != nil {
 		return nil, err
@@ -47,11 +47,7 @@ func (sPublicQuestion) GetBase(ctx context.Context, input *model.GetBaseInput) (
 		return nil, err
 	}
 	// 计算剩余页数
-	remainNum := remain - consts.NumOfQuestionsPerPage*input.Page
-	remain = remainNum / consts.NumOfQuestionsPerPage
-	if remainNum%consts.NumOfQuestionsPerPage > 0 {
-		remain += 1
-	}
+	remain = utility.CountRemainPage(remain, input.Page)
 
 	qIDs := make([]int, len(q))                 // 获取问题ID列表 （官方的静态联表也是这么做的）
 	pqs := make([]model.PublicQuestion, len(q)) // 用于存放最终结果
@@ -99,8 +95,8 @@ func (sPublicQuestion) GetKeyword(ctx context.Context, input *model.GetKeywordsI
 	if err != nil {
 		return nil, err
 	}
-	words := make([]model.Keyword, consts.NumOfKeywordsPerReq)
-	err = md.Where("title LIKE ?", "%"+input.Keyword+"%").Limit(8).Scan(&words)
+	words := make([]model.Keyword, consts.MaxKeywordsPerReq)
+	err = md.Where("match(title) against (? in boolean mode)", input.Keyword).Limit(8).Scan(&words)
 	if err != nil {
 		return nil, err
 	}
@@ -115,20 +111,19 @@ func (sPublicQuestion) GetAnswers(ctx context.Context, input *model.GetAnswersIn
 	}
 	db := g.DB()
 	sqlStr := `
-SELECT al.question_id, u.avatar_file_id
-FROM (	SELECT user_id, question_id, ROW_NUMBER() OVER (PARTITION BY question_id) as rowCnt 
-		FROM answers WHERE question_id IN (?) ) al, users u
-WHERE al.rowCnt <= 5 AND al.user_id = u.id;`
-	res, err := db.GetAll(ctx, sqlStr, input.QuestionIDs)
+	SELECT ur.question_id, u.avatar_file_id FROM user_relation ur, users u
+	WHERE ur.question_id IN (?) AND u.id = ur.user_id;`
+	res, err := db.Query(ctx, sqlStr, input.QuestionIDs)
 	if err != nil {
 		return nil, err
 	}
 	avatarsMap := make(map[int][]int)
 	for _, row := range res {
-		if _, ok := avatarsMap[row["question_id"].Int()]; !ok {
-			avatarsMap[row["question_id"].Int()] = make([]int, 0, 5)
+		id := row["question_id"].Int()
+		if _, ok := avatarsMap[id]; !ok {
+			avatarsMap[id] = make([]int, 0, 5)
 		}
-		avatarsMap[row["question_id"].Int()] = append(avatarsMap[row["question_id"].Int()], row["avatar_file_id"].Int())
+		avatarsMap[id] = append(avatarsMap[id], row["avatar_file_id"].Int())
 	}
 	return &model.GetAnswersOutput{
 		AvatarsMap: avatarsMap,

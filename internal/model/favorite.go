@@ -12,6 +12,7 @@ type FavoriteQuestion struct {
 	IsFavorite    bool     `json:"is_favorite"`
 	AnswerNum     int      `json:"answer_num"`
 	AnswerAvatars []string `json:"answer_avatars"`
+	DstUserID     int      `json:"dst_user_id"`
 }
 
 type Favorite struct {

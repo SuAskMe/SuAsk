@@ -15,9 +15,9 @@ type sTeacherQuestion struct{}
 func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeacherInput) (*model.GetBaseOfTeacherOutput, error) {
 	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherID)
 	if input.Keyword != "" {
-		md = md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%")
+		md = md.Where("match(title) against (? in boolean mode)", input.Keyword)
 	}
-	md = md.Page(input.Page, consts.NumOfQuestionsPerPage)
+	md = md.Page(input.Page, consts.MaxQuestionsPerPage)
 	err := utility.SortByType(&md, input.SortType)
 	if err != nil {
 		return nil, err
@@ -29,11 +29,7 @@ func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeach
 		return nil, err
 	}
 	// 计算剩余页数
-	remainNum := remain - consts.NumOfQuestionsPerPage*input.Page
-	remain = remainNum / consts.NumOfQuestionsPerPage
-	if remainNum%consts.NumOfQuestionsPerPage > 0 {
-		remain += 1
-	}
+	remain = utility.CountRemainPage(remain, input.Page)
 	// 获取问题ID列表 （官方的静态联表也是这么做的）
 	qIDs := make([]int, len(q))
 	for i, pq := range q {
@@ -81,8 +77,8 @@ func (sTeacherQuestion) GetKeyword(ctx context.Context, input *model.GetKeywords
 	if err != nil {
 		return nil, err
 	}
-	words := make([]model.Keyword, consts.NumOfKeywordsPerReq)
-	err = md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%").Limit(8).Scan(&words)
+	words := make([]model.Keyword, consts.MaxKeywordsPerReq)
+	err = md.Where("match(title) against (? in boolean mode)", input.Keyword).Limit(8).Scan(&words)
 	if err != nil {
 		return nil, err
 	}

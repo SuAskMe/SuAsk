@@ -2,6 +2,7 @@ package questions
 
 import (
 	"context"
+	"fmt"
 	v1 "suask/api/questions/v1"
 	"suask/internal/consts"
 	"suask/internal/model"
@@ -20,12 +21,16 @@ func (cPublicQuestions) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v
 	//if UserId == consts.DefaultUserId {
 	//	return nil, fmt.Errorf("user not login")
 	//}
+	if UserId == consts.DefaultUserId && req.DstUserId != 0 {
+		// 防止未登录用户提问问大家问题
+		return nil, fmt.Errorf("user not login")
+	}
 	questionInput := model.AddQuestionInput{}
 	err = gconv.Struct(req, &questionInput)
-	questionInput.SrcUserID = UserId
 	if err != nil {
 		return nil, err
 	}
+	questionInput.SrcUserID = UserId
 	questionId, err := service.PublicQuestion().AddQuestion(ctx, &questionInput)
 	if err != nil {
 		return nil, err

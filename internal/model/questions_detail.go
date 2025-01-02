@@ -56,7 +56,7 @@ type AddViewInput struct {
 }
 
 type AddViewOutput struct {
-	Views int `json:"views"`
+	// Views int `json:"views"`
 }
 
 type UpvoteInput struct {
@@ -78,4 +78,20 @@ type AddAnswerInput struct {
 
 type AddAnswerOutput struct {
 	Id int `json:"id"`
+}
+
+type AddReplyCntInput struct {
+	QuestionId int `json:"question_id"`
+}
+
+type AddReplyCntOutput struct {
+	ReplyCnt int `json:"reply_cnt"`
+}
+
+type BuildRelationInput struct {
+	QuestionId int `json:"question_id"`
+}
+
+type BuildRelationOutput struct {
+	// TODO
 }

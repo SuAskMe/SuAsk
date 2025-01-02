@@ -2,8 +2,9 @@ package consts
 
 const (
 	DefaultAvatarURL      = "default-avatar"
-	NumOfQuestionsPerPage = 30
-	NumOfKeywordsPerReq   = 8
+	MaxQuestionsPerPage   = 30
+	MaxKeywordsPerReq     = 8
+	MaxAvatarsPerQuestion = 3
 	SortByTimeDsc         = 0
 	SortByTimeAsc         = 1
 	SortByViewsDsc        = 2

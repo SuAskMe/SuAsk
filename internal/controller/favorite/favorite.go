@@ -43,8 +43,18 @@ func GetFavoriteImpl(ctx context.Context, req interface{}) (res interface{}, err
 	if err != nil {
 		return
 	}
+
 	if answersOutput != nil {
 		for k, v := range answersOutput.AvatarsMap {
+			dstId := QuestionList[idMap[k]].DstUserID
+			if dstId != 0 {
+				url, err := service.File().Get(ctx, model.FileGetInput{Id: dstId})
+				if err != nil {
+					return nil, err
+				}
+				QuestionList[idMap[k]].AnswerAvatars = []string{url.URL}
+				continue
+			}
 			idList := make([]int, 0, len(v))
 			URLs := make([]string, 0, len(v))
 			for _, u := range v {
@@ -58,7 +68,7 @@ func GetFavoriteImpl(ctx context.Context, req interface{}) (res interface{}, err
 			if err_ != nil {
 				return nil, err_
 			}
-			URLs = append(URLs, urls.URL...)
+			URLs = append(urls.URL, URLs...)
 			QuestionList[idMap[k]].AnswerAvatars = URLs
 		}
 	}

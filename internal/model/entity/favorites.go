@@ -10,7 +10,7 @@ import (
 
 // Favorites is the golang structure for table favorites.
 type Favorites struct {
-	Id         int         `json:"id"         orm:"id"          description:"收藏（置顶）ID"` // 收藏（置顶）ID
+	Id         int64       `json:"id"         orm:"id"          description:"收藏（置顶）ID"` // 收藏（置顶）ID
 	UserId     int         `json:"userId"     orm:"user_id"     description:"用户ID"`     // 用户ID
 	QuestionId int         `json:"questionId" orm:"question_id" description:"问题ID"`     // 问题ID
 	CreatedAt  *gtime.Time `json:"createdAt"  orm:"created_at"  description:"创建时间"`     // 创建时间

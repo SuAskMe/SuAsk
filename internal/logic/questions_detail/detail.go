@@ -3,7 +3,6 @@ package questions_detail
 import (
 	"context"
 	"fmt"
-	"github.com/gogf/gf/v2/util/gconv"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
@@ -13,12 +12,15 @@ import (
 	"suask/internal/service"
 	"sync"
 
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type sQuestionDetail struct{}
 
 var UpvoteLock = sync.Mutex{}
+var ViewsLock = sync.Mutex{}
+var ReplyCntLock = sync.Mutex{}
 
 func Validate(ctx context.Context, question *entity.Questions) (bool, error) {
 	//UserId := 2
@@ -177,8 +179,10 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 }
 
 func (sQuestionDetail) AddQuestionView(ctx context.Context, in *model.AddViewInput) (*model.AddViewOutput, error) {
-	md := dao.Questions.Ctx(ctx).Where("id =?", in.QuestionId)
-	_, err := md.Increment("views", 1)
+	db := g.DB()
+	ViewsLock.Lock()
+	_, err := db.Exec(ctx, "UPDATE questions SET views = views + 1 WHERE id = ?", in.QuestionId)
+	ViewsLock.Unlock()
 	if err != nil {
 		return nil, err
 	}
@@ -187,9 +191,10 @@ func (sQuestionDetail) AddQuestionView(ctx context.Context, in *model.AddViewInp
 
 func (sQuestionDetail) AddAnswerUpvote(ctx context.Context, in *model.UpvoteInput) (*model.UpvoteOutput, error) {
 	//UserId := 2
+	db := g.DB()
 	UserId := gconv.Int(ctx.Value(consts.CtxId))
 	if UserId == consts.DefaultUserId {
-		return nil, fmt.Errorf("you are not allowed to access this question")
+		return nil, fmt.Errorf("you are not allowed to upvote")
 	}
 	md := dao.Upvotes.Ctx(ctx).Where(do.Upvotes{AnswerId: in.AnswerId, UserId: UserId})
 	cnt, err := md.Count()
@@ -203,18 +208,16 @@ func (sQuestionDetail) AddAnswerUpvote(ctx context.Context, in *model.UpvoteInpu
 		}
 		md = dao.Answers.Ctx(ctx).Where(dao.Answers.Columns().Id, in.AnswerId)
 		UpvoteLock.Lock()
-		_, err = md.Decrement("upvotes", 1)
+		_, err = db.Exec(ctx, "UPDATE answers SET upvotes = upvotes - 1 WHERE id = ?", in.AnswerId)
 		if err != nil {
-			UpvoteLock.Unlock()
 			return nil, err
 		}
+		UpvoteLock.Unlock()
 		res, err := md.One()
 		if err != nil {
-			UpvoteLock.Unlock()
 			return nil, err
 		}
 		cnt = res["upvotes"].Int()
-		UpvoteLock.Unlock()
 		return &model.UpvoteOutput{
 			IsUpvoted: false,
 			Upvotes:   cnt,
@@ -227,18 +230,16 @@ func (sQuestionDetail) AddAnswerUpvote(ctx context.Context, in *model.UpvoteInpu
 		}
 		md = dao.Answers.Ctx(ctx).Where("id =?", in.AnswerId)
 		UpvoteLock.Lock()
-		_, err = md.Increment("upvotes", 1)
+		_, err = db.Exec(ctx, "UPDATE answers SET upvotes = upvotes + 1 WHERE id = ?", in.AnswerId)
+		UpvoteLock.Unlock()
 		if err != nil {
-			UpvoteLock.Unlock()
 			return nil, err
 		}
 		res, err := md.One()
 		if err != nil {
-			UpvoteLock.Unlock()
 			return nil, err
 		}
 		cnt = res["upvotes"].Int()
-		UpvoteLock.Unlock()
 		return &model.UpvoteOutput{
 			IsUpvoted: true,
 			Upvotes:   cnt,
@@ -271,6 +272,37 @@ func (sQuestionDetail) ReplyQuestion(ctx context.Context, in *model.AddAnswerInp
 	return &model.AddAnswerOutput{
 		Id: int(id),
 	}, nil
+}
+
+func (sQuestionDetail) AddReplyCnt(ctx context.Context, in *model.AddReplyCntInput) (*model.AddReplyCntOutput, error) {
+	db := g.DB()
+	ReplyCntLock.Lock()
+	_, err := db.Exec(ctx, "UPDATE questions SET reply_cnt = reply_cnt + 1 WHERE id = ?", in.QuestionId)
+	if err != nil {
+		ReplyCntLock.Unlock()
+		return nil, err
+	}
+	res, err := db.Query(ctx, "SELECT reply_cnt FROM questions WHERE id = ?", in.QuestionId)
+	ReplyCntLock.Unlock()
+	if err != nil {
+		return nil, err
+	}
+	cnt := res[0]["reply_cnt"].Int()
+	return &model.AddReplyCntOutput{ReplyCnt: cnt}, nil
+}
+
+func (sQuestionDetail) BuildRelation(ctx context.Context, in *model.BuildRelationInput) (*model.BuildRelationOutput, error) {
+	// 保存关系
+	UserId := gconv.Int(ctx.Value(consts.CtxId))
+	md := dao.UserRelation.Ctx(ctx)
+	_, err := md.Insert(do.UserRelation{
+		QuestionId: in.QuestionId,
+		UserId:     UserId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &model.BuildRelationOutput{}, nil
 }
 
 func init() {

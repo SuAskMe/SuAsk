@@ -19,7 +19,7 @@ func (s *sFavorite) GetBase(ctx context.Context, in *model.GetFavoriteBaseInput)
 	//userId := 1
 	userId := gconv.Int(ctx.Value(consts.CtxId))
 	md = md.Where(dao.Favorites.Columns().UserId, userId)
-	md = md.Page(in.Page, consts.NumOfQuestionsPerPage)
+	md = md.Page(in.Page, consts.MaxQuestionsPerPage)
 	err = utility.SortByType(&md, in.SortType)
 	if err != nil {
 		return nil, err
@@ -63,6 +63,7 @@ func (s *sFavorite) GetBase(ctx context.Context, in *model.GetFavoriteBaseInput)
 				CreatedAt:  f[i].CreatedAt.TimestampMilli(),
 				Views:      q.Views,
 				AnswerNum:  q.ReplyCnt,
+				DstUserID:  q.DstUserId,
 				IsFavorite: true,
 			}
 		}

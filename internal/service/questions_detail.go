@@ -17,6 +17,8 @@ type (
 		AddQuestionView(ctx context.Context, in *model.AddViewInput) (*model.AddViewOutput, error)
 		AddAnswerUpvote(ctx context.Context, in *model.UpvoteInput) (*model.UpvoteOutput, error)
 		ReplyQuestion(ctx context.Context, in *model.AddAnswerInput) (*model.AddAnswerOutput, error)
+		AddReplyCnt(ctx context.Context, in *model.AddReplyCntInput) (*model.AddReplyCntOutput, error)
+		BuildRelation(ctx context.Context, in *model.BuildRelationInput) (*model.BuildRelationOutput, error)
 	}
 )
 

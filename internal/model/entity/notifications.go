@@ -10,7 +10,7 @@ import (
 
 // Notifications is the golang structure for table notifications.
 type Notifications struct {
-	Id         int         `json:"id"         orm:"id"          description:"提醒ID"`              // 提醒ID
+	Id         int64       `json:"id"         orm:"id"          description:"提醒ID"`              // 提醒ID
 	UserId     int         `json:"userId"     orm:"user_id"     description:"用户ID"`              // 用户ID
 	QuestionId int         `json:"questionId" orm:"question_id" description:"问题ID"`              // 问题ID
 	ReplyToId  int         `json:"replyToId"  orm:"reply_to_id" description:"回复问题的ID"`           // 回复问题的ID
