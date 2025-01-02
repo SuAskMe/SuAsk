@@ -218,14 +218,3 @@ CREATE TABLE `users`  (
   INDEX `avatar_file_id`(`avatar_file_id` ASC) USING BTREE,
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`avatar_file_id`) REFERENCES `files` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Triggers structure for table answers
--- ----------------------------
-DROP TRIGGER IF EXISTS `update_reply_cnt`;
-delimiter ;;
-CREATE TRIGGER `update_reply_cnt` AFTER INSERT ON `answers` FOR EACH ROW BEGIN
-	UPDATE questions SET reply_cnt = reply_cnt + 1 WHERE id = NEW.question_id;
-END
-;;
-delimiter ;
