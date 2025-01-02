@@ -2,8 +2,9 @@ package utility
 
 import (
 	"fmt"
-	"github.com/gogf/gf/v2/database/gdb"
 	"suask/internal/consts"
+
+	"github.com/gogf/gf/v2/database/gdb"
 )
 
 func SortByType(md **gdb.Model, sortType int) error {
@@ -37,6 +38,15 @@ func TruncateString(s string) string {
 		}
 	}
 	return s
+}
+
+func CountRemainPage(remain, page int) int {
+	remainNum := remain - consts.MaxQuestionsPerPage*page
+	remain = remainNum / consts.MaxQuestionsPerPage
+	if remainNum%consts.MaxQuestionsPerPage > 0 {
+		remain += 1
+	}
+	return remain
 }
 
 func AddUnique[T comparable](slice []T, value T) []T {

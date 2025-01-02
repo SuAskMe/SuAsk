@@ -7,12 +7,13 @@ import (
 
 type Questions struct {
 	g.Meta    `orm:"table:questions"`
-	Id        int         `json:"id"        orm:"id"          description:"问题ID"`  // 问题ID
-	Title     string      `json:"title"     orm:"title"       description:"问题标题"`  // 问题标题
-	Contents  string      `json:"contents"  orm:"contents"    description:"问题内容"`  // 问题内容
-	CreatedAt *gtime.Time `json:"created_at" orm:"created_at"  description:"创建时间"` // 创建时间
-	Views     int         `json:"views"     orm:"views"       description:"浏览量"`   // 浏览量
-	ReplyCnt  int         `json:"reply_cnt" orm:"reply_cnt"   description:"回复数量"`  // 回复数量
+	Id        int         `json:"id"        orm:"id"          description:"问题ID"`          // 问题ID
+	Title     string      `json:"title"     orm:"title"       description:"问题标题"`          // 问题标题
+	DstUserId int         `json:"dest_user_id"   orm:"dst_user_id"     description:"目标ID"` // 目标ID
+	Contents  string      `json:"contents"  orm:"contents"    description:"问题内容"`          // 问题内容
+	CreatedAt *gtime.Time `json:"created_at" orm:"created_at"  description:"创建时间"`         // 创建时间
+	Views     int         `json:"views"     orm:"views"       description:"浏览量"`           // 浏览量
+	ReplyCnt  int         `json:"reply_cnt" orm:"reply_cnt"   description:"回复数量"`          // 回复数量
 }
 
 type Image struct {

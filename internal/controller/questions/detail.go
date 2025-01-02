@@ -21,6 +21,10 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 	if err != nil {
 		return nil, err
 	}
+	_, err = service.QuestionDetail().AddQuestionView(ctx, &model.AddViewInput{QuestionId: qid})
+	if err != nil {
+		return nil, err
+	}
 	imgList := questionBaseOutput.ImageList
 	fileList, err := service.File().GetList(ctx, model.FileListGetInput{IdList: imgList})
 	if err != nil {
@@ -31,7 +35,7 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 			ID:        questionBaseOutput.ID,
 			Title:     questionBaseOutput.Title,
 			Content:   questionBaseOutput.Content,
-			Views:     questionBaseOutput.Views,
+			Views:     questionBaseOutput.Views + 1,
 			CreatedAt: questionBaseOutput.CreatedAt,
 			ImageURLs: fileList.URL,
 		},
@@ -72,11 +76,6 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 		answerList[IdMap[k]].ImageURLs = url.URL
 	}
 	res.Answers = answerList
-	viewOutput, err := service.QuestionDetail().AddQuestionView(ctx, &model.AddViewInput{QuestionId: qid})
-	if err != nil {
-		return nil, err
-	}
-	res.Question.Views = viewOutput.Views
 	return
 }
 
@@ -105,6 +104,20 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 	output, err := service.QuestionDetail().ReplyQuestion(ctx, &input)
 	if err != nil {
 		return
+	}
+
+	// 更新回答数
+	replyCntOut, err := service.QuestionDetail().AddReplyCnt(ctx, &model.AddReplyCntInput{QuestionId: input.QuestionId})
+	if err != nil {
+		return
+	}
+
+	// 记录头像
+	if replyCntOut.ReplyCnt <= consts.MaxAvatarsPerQuestion {
+		_, err = service.QuestionDetail().BuildRelation(ctx, &model.BuildRelationInput{QuestionId: input.QuestionId})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// 上传文件

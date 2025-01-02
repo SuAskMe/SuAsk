@@ -21,9 +21,9 @@ func (s *sHistory) GetBase(ctx context.Context, in *model.GetHistoryBaseInput) (
 	md := dao.Questions.Ctx(ctx)
 	md = md.Where(dao.Questions.Columns().SrcUserId, userId)
 	if in.Keyword != "" {
-		md = md.WhereLike(dao.Questions.Columns().Title, "%"+in.Keyword+"%")
+		md = md.Where("match(title) against (? in boolean mode)", in.Keyword)
 	}
-	md = md.Page(in.Page, consts.NumOfQuestionsPerPage)
+	md = md.Page(in.Page, consts.MaxQuestionsPerPage)
 	err = utility.SortByType(&md, in.SortType)
 	if err != nil {
 		return nil, err
@@ -34,11 +34,9 @@ func (s *sHistory) GetBase(ctx context.Context, in *model.GetHistoryBaseInput) (
 	if err != nil {
 		return nil, err
 	}
-	remainNum := remain - consts.NumOfQuestionsPerPage*in.Page
-	remain = remainNum / consts.NumOfQuestionsPerPage
-	if remainNum%consts.NumOfQuestionsPerPage > 0 {
-		remain += 1
-	}
+
+	remain = utility.CountRemainPage(remain, in.Page)
+
 	qIDs := make([]int, len(q))
 	for i, question := range q {
 		qIDs[i] = question.Id
@@ -84,8 +82,8 @@ func (s *sHistory) GetKeyWord(ctx context.Context, in *model.GetHistoryKeywordsI
 	if err != nil {
 		return nil, err
 	}
-	words := make([]model.Keyword, consts.NumOfKeywordsPerReq)
-	err = md.WhereLike(dao.Questions.Columns().Title, "%"+in.Keyword+"%").Limit(8).Scan(&words)
+	words := make([]model.Keyword, consts.MaxKeywordsPerReq)
+	err = md.Where("match(title) against (? in boolean mode)", in.Keyword).Limit(8).Scan(&words)
 	if err != nil {
 		return nil, err
 	}

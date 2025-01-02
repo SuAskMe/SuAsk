@@ -17,7 +17,7 @@ type GetNotificationsInput struct {
 }
 
 type NotificationBase struct {
-	Id              int    `json:"id"         orm:"id"          dc:"提醒ID"`
+	Id              int64  `json:"id"         orm:"id"          dc:"提醒ID"`
 	QuestionId      int    `json:"question_id" orm:"question_id" dc:"问题ID"`
 	QuestionTitle   string `json:"question_title"                dc:"问题标题"`
 	QuestionContent string `json:"question_content"              dc:"问题内容"`

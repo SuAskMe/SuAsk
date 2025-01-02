@@ -2,16 +2,16 @@ package questions
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/util/gconv"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/model/custom"
+	"suask/internal/model/do"
 	"suask/internal/model/entity"
 	"suask/internal/service"
 
-	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type sQuestionUtil struct{}
@@ -49,12 +49,14 @@ func (sQuestionUtil) Favorite(ctx context.Context, in *model.FavoriteInput) (out
 	if UserId == consts.DefaultUserId {
 		return nil, gerror.New("user not login")
 	}
-	cnt, err := md.Where(dao.Favorites.Columns().UserId, UserId).Where(dao.Favorites.Columns().QuestionId, in.QuestionID).Count()
+	md = md.Where(dao.Favorites.Columns().UserId, UserId).Where(dao.Favorites.Columns().QuestionId, in.QuestionID)
+	md = md.WhereNot(dao.Favorites.Columns().Package, consts.OnTop)
+	cnt, err := md.Count()
 	if err != nil {
 		return nil, err
 	}
 	if cnt > 0 {
-		_, err = md.Where(dao.Favorites.Columns().UserId, UserId).Where(dao.Favorites.Columns().QuestionId, in.QuestionID).Delete()
+		_, err = md.Delete()
 		if err != nil {
 			return nil, err
 		}
@@ -62,17 +64,16 @@ func (sQuestionUtil) Favorite(ctx context.Context, in *model.FavoriteInput) (out
 			IsFavorite: false,
 		}, nil
 	} else {
-		_, err = md.Insert(g.Map{
-			"user_id":     UserId,
-			"question_id": in.QuestionID,
-			"package":     "默认收藏夹",
+		_, err = md.Insert(do.Favorites{
+			UserId:     UserId,
+			QuestionId: in.QuestionID,
+			Package:    "默认收藏夹",
 		})
 		if err != nil {
 			return nil, err
 		}
 		return &model.FavoriteOutput{
 			IsFavorite: true,
-			QuestionID: in.QuestionID,
 		}, nil
 	}
 }

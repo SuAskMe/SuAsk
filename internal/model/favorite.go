@@ -12,6 +12,7 @@ type FavoriteQuestion struct {
 	IsFavorite    bool     `json:"is_favorite"`
 	AnswerNum     int      `json:"answer_num"`
 	AnswerAvatars []string `json:"answer_avatars"`
+	DstUserID     int      `json:"dst_user_id"`
 }
 
 type Favorite struct {
@@ -23,9 +24,9 @@ type Favorite struct {
 }
 
 type GetFavoriteBaseInput struct {
-	SortType int    `json:"sort_type"`
-	Page     int    `json:"page"`
-	Keyword  string `json:"keyword"`
+	SortType int `json:"sort_type"`
+	Page     int `json:"page"`
+	// Keyword  string `json:"keyword"`
 }
 
 type GetFavoriteBaseOutput struct {

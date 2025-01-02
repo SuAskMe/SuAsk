@@ -10,13 +10,15 @@ import (
 	"suask/internal/model/do"
 	"suask/internal/service"
 	"suask/utility"
+
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type sTeacherQuestionSelf struct{}
 
 func Validate(ctx context.Context) error {
-	// Tid := gconv.Int(ctx.Value(consts.CtxId))
-	Tid := 2
+	Tid := gconv.Int(ctx.Value(consts.CtxId))
+	// Tid := 2
 	md := dao.Users.Ctx(ctx).Where(dao.Users.Columns().Id, Tid)
 	var user struct {
 		Role string `orm:"role"`
@@ -36,8 +38,8 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 	if err != nil {
 		return nil, err
 	}
-	Tid := 2
-	// Tid := gconv.Int(ctx.Value(consts.CtxId))
+	// Tid := 2
+	Tid := gconv.Int(ctx.Value(consts.CtxId))
 	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, Tid)
 	switch input.Tag {
 	case consts.Unanswered:
@@ -46,9 +48,9 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 		md = md.WhereGT(dao.Questions.Columns().ReplyCnt, 0)
 	}
 	if input.Keyword != "" {
-		md = md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%")
+		md = md.Where("match(title) against (? in boolean mode)", input.Keyword)
 	}
-	md = md.Page(input.Page, consts.NumOfQuestionsPerPage)
+	md = md.Page(input.Page, consts.MaxQuestionsPerPage)
 	err = utility.SortByType(&md, input.SortType)
 	if err != nil {
 		return nil, err
@@ -61,11 +63,7 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 		return nil, err
 	}
 	// 计算剩余页数
-	remainNum := remain - consts.NumOfQuestionsPerPage*input.Page
-	remain = remainNum / consts.NumOfQuestionsPerPage
-	if remainNum%consts.NumOfQuestionsPerPage > 0 {
-		remain += 1
-	}
+	remain = utility.CountRemainPage(remain, input.Page)
 
 	qIDs := make([]int, len(q))      // 获取问题ID列表 （官方的静态联表也是这么做的）
 	pqs := make([]model.QFM, len(q)) // 用于存放最终结果
@@ -112,8 +110,8 @@ func (sTeacherQuestionSelf) GetQFMPinned(ctx context.Context, _ *model.GetQFMInp
 	if err != nil {
 		return nil, err
 	}
-	Tid := 2
-	// Tid := gconv.Int(ctx.Value(consts.CtxId))
+	// Tid := 2
+	Tid := gconv.Int(ctx.Value(consts.CtxId))
 	md := dao.Favorites.Ctx(ctx).Where(dao.Favorites.Columns().UserId, Tid)
 	md = md.Where(dao.Favorites.Columns().Package, consts.OnTop)
 	var fav []custom.MyFavorites
@@ -166,12 +164,12 @@ func (sTeacherQuestionSelf) GetKeyword(ctx context.Context, input *model.GetQFMK
 	Tid := 2
 	// Tid := gconv.Int(ctx.Value(consts.CtxId))
 	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, Tid)
-	md = md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%").Limit(8)
+	md = md.Where("match(title) against (? in boolean mode)", input.Keyword).Limit(8)
 	err = utility.SortByType(&md, input.SortType)
 	if err != nil {
 		return nil, err
 	}
-	words := make([]model.Keyword, consts.NumOfKeywordsPerReq)
+	words := make([]model.Keyword, consts.MaxKeywordsPerReq)
 	err = md.Scan(&words)
 	if err != nil {
 		fmt.Println(err)
@@ -187,8 +185,8 @@ func (sTeacherQuestionSelf) PinQFM(ctx context.Context, input *model.PinQFMInput
 	if err != nil {
 		return nil, err
 	}
-	Tid := 2
-	// Tid := gconv.Int(ctx.Value(consts.CtxId))
+	// Tid := 2
+	Tid := gconv.Int(ctx.Value(consts.CtxId))
 	md := dao.Favorites.Ctx(ctx).Where(dao.Favorites.Columns().UserId, Tid)
 	md = md.Where(dao.Favorites.Columns().QuestionId, input.QuestionId)
 	md = md.Where(dao.Favorites.Columns().Package, consts.OnTop)
