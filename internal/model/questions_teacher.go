@@ -45,10 +45,11 @@ type QFM struct {
 }
 
 type GetQFMInput struct {
-	SortType int    `json:"sort_type"`
-	Page     int    `json:"page"`
-	Keyword  string `json:"keyword"`
-	Tag      string `json:"tag"`
+	SortType  int    `json:"sort_type"`
+	Page      int    `json:"page"`
+	Keyword   string `json:"keyword"`
+	Tag       string `json:"tag"`
+	TeacherId int    `json:"teacher_id"`
 }
 
 type GetQFMOutput struct {
@@ -59,12 +60,14 @@ type GetQFMOutput struct {
 }
 
 type GetQFMKeywordsInput struct {
-	Keyword  string `json:"keyword"`
-	SortType int    `json:"sort_type"`
+	Keyword   string `json:"keyword"`
+	SortType  int    `json:"sort_type"`
+	TeacherId int    `json:"teacher_id"`
 }
 
 type PinQFMInput struct {
 	QuestionId int `json:"question_id"`
+	TeacherId  int `json:"teacher_id"`
 }
 
 type PinQFMOutput struct {

@@ -13,7 +13,7 @@ import (
 type (
 	ITeacherQuestionSelf interface {
 		GetQFMAll(ctx context.Context, input *model.GetQFMInput) (*model.GetQFMOutput, error)
-		GetQFMPinned(ctx context.Context, _ *model.GetQFMInput) (*model.GetQFMOutput, error)
+		GetQFMPinned(ctx context.Context, input *model.GetQFMInput) (*model.GetQFMOutput, error)
 		GetKeyword(ctx context.Context, input *model.GetQFMKeywordsInput) (*model.GetKeywordsOutput, error)
 		PinQFM(ctx context.Context, input *model.PinQFMInput) (*model.PinQFMOutput, error)
 	}

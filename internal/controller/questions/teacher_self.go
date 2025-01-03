@@ -2,8 +2,10 @@ package questions
 
 import (
 	"context"
+	"fmt"
 	v1 "suask/api/questions/v1"
 	"suask/internal/consts"
+	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/service"
 
@@ -14,7 +16,28 @@ type cTeacherSelf struct{}
 
 var TeacherSelf = cTeacherSelf{}
 
+func Validate(ctx context.Context) error {
+	Tid := gconv.Int(ctx.Value(consts.CtxId))
+	// Tid := 2
+	md := dao.Users.Ctx(ctx).Where(dao.Users.Columns().Id, Tid)
+	var user struct {
+		Role string `orm:"role"`
+	}
+	err := md.Scan(&user)
+	if err != nil {
+		return err
+	}
+	if user.Role != consts.TEACHER {
+		return fmt.Errorf("user is not a teacher")
+	}
+	return nil
+}
+
 func GetQFMImpl(ctx context.Context, in *model.GetQFMInput) (res *v1.QFMBase, err error) {
+	err = Validate(ctx)
+	if err != nil {
+		return nil, err
+	}
 	out, err := service.TeacherQuestionSelf().GetQFMAll(ctx, in)
 	if err != nil {
 		return
@@ -43,8 +66,17 @@ func GetQFMImpl(ctx context.Context, in *model.GetQFMInput) (res *v1.QFMBase, er
 }
 
 func (cTeacherSelf) GetQFMAll(ctx context.Context, req *v1.GetQFMReq) (res *v1.GetQFMRes, err error) {
+	err = Validate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Tid := 2
+	Tid := gconv.Int(ctx.Value(consts.CtxId))
+
 	var in model.GetQFMInput
 	gconv.Scan(req, &in)
+	in.TeacherId = Tid
 	_res, err := GetQFMImpl(ctx, &in)
 	if err != nil {
 		return
@@ -56,8 +88,12 @@ func (cTeacherSelf) GetQFMAll(ctx context.Context, req *v1.GetQFMReq) (res *v1.G
 }
 
 func (cTeacherSelf) GetQFMAnswered(ctx context.Context, req *v1.GetQFMAnsweredReq) (res *v1.GetQFMAnsweredRes, err error) {
+	// Tid := 2
+	Tid := gconv.Int(ctx.Value(consts.CtxId))
+
 	var in model.GetQFMInput
 	gconv.Scan(req, &in)
+	in.TeacherId = Tid
 	in.Tag = consts.Answered
 	_res, err := GetQFMImpl(ctx, &in)
 	if err != nil {
@@ -70,8 +106,12 @@ func (cTeacherSelf) GetQFMAnswered(ctx context.Context, req *v1.GetQFMAnsweredRe
 }
 
 func (cTeacherSelf) GetQFMUnanswered(ctx context.Context, req *v1.GetQFMUnansweredReq) (res *v1.GetQFMUnansweredRes, err error) {
+	// Tid := 2
+	Tid := gconv.Int(ctx.Value(consts.CtxId))
+
 	var in model.GetQFMInput
 	gconv.Scan(req, &in)
+	in.TeacherId = Tid
 	in.Tag = consts.Unanswered
 	_res, err := GetQFMImpl(ctx, &in)
 	if err != nil {
@@ -84,7 +124,15 @@ func (cTeacherSelf) GetQFMUnanswered(ctx context.Context, req *v1.GetQFMUnanswer
 }
 
 func (cTeacherSelf) GetQFMTop(ctx context.Context, _ *v1.GetQFMTopReq) (res *v1.GetQFMTopRes, err error) {
-	out, err := service.TeacherQuestionSelf().GetQFMPinned(ctx, nil)
+	err = Validate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Tid := 2
+	Tid := gconv.Int(ctx.Value(consts.CtxId))
+
+	out, err := service.TeacherQuestionSelf().GetQFMPinned(ctx, &model.GetQFMInput{TeacherId: Tid})
 	if err != nil {
 		return
 	}
@@ -109,16 +157,29 @@ func (cTeacherSelf) GetQFMTop(ctx context.Context, _ *v1.GetQFMTopReq) (res *v1.
 }
 
 func (cTeacherSelf) GetQFMKeywords(ctx context.Context, req *v1.GetQFMSearchKeywordsReq) (res *v1.GetQFMSearchKeywordsRes, err error) {
+	err = Validate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Tid := 2
+	Tid := gconv.Int(ctx.Value(consts.CtxId))
+
 	var in model.GetQFMKeywordsInput
 	gconv.Scan(req, &in)
+	in.TeacherId = Tid
 	out, err := service.TeacherQuestionSelf().GetKeyword(ctx, &in)
 	gconv.Scan(out, &res)
 	return
 }
 
 func (cTeacherSelf) GetQFMByKeyword(ctx context.Context, req *v1.SearchQFMReq) (res *v1.SearchQFMRes, err error) {
+	// Tid := 2
+	Tid := gconv.Int(ctx.Value(consts.CtxId))
+
 	var in model.GetQFMInput
 	gconv.Scan(req, &in)
+	in.TeacherId = Tid
 	_res, err := GetQFMImpl(ctx, &in)
 	if err != nil {
 		return
@@ -130,7 +191,15 @@ func (cTeacherSelf) GetQFMByKeyword(ctx context.Context, req *v1.SearchQFMReq) (
 }
 
 func (cTeacherSelf) PinQFMInput(ctx context.Context, req *v1.PinQFMReq) (res *v1.PinQFMRes, err error) {
-	out, err := service.TeacherQuestionSelf().PinQFM(ctx, &model.PinQFMInput{QuestionId: req.QuestionId})
+	// Tid := 2
+	Tid := gconv.Int(ctx.Value(consts.CtxId))
+
+	err = Validate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	out, err := service.TeacherQuestionSelf().PinQFM(ctx, &model.PinQFMInput{QuestionId: req.QuestionId, TeacherId: Tid})
 	if err != nil {
 		return
 	}
