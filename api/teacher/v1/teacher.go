@@ -1,6 +1,8 @@
 package v1
 
-import "github.com/gogf/gf/v2/frame/g"
+import (
+	"github.com/gogf/gf/v2/frame/g"
+)
 
 type TeacherBase struct {
 	Id           int    `json:"id"           orm:"id"           description:"教师Id"`   //
@@ -18,4 +20,22 @@ type TeacherReq struct {
 
 type TeacherRes struct {
 	TeacherList []TeacherBase `json:"teachers"`
+}
+
+type TeacherPinReq struct {
+	g.Meta    `path:"/info/teacher/pin" method:"GET" tags:"Info" summary:"请求教师信息"`
+	TeacherId int `json:"teacher_id" v:"required" dc:"教师id"`
+}
+
+type QFM struct {
+	ID        int      `json:"id"`
+	Title     string   `json:"title"`
+	Content   string   `json:"contents"`
+	Views     int      `json:"views"`
+	CreatedAt int64    `json:"created_at"`
+	ImageURLs []string `json:"image_urls"`
+}
+
+type TeacherPinRes struct {
+	QuestionList []QFM `json:"question_list"`
 }
