@@ -10,37 +10,12 @@ import (
 	"suask/internal/model/do"
 	"suask/internal/service"
 	"suask/utility"
-
-	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type sTeacherQuestionSelf struct{}
 
-func Validate(ctx context.Context) error {
-	Tid := gconv.Int(ctx.Value(consts.CtxId))
-	// Tid := 2
-	md := dao.Users.Ctx(ctx).Where(dao.Users.Columns().Id, Tid)
-	var user struct {
-		Role string `orm:"role"`
-	}
-	err := md.Scan(&user)
-	if err != nil {
-		return err
-	}
-	if user.Role != consts.TEACHER {
-		return fmt.Errorf("user is not a teacher")
-	}
-	return nil
-}
-
 func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMInput) (*model.GetQFMOutput, error) {
-	err := Validate(ctx)
-	if err != nil {
-		return nil, err
-	}
-	// Tid := 2
-	Tid := gconv.Int(ctx.Value(consts.CtxId))
-	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, Tid)
+	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherId)
 	switch input.Tag {
 	case consts.Unanswered:
 		md = md.Where(dao.Questions.Columns().ReplyCnt, 0)
@@ -51,7 +26,7 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 		md = md.Where("match(title) against (? in boolean mode)", input.Keyword)
 	}
 	md = md.Page(input.Page, consts.MaxQuestionsPerPage)
-	err = utility.SortByType(&md, input.SortType)
+	err := utility.SortByType(&md, input.SortType)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +60,7 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 
 	var fav []*custom.MyFavorites
 	md = dao.Favorites.Ctx(ctx).WhereIn(dao.Favorites.Columns().QuestionId, qIDs)
-	md = md.Where(dao.Favorites.Columns().UserId, Tid)
+	md = md.Where(dao.Favorites.Columns().UserId, input.TeacherId)
 	md = md.Where(dao.Favorites.Columns().Package, consts.OnTop)
 	err = md.Scan(&fav) // 再查favorites
 	if err != nil {
@@ -104,18 +79,12 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 	return &output, nil
 }
 
-func (sTeacherQuestionSelf) GetQFMPinned(ctx context.Context, _ *model.GetQFMInput) (*model.GetQFMOutput, error) {
+func (sTeacherQuestionSelf) GetQFMPinned(ctx context.Context, input *model.GetQFMInput) (*model.GetQFMOutput, error) {
 	// 置顶问题，不分页，直接返回全部
-	err := Validate(ctx)
-	if err != nil {
-		return nil, err
-	}
-	// Tid := 2
-	Tid := gconv.Int(ctx.Value(consts.CtxId))
-	md := dao.Favorites.Ctx(ctx).Where(dao.Favorites.Columns().UserId, Tid)
+	md := dao.Favorites.Ctx(ctx).Where(dao.Favorites.Columns().UserId, input.TeacherId)
 	md = md.Where(dao.Favorites.Columns().Package, consts.OnTop)
 	var fav []custom.MyFavorites
-	err = md.Scan(&fav)
+	err := md.Scan(&fav)
 	if err != nil {
 		return nil, err
 	}
@@ -157,15 +126,9 @@ func (sTeacherQuestionSelf) GetQFMPinned(ctx context.Context, _ *model.GetQFMInp
 }
 
 func (sTeacherQuestionSelf) GetKeyword(ctx context.Context, input *model.GetQFMKeywordsInput) (*model.GetKeywordsOutput, error) {
-	err := Validate(ctx)
-	if err != nil {
-		return nil, err
-	}
-	Tid := 2
-	// Tid := gconv.Int(ctx.Value(consts.CtxId))
-	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, Tid)
+	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherId)
 	md = md.Where("match(title) against (? in boolean mode)", input.Keyword).Limit(8)
-	err = utility.SortByType(&md, input.SortType)
+	err := utility.SortByType(&md, input.SortType)
 	if err != nil {
 		return nil, err
 	}
@@ -181,13 +144,7 @@ func (sTeacherQuestionSelf) GetKeyword(ctx context.Context, input *model.GetQFMK
 }
 
 func (sTeacherQuestionSelf) PinQFM(ctx context.Context, input *model.PinQFMInput) (*model.PinQFMOutput, error) {
-	err := Validate(ctx)
-	if err != nil {
-		return nil, err
-	}
-	// Tid := 2
-	Tid := gconv.Int(ctx.Value(consts.CtxId))
-	md := dao.Favorites.Ctx(ctx).Where(dao.Favorites.Columns().UserId, Tid)
+	md := dao.Favorites.Ctx(ctx).Where(dao.Favorites.Columns().UserId, input.TeacherId)
 	md = md.Where(dao.Favorites.Columns().QuestionId, input.QuestionId)
 	md = md.Where(dao.Favorites.Columns().Package, consts.OnTop)
 	cnt, err := md.Count()
@@ -205,7 +162,7 @@ func (sTeacherQuestionSelf) PinQFM(ctx context.Context, input *model.PinQFMInput
 	} else {
 		md = dao.Favorites.Ctx(ctx)
 		_, err = md.Insert(do.Favorites{
-			UserId:     Tid,
+			UserId:     input.TeacherId,
 			QuestionId: input.QuestionId,
 			Package:    consts.OnTop,
 		})
