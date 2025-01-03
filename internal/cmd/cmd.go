@@ -40,6 +40,7 @@ var (
 					register.Register,
 					user.User.GetUserInfoById,
 					teacher.Teacher.GetTeacher,
+					teacher.Teacher.GetTeacherPin,
 					questions.TeacherQuestion,
 					notification.Notification,
 					questions.TeacherSelf,

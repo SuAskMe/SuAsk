@@ -1,9 +1,8 @@
 package v1
 
 import (
-	"suask/internal/model"
-
 	"github.com/gogf/gf/v2/frame/g"
+	"suask/internal/model"
 )
 
 type GetPageBase struct {
