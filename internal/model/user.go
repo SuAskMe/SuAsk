@@ -14,8 +14,8 @@ type UpdateUserOutput struct {
 }
 
 type UpdatePasswordInput struct {
+	UserId   int    `json:"userId" dc:"用户ID"`
 	Password string `json:"password" v:"required" dc:"新的密码"`
-	Salt     string `json:"salt" v:"required" orm:"salt"`
 }
 
 type UpdatePasswordOutput struct {

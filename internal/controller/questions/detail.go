@@ -17,7 +17,8 @@ var QuestionDetail = cQuestionDetail{}
 
 func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res *v1.GetDetailRes, err error) {
 	qid := req.QuestionID
-	questionBaseOutput, err := service.QuestionDetail().GetQuestionBase(ctx, &model.GetQuestionBaseInput{QuestionId: qid})
+	userId := gconv.Int(ctx.Value(consts.CtxId))
+	questionBaseOutput, err := service.QuestionDetail().GetQuestionBase(ctx, &model.GetQuestionBaseInput{QuestionId: qid, UserId: userId})
 	if err != nil {
 		return nil, err
 	}
@@ -32,12 +33,13 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 	}
 	res = &v1.GetDetailRes{
 		Question: model.QuestionBase{
-			ID:        questionBaseOutput.ID,
-			Title:     questionBaseOutput.Title,
-			Content:   questionBaseOutput.Content,
-			Views:     questionBaseOutput.Views + 1,
-			CreatedAt: questionBaseOutput.CreatedAt,
-			ImageURLs: fileList.URL,
+			ID:         questionBaseOutput.ID,
+			Title:      questionBaseOutput.Title,
+			Content:    questionBaseOutput.Content,
+			Views:      questionBaseOutput.Views,
+			CreatedAt:  questionBaseOutput.CreatedAt,
+			ImageURLs:  fileList.URL,
+			IsFavorite: questionBaseOutput.IsFavorite,
 		},
 		CanReply: questionBaseOutput.CanReply,
 	}

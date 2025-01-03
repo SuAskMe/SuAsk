@@ -61,6 +61,8 @@ var (
 						questions.QuestionDetail.GetDetail,
 						user.User.UpdateUserInfo,
 						user.User.UpdatePassWord,
+						user.User.SendVerificationCode,
+						user.User.ForgetPassword,
 						file.File.UpdateFile,
 						questions.QuestionDetail.AddAnswer,
 						favorite.Favorite,
