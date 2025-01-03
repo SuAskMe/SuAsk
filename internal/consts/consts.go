@@ -64,3 +64,8 @@ const (
 	NewAnswer   = "new_answer"
 	NewReply    = "new_reply"
 )
+
+const (
+	ForgetPassword = "forget_password"
+	ResetPassword  = "reset_password"
+)

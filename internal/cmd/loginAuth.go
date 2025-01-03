@@ -138,7 +138,7 @@ func authAfterFunc(r *ghttp.Request, respData gtoken.Resp) {
 		r.SetCtxVar(consts.CtxId, userInfo.Id)
 	}
 
-	fmt.Println("id", r.GetCtxVar(consts.CtxId))
+	fmt.Println("login_id", r.GetCtxVar(consts.CtxId))
 
 	r.Middleware.Next()
 }
@@ -148,7 +148,7 @@ func isMustLoginPath(path string) bool {
 	mustLoginPath := []string{
 		"/files",
 		"/user/info",
-		"/favorite",
+		//"/favorite",
 		"/history",
 		"/notification",
 	}

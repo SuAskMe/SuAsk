@@ -10,7 +10,7 @@ import (
 	"suask/internal/model"
 	"suask/internal/service"
 	"suask/utility"
-	"suask/utility/register"
+	"suask/utility/send_code"
 	"time"
 )
 
@@ -31,7 +31,7 @@ func (c *cRegister) SendVerificationCode(ctx context.Context, req *v1.SendVerifi
 	var codeTest string
 	// 如果都不重复
 	if !out.NameDuplicated && !out.EmailDuplicated {
-		code, err := register.SendCode(data.Email)
+		code, err := send_code.SendCode(data.Email)
 		if err != nil {
 			return nil, err
 		}

@@ -37,15 +37,17 @@ func (s sUser) UpdateUser(ctx context.Context, in model.UpdateUserInput) (out mo
 }
 
 func (s sUser) UpdatePassword(ctx context.Context, in model.UpdatePasswordInput) (out model.UpdatePasswordOutput, err error) {
-	userId := gconv.Int(ctx.Value(consts.CtxId))
-	userSalt := grand.S(10)
-	in.Salt = userSalt
-	in.Password = login.EncryptPassword(in.Password, userSalt)
-	_, err = dao.Users.Ctx(ctx).WherePri(userId).Update(in)
+	salt := grand.S(10)
+	password := login.EncryptPassword(in.Password, salt)
+	update := do.Users{
+		Salt:         salt,
+		PasswordHash: password,
+	}
+	_, err = dao.Users.Ctx(ctx).WherePri(in.UserId).Update(update)
 	if err != nil {
 		return model.UpdatePasswordOutput{}, err
 	}
-	return model.UpdatePasswordOutput{Id: userId}, err
+	return model.UpdatePasswordOutput{Id: in.UserId}, err
 }
 
 func init() {

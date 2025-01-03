@@ -1,4 +1,4 @@
-package register
+package send_code
 
 import (
 	"context"
