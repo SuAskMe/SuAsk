@@ -9,9 +9,9 @@ import (
 
 type sAnswer struct{}
 
-func (s *sAnswer) GetAnswer(ctx context.Context, answerId int) (out entity.Answers, err error) {
+func (s *sAnswer) GetAnswerIDs(ctx context.Context, answerId int) (out entity.Answers, err error) {
 	out = entity.Answers{}
-	err = dao.Answers.Ctx(ctx).WherePri(answerId).Scan(&out)
+	err = dao.Answers.Ctx(ctx).WherePri(answerId).Fields("id, user_id, question_id").Scan(&out)
 	if err != nil {
 		return entity.Answers{}, err
 	}

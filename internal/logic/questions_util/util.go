@@ -78,13 +78,13 @@ func (sQuestionUtil) Favorite(ctx context.Context, in *model.FavoriteInput) (out
 	}
 }
 
-func (sQuestionUtil) GetQuestion(ctx context.Context, questionID int) (out *entity.Questions, err error) {
-	out = &entity.Questions{}
-	err = dao.Questions.Ctx(ctx).WherePri(questionID).Scan(&out)
+func (sQuestionUtil) GetQuestionSrcUserId(ctx context.Context, questionID int) (out int, err error) {
+	var res *entity.Questions
+	err = dao.Questions.Ctx(ctx).WherePri(questionID).Fields("src_user_id").Scan(&res)
 	if err != nil {
-		return &entity.Questions{}, err
+		return 0, err
 	}
-	return out, nil
+	return res.SrcUserId, nil
 }
 
 func init() {

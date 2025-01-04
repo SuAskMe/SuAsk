@@ -89,6 +89,7 @@ func (sQuestionDetail) GetQuestionBase(ctx context.Context, in *model.GetQuestio
 		CanReply:   canReply,
 		ImageList:  imgIdList,
 		IsFavorite: isFavorite,
+		DstUserId:  question.DstUserId,
 	}
 	return &output, nil
 }
@@ -101,26 +102,35 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 		return nil, err
 	}
 	// 获取回答详情
+
 	answerList := make([]model.AnswerWithDetails, len(answers))
 	IdList := make([]int, len(answers)) // 回答的ID列表
 	IdMap := make(map[int]int)          // 回答的ID映射
 	UserIdMap := make(map[int][]int)    // 用户ID所对应的回答ID列表
+
 	for i, ans := range answers {
 		IdList[i] = ans.Id
 		IdMap[ans.Id] = i
+		UserId := ans.UserId
+
+		if in.DstUserId != 0 && in.DstUserId != UserId { // 问老师的问题且不是老师的回答
+			UserId = consts.DefaultUserId // 显示默认用户的头像
+		}
+
 		if _, ok := UserIdMap[ans.UserId]; !ok {
-			UserIdMap[ans.UserId] = []int{ans.Id}
+			UserIdMap[UserId] = []int{ans.Id}
 		} else {
-			UserIdMap[ans.UserId] = append(UserIdMap[ans.UserId], ans.Id)
+			UserIdMap[UserId] = append(UserIdMap[UserId], ans.Id)
 		}
 
 		answerList[i].Id = ans.Id
-		answerList[i].UserId = ans.UserId
+		answerList[i].UserId = UserId
 		answerList[i].InReplyTo = ans.InReplyTo
 		answerList[i].Contents = ans.Contents
 		answerList[i].CreatedAt = ans.CreatedAt.TimestampMilli()
 		answerList[i].Upvotes = ans.Upvotes
 	}
+
 	// 获取用户点赞信息
 	//UserId := 2
 	UserId := gconv.Int(ctx.Value(consts.CtxId))

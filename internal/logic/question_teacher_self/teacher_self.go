@@ -33,7 +33,7 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 
 	var q []*custom.Questions
 	var remain int
-	err = md.ScanAndCount(&q, &remain, true) // 先查不包含favorites的结果
+	err = md.ScanAndCount(&q, &remain, false) // 先查不包含favorites的结果
 	if err != nil {
 		return nil, err
 	}

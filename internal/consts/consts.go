@@ -1,7 +1,6 @@
 package consts
 
 const (
-	DefaultAvatarURL      = "default-avatar"
 	MaxQuestionsPerPage   = 30
 	MaxKeywordsPerReq     = 8
 	MaxAvatarsPerQuestion = 3
@@ -9,6 +8,15 @@ const (
 	SortByTimeAsc         = 1
 	SortByViewsDsc        = 2
 	SortByViewsAsc        = 3
+)
+
+// default settings
+
+const (
+	DefaultUserId    = 1
+	DefaultUserName  = "匿名用户"
+	DefaultThemeId   = 1
+	DefaultAvatarURL = "default-avatar"
 )
 
 // for question status
@@ -42,11 +50,6 @@ const (
 	CtxRole = "CtxRole"
 )
 
-// for register
-const (
-	DefaultThemeId = 1
-)
-
 // for file
 const (
 	FileUploadMaxMinutes = 10
@@ -55,7 +58,6 @@ const (
 
 // for question
 
-const DefaultUserId = 1
 const QuestionFileType = "picture"
 
 // for notification

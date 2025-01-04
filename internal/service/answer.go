@@ -12,7 +12,7 @@ import (
 
 type (
 	IAnswer interface {
-		GetAnswer(ctx context.Context, answerId int) (out entity.Answers, err error)
+		GetAnswerIDs(ctx context.Context, answerId int) (out entity.Answers, err error)
 	}
 )
 
