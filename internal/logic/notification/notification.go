@@ -96,25 +96,35 @@ func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput)
 	}
 	//fmt.Println("qIDSet:", qIDList)
 	//fmt.Println("aIDSet:", aIDList)
-	var q []*entity.Questions
-	var a []*entity.Answers
+	var q []*model.NotificationQuestion
+	var a []*model.NotificationAnswer
 
 	// 根据 Set 查询
-	err = dao.Questions.Ctx(ctx).WhereIn(dao.Questions.Columns().Id, qIDList).Scan(&q)
+	err = dao.Questions.Ctx(ctx).WhereIn(dao.Questions.Columns().Id, qIDList).
+		Fields(dao.Questions.Columns().Id).
+		Fields(dao.Questions.Columns().Title).
+		Fields(dao.Questions.Columns().Contents).
+		Fields(dao.Questions.Columns().DstUserId).
+		Scan(&q)
 	if err != nil {
 		return model.GetNotificationsOutput{}, err
 	}
-	err = dao.Answers.Ctx(ctx).WhereIn(dao.Answers.Columns().Id, aIDList).Scan(&a)
+	err = dao.Answers.Ctx(ctx).WhereIn(dao.Answers.Columns().Id, aIDList).
+		Fields(dao.Answers.Columns().Id).
+		Fields(dao.Answers.Columns().UserId).
+		Fields(dao.Answers.Columns().Contents).
+		Scan(&a)
 	if err != nil {
 		return model.GetNotificationsOutput{}, err
 	}
 	// 查出的结果存入 Map
-	qMap := make(map[int]*entity.Questions)
-	aMap := make(map[int]*entity.Answers)
+	qMap := make(map[int]*model.NotificationQuestion)
+	aMap := make(map[int]*model.NotificationAnswer)
 
 	for _, q := range q {
 		qMap[q.Id] = q
 	}
+
 	for _, a := range a {
 		aMap[a.Id] = a
 	}
@@ -122,8 +132,8 @@ func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput)
 	// 获取用户信息
 	userIDs := make([]int, 0, len(qIDSet)+len(aIDSet))
 	userIDSet := make(map[int]pad)
-	var u []entity.Users
-	userMap := make(map[int]*entity.Users)
+	var u []*model.NotificationUser
+	userMap := make(map[int]*model.NotificationUser)
 	for _, n := range qMap {
 		if _, ok := qMap[n.DstUserId]; !ok {
 			userIDSet[n.DstUserId] = pad{}
@@ -137,12 +147,15 @@ func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput)
 	for k := range userIDSet {
 		userIDs = append(userIDs, k)
 	}
-	err = dao.Users.Ctx(ctx).WhereIn(dao.Users.Columns().Id, userIDs).Scan(&u)
+	err = dao.Users.Ctx(ctx).WhereIn(dao.Users.Columns().Id, userIDs).
+		Fields(dao.Users.Columns().Id).
+		Fields(dao.Users.Columns().Nickname).
+		Scan(&u)
 	if err != nil {
 		return model.GetNotificationsOutput{}, err
 	}
 	for _, u := range u {
-		userMap[u.Id] = &u
+		userMap[u.Id] = u
 	}
 
 	// 开辟 out 的内存

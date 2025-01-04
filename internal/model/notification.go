@@ -8,6 +8,24 @@ type AddNotificationInput struct {
 	Type       string      `json:"type"       orm:"type"        dc:"提醒类型（新提问、新回复、新回答）"`
 }
 
+type NotificationQuestion struct {
+	Id        int    `json:"id"        orm:"id"          description:"问题ID"`
+	Title     string `json:"title"     orm:"title"       description:"问题标题"`
+	Contents  string `json:"contents"  orm:"contents"    description:"问题内容"`
+	DstUserId int    `json:"dstUserId" orm:"dst_user_id" description:"被提问的用户ID，为空时问大家，不为空时问教师"`
+}
+
+type NotificationAnswer struct {
+	Id       int    `json:"id"         orm:"id"          description:"回答ID"`
+	UserId   int    `json:"userId"     orm:"user_id"     description:"用户ID"`
+	Contents string `json:"contents"   orm:"contents"    description:"回答内容"`
+}
+
+type NotificationUser struct {
+	Id       int    `json:"id"           orm:"id"             description:"用户ID"`
+	Nickname string `json:"nickname"     orm:"nickname"       description:"昵称"`
+}
+
 type AddNotificationOutput struct {
 	Id int `json:"id"         orm:"id"          dc:"提醒ID"`
 }
