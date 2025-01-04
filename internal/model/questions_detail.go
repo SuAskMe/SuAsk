@@ -37,11 +37,13 @@ type GetQuestionBaseOutput struct {
 	CreatedAt  int64  `json:"created_at"`
 	ImageList  []int  `json:"image_list"`
 	IsFavorite bool   `json:"is_favorite"`
-	CanReply   bool
+	CanReply   bool   `json:"can_reply"`
+	DstUserId  int    `json:"dst_user_id"`
 }
 
 type GetAnswerDetailInput struct {
 	QuestionId int `json:"question_id"`
+	DstUserId  int `json:"dst_user_id"`
 }
 
 type GetAnswerDetailOutput struct {

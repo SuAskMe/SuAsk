@@ -30,7 +30,7 @@ func (s *sHistory) GetBase(ctx context.Context, in *model.GetHistoryBaseInput) (
 	}
 	var remain int
 	var q []*custom.Questions
-	err = md.ScanAndCount(&q, &remain, true)
+	err = md.ScanAndCount(&q, &remain, false)
 	if err != nil {
 		return nil, err
 	}

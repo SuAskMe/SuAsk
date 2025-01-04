@@ -18,41 +18,46 @@ var QuestionDetail = cQuestionDetail{}
 func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res *v1.GetDetailRes, err error) {
 	qid := req.QuestionID
 	userId := gconv.Int(ctx.Value(consts.CtxId))
-	questionBaseOutput, err := service.QuestionDetail().GetQuestionBase(ctx, &model.GetQuestionBaseInput{QuestionId: qid, UserId: userId})
+
+	// 获取问题
+	QBOutput, err := service.QuestionDetail().GetQuestionBase(ctx, &model.GetQuestionBaseInput{QuestionId: qid, UserId: userId})
 	if err != nil {
 		return nil, err
 	}
+	// 增加浏览量
 	_, err = service.QuestionDetail().AddQuestionView(ctx, &model.AddViewInput{QuestionId: qid})
 	if err != nil {
 		return nil, err
 	}
-	imgList := questionBaseOutput.ImageList
-	fileList, err := service.File().GetList(ctx, model.FileListGetInput{IdList: imgList})
+	// 获取问题图片列表
+	fileList, err := service.File().GetList(ctx, model.FileListGetInput{IdList: QBOutput.ImageList})
 	if err != nil {
 		return nil, err
 	}
-	res = &v1.GetDetailRes{
+	res = &v1.GetDetailRes{ // 填充返回结果
 		Question: model.QuestionBase{
-			ID:         questionBaseOutput.ID,
-			Title:      questionBaseOutput.Title,
-			Content:    questionBaseOutput.Content,
-			Views:      questionBaseOutput.Views,
-			CreatedAt:  questionBaseOutput.CreatedAt,
+			ID:         QBOutput.ID,
+			Title:      QBOutput.Title,
+			Content:    QBOutput.Content,
+			Views:      QBOutput.Views,
+			CreatedAt:  QBOutput.CreatedAt,
 			ImageURLs:  fileList.URL,
-			IsFavorite: questionBaseOutput.IsFavorite,
+			IsFavorite: QBOutput.IsFavorite,
 		},
-		CanReply: questionBaseOutput.CanReply,
+		CanReply: QBOutput.CanReply,
 	}
-	answersOutput, err := service.QuestionDetail().GetAnswers(ctx, &model.GetAnswerDetailInput{QuestionId: qid})
+	// 获取回答列表
+	ansOutput, err := service.QuestionDetail().GetAnswers(ctx, &model.GetAnswerDetailInput{QuestionId: qid, DstUserId: QBOutput.DstUserId})
 	if err != nil {
 		return nil, err
 	}
 
-	answerList := answersOutput.Answers
-	IdMap := answersOutput.IdMap
-	AvatarsMap := answersOutput.AvatarsMap // 将用户头像id映射到answer id列表
-	ImageMap := answersOutput.ImageMap
+	answerList := ansOutput.Answers
+	IdMap := ansOutput.IdMap
+	AvatarsMap := ansOutput.AvatarsMap
+	ImageMap := ansOutput.ImageMap
 
+	// 获取回答头像
 	AvatarList := make([]int, 0, len(AvatarsMap))
 	for k := range AvatarsMap {
 		if k != 0 {
@@ -69,7 +74,7 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 			answerList[IdMap[id]].UserAvatar = url
 		}
 	}
-
+	// 获取回答图片
 	for k, v := range ImageMap {
 		url, err := service.File().GetList(ctx, model.FileListGetInput{IdList: v})
 		if err != nil {
@@ -143,14 +148,14 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 	}
 
 	// 添加通知
-	question, err := service.QuestionUtil().GetQuestion(ctx, req.QuestionId)
+	srcUserId, err := service.QuestionUtil().GetQuestionSrcUserId(ctx, req.QuestionId)
 	if err != nil {
 		return nil, err
 	}
 	// 给发帖的人通知有回答
-	if question.SrcUserId != consts.DefaultUserId {
+	if srcUserId != consts.DefaultUserId && srcUserId != UserId {
 		_, err = service.Notification().Add(ctx, model.AddNotificationInput{
-			UserId:     question.SrcUserId,
+			UserId:     srcUserId,
 			QuestionId: req.QuestionId,
 			AnswerId:   output.Id,
 			Type:       consts.NewAnswer,
@@ -159,7 +164,7 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 
 	// 如果是回复别人的回答
 	if req.InReplyTo != nil {
-		answer, err := service.Answer().GetAnswer(ctx, gconv.Int(req.InReplyTo))
+		answer, err := service.Answer().GetAnswerIDs(ctx, gconv.Int(req.InReplyTo))
 		if err != nil {
 			return nil, err
 		}
