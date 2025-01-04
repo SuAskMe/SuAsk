@@ -1,8 +1,9 @@
 package v1
 
 import (
-	"github.com/gogf/gf/v2/frame/g"
 	"suask/internal/model"
+
+	"github.com/gogf/gf/v2/frame/g"
 )
 
 type GetPageBase struct {
@@ -22,7 +23,7 @@ type GetHistoryPageRes struct {
 
 type GetHistorySearchKeywordsReq struct {
 	g.Meta   `path:"/history/keywords" method:"GET" tags:"History" summary:"搜索收藏"`
-	Keyword  string `v:"required|length:1,100" json:"keyword"`
+	Keyword  string `v:"required|length:2,100" json:"keyword"`
 	SortType int    `v:"required|min:0|max:3" json:"sort_type"`
 }
 
@@ -34,7 +35,7 @@ type GetHistorySearchKeywordsRes struct {
 
 type GetHistoryPageByKeywordReq struct {
 	g.Meta  `path:"/history/search" method:"GET" tags:"History" summary:"根据关键字获取收藏列表"`
-	Keyword string `v:"length:1,20" json:"keyword"`
+	Keyword string `v:"length:2,100" json:"keyword"`
 	GetPageBase
 }
 

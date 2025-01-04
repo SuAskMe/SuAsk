@@ -24,7 +24,7 @@ type GetQFMRes struct {
 type GetQFMSearchKeywordsReq struct {
 	// 只允许搜索所有的提问，不允许按分类搜索
 	g.Meta   `path:"/teacher/question/keywords" method:"GET" tags:"Teacher Self" summary:"获取对我的提问的关键字"`
-	Keyword  string `v:"required|length:1,100" json:"keyword"`
+	Keyword  string `v:"required|length:2,100" json:"keyword"`
 	SortType int    `v:"required|min:0|max:3" json:"sort_type"`
 }
 
@@ -37,7 +37,7 @@ type GetQFMSearchKeywordsRes struct {
 type SearchQFMReq struct {
 	// 只允许搜索所有的提问，不允许按分类搜索
 	g.Meta   `path:"/teacher/question/search" method:"GET" tags:"Teacher Self" summary:"搜索对我的提问"`
-	Keyword  string `v:"required|length:1,100" json:"keyword"`
+	Keyword  string `v:"required|length:2,100" json:"keyword"`
 	SortType int    `v:"required|min:0|max:3" json:"sort_type"`
 	Page     int    `json:"page" v:"required|min:1"`
 }

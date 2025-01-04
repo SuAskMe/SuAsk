@@ -19,7 +19,7 @@ type GetPageOfTeacherRes struct {
 
 type GetSearchKeywordsOfTeacherReq struct {
 	g.Meta    `path:"/questions/teacher/keywords" method:"GET" tags:"Question" summary:"搜索老师问题"`
-	Keyword   string `v:"required|length:1,100" json:"keyword"`
+	Keyword   string `v:"required|length:2,100" json:"keyword"`
 	SortType  int    `v:"required|min:0|max:3" json:"sort_type"`
 	TeacherID int    `v:"required|min:1" json:"teacher_id"`
 }
@@ -32,7 +32,7 @@ type GetSearchKeywordsOfTeacherRes struct {
 
 type GetPageByKeywordOfTeacherReq struct {
 	g.Meta    `path:"/questions/teacher/search" method:"GET" tags:"Question" summary:"根据关键字获取老师问题列表"`
-	Keyword   string `v:"length:1,20" json:"keyword"`
+	Keyword   string `v:"length:2,100" json:"keyword"`
 	TeacherID int    `v:"required|min:1" json:"teacher_id"`
 	GetPageBase
 }

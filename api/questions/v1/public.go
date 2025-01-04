@@ -23,7 +23,7 @@ type GetPageRes struct {
 
 type GetSearchKeywordsReq struct {
 	g.Meta   `path:"/questions/public/keywords" method:"get" tags:"Question" summary:"搜索公开问题" description:"搜索公开问题"`
-	Keyword  string `v:"required|length:1,100" json:"keyword"`
+	Keyword  string `v:"required|length:2,100" json:"keyword"`
 	SortType int    `v:"required|min:0|max:3" json:"sort_type"`
 }
 
@@ -35,7 +35,7 @@ type GetSearchKeywordsRes struct {
 
 type GetPageByKeywordReq struct {
 	g.Meta  `path:"/questions/public/search" method:"get" tags:"Question" summary:"根据关键字获取公开问题列表" description:"根据关键字获取公开问题列表"`
-	Keyword string `v:"length:1,40" json:"keyword"`
+	Keyword string `v:"length:2,100" json:"keyword"`
 	GetPageBase
 }
 
