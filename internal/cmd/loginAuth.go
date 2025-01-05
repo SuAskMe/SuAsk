@@ -12,9 +12,7 @@ import (
 	v1 "suask/api/login/v1"
 	"suask/internal/consts"
 	"suask/internal/dao"
-	"suask/internal/model"
 	"suask/internal/model/entity"
-	"suask/internal/service"
 	"suask/utility/login"
 	"suask/utility/response"
 )
@@ -94,29 +92,25 @@ func loginAfterFunc(r *ghttp.Request, respData gtoken.Resp) {
 		respData.Code = 1
 		userId := respData.GetString("userKey")
 		userInfo := entity.Users{}
-		err := dao.Users.Ctx(context.TODO()).WherePri(userId).Scan(&userInfo)
+		err := dao.Users.Ctx(context.TODO()).WherePri(userId).
+			Fields(dao.Users.Columns().Id).
+			Fields(dao.Users.Columns().Role).
+			Scan(&userInfo)
 		if err != nil {
 			return
-		}
-		var avatarURL string
-		get, err := service.File().Get(context.TODO(), model.FileGetInput{Id: userInfo.AvatarFileId})
-		if err != nil {
-			avatarURL = consts.DefaultAvatarURL
-		} else {
-			avatarURL = get.URL
 		}
 		data := &v1.LoginRes{
 			Token: respData.GetString("token"),
 			Type:  consts.TokenType,
 		}
-		data.Name = userInfo.Name
-		data.Email = userInfo.Email
-		data.Nickname = userInfo.Nickname
-		data.Introduction = userInfo.Introduction
 		data.Id = userInfo.Id
 		data.Role = userInfo.Role
-		data.AvatarURL = avatarURL
-		data.ThemeId = userInfo.ThemeId
+		//data.Name = userInfo.Name
+		//data.Email = userInfo.Email
+		//data.Nickname = userInfo.Nickname
+		//data.Introduction = userInfo.Introduction
+		//data.AvatarURL = avatarURL
+		//data.ThemeId = userInfo.ThemeId
 		response.JsonExit(r, 0, "login success", data)
 	}
 	return
