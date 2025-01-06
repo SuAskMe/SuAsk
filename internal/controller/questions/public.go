@@ -2,7 +2,6 @@ package questions
 
 import (
 	"context"
-	"fmt"
 	v1 "suask/api/questions/v1"
 	"suask/internal/consts"
 	"suask/internal/model"
@@ -13,61 +12,8 @@ import (
 
 type cPublicQuestions struct{}
 
+// 这里的api要求严格登陆才能访问，所以这里不需要做权限验证
 var PublicQuestions = cPublicQuestions{}
-
-func (cPublicQuestions) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v1.AddQuestionRes, err error) {
-	UserId := gconv.Int(ctx.Value(consts.CtxId))
-	//UserId := 2
-	//if UserId == consts.DefaultUserId {
-	//	return nil, fmt.Errorf("user not login")
-	//}
-	if UserId == consts.DefaultUserId && req.DstUserId != 0 {
-		// 防止未登录用户提问问大家问题
-		return nil, fmt.Errorf("user not login")
-	}
-	questionInput := model.AddQuestionInput{}
-	err = gconv.Struct(req, &questionInput)
-	if err != nil {
-		return nil, err
-	}
-	questionInput.SrcUserID = UserId
-	questionId, err := service.PublicQuestion().AddQuestion(ctx, &questionInput)
-	if err != nil {
-		return nil, err
-	}
-	if req.Files != nil {
-		fileList := model.FileListAddInput{
-			FileList: req.Files,
-		}
-		fileIdList, err := service.File().UploadFileList(ctx, fileList)
-		if err != nil {
-			return nil, err
-		}
-		attachment := model.AddAttachmentInput{
-			QuestionId: questionId.ID,
-			Type:       consts.QuestionFileType,
-			FileId:     fileIdList.IdList,
-		}
-		_, err = service.Attachment().AddAttachments(ctx, attachment)
-		if err != nil {
-			return nil, err
-		}
-	}
-	res = &v1.AddQuestionRes{Id: questionId.ID}
-
-	// 添加通知
-	if req.DstUserId != 0 {
-		_, err := service.Notification().Add(ctx, model.AddNotificationInput{
-			UserId:     req.DstUserId,
-			QuestionId: questionId.ID,
-			Type:       consts.NewQuestion,
-		})
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
 
 func GetQuestionImpl(ctx context.Context, req interface{}) (res interface{}, err error) {
 	baseInput := model.GetBaseInput{}

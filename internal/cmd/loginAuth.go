@@ -3,10 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/goflyfox/gtoken/gtoken"
-	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/net/ghttp"
-	"github.com/gogf/gf/v2/util/gconv"
 	"strconv"
 	"strings"
 	v1 "suask/api/login/v1"
@@ -17,6 +13,11 @@ import (
 	"suask/internal/service"
 	"suask/utility/login"
 	"suask/utility/response"
+
+	"github.com/goflyfox/gtoken/gtoken"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 func LoginToken() (gfToken *gtoken.GfToken, err error) {
@@ -151,6 +152,7 @@ func isMustLoginPath(path string) bool {
 		//"/favorite",
 		"/history",
 		"/notification",
+		"/questions/public",
 	}
 	for _, v := range mustLoginPath {
 		if strings.HasPrefix(path, v) {

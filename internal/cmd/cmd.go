@@ -55,10 +55,7 @@ var (
 						file.File.GetFileById,
 						file.File.GetFileList,
 						user.User.Info,
-						questions.PublicQuestions.Get,
-						questions.PublicQuestions.Add,
-						questions.PublicQuestions.GetKeywords,
-						questions.PublicQuestions.GetByKeyword,
+						questions.PublicQuestions,
 						questions.QuestionDetail.GetDetail,
 						user.User.UpdateUserInfo,
 						user.User.UpdatePassWord,
@@ -69,6 +66,7 @@ var (
 						favorite.Favorite,
 						history.History,
 						questions.QuestionDetail.Upvote,
+						questions.Question,
 					)
 				})
 			})
