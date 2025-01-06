@@ -39,7 +39,7 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 			ID:         QBOutput.ID,
 			Title:      QBOutput.Title,
 			Content:    QBOutput.Content,
-			Views:      QBOutput.Views,
+			Views:      QBOutput.Views + 1,
 			CreatedAt:  QBOutput.CreatedAt,
 			ImageURLs:  fileList.URL,
 			IsFavorite: QBOutput.IsFavorite,

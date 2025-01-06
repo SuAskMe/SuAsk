@@ -2,12 +2,11 @@ package questions
 
 import (
 	"context"
-	"fmt"
 	v1 "suask/api/questions/v1"
 	"suask/internal/consts"
-	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/service"
+	"suask/utility/validation"
 
 	"github.com/gogf/gf/v2/util/gconv"
 )
@@ -16,25 +15,8 @@ type cTeacherSelf struct{}
 
 var TeacherSelf = cTeacherSelf{}
 
-func Validate(ctx context.Context) error {
-	Tid := gconv.Int(ctx.Value(consts.CtxId))
-	// Tid := 2
-	md := dao.Users.Ctx(ctx).Where(dao.Users.Columns().Id, Tid)
-	var user struct {
-		Role string `orm:"role"`
-	}
-	err := md.Scan(&user)
-	if err != nil {
-		return err
-	}
-	if user.Role != consts.TEACHER {
-		return fmt.Errorf("user is not a teacher")
-	}
-	return nil
-}
-
 func GetQFMImpl(ctx context.Context, in *model.GetQFMInput) (res *v1.QFMBase, err error) {
-	err = Validate(ctx)
+	err = validation.IsTeacher(in.TeacherId)
 	if err != nil {
 		return nil, err
 	}
@@ -66,13 +48,14 @@ func GetQFMImpl(ctx context.Context, in *model.GetQFMInput) (res *v1.QFMBase, er
 }
 
 func (cTeacherSelf) GetQFMAll(ctx context.Context, req *v1.GetQFMReq) (res *v1.GetQFMRes, err error) {
-	err = Validate(ctx)
+	Tid := gconv.Int(ctx.Value(consts.CtxId))
+
+	err = validation.IsTeacher(Tid)
 	if err != nil {
 		return nil, err
 	}
 
 	// Tid := 2
-	Tid := gconv.Int(ctx.Value(consts.CtxId))
 
 	var in model.GetQFMInput
 	gconv.Scan(req, &in)
@@ -124,13 +107,14 @@ func (cTeacherSelf) GetQFMUnanswered(ctx context.Context, req *v1.GetQFMUnanswer
 }
 
 func (cTeacherSelf) GetQFMTop(ctx context.Context, _ *v1.GetQFMTopReq) (res *v1.GetQFMTopRes, err error) {
-	err = Validate(ctx)
+	Tid := gconv.Int(ctx.Value(consts.CtxId))
+
+	err = validation.IsTeacher(Tid)
 	if err != nil {
 		return nil, err
 	}
 
 	// Tid := 2
-	Tid := gconv.Int(ctx.Value(consts.CtxId))
 
 	out, err := service.TeacherQuestionSelf().GetQFMPinned(ctx, &model.GetQFMInput{TeacherId: Tid})
 	if err != nil {
@@ -157,13 +141,13 @@ func (cTeacherSelf) GetQFMTop(ctx context.Context, _ *v1.GetQFMTopReq) (res *v1.
 }
 
 func (cTeacherSelf) GetQFMKeywords(ctx context.Context, req *v1.GetQFMSearchKeywordsReq) (res *v1.GetQFMSearchKeywordsRes, err error) {
-	err = Validate(ctx)
+	Tid := gconv.Int(ctx.Value(consts.CtxId))
+	err = validation.IsTeacher(Tid)
 	if err != nil {
 		return nil, err
 	}
 
 	// Tid := 2
-	Tid := gconv.Int(ctx.Value(consts.CtxId))
 
 	var in model.GetQFMKeywordsInput
 	gconv.Scan(req, &in)
@@ -194,7 +178,7 @@ func (cTeacherSelf) PinQFMInput(ctx context.Context, req *v1.PinQFMReq) (res *v1
 	// Tid := 2
 	Tid := gconv.Int(ctx.Value(consts.CtxId))
 
-	err = Validate(ctx)
+	err = validation.IsTeacher(Tid)
 	if err != nil {
 		return nil, err
 	}
