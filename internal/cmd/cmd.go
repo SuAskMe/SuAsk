@@ -67,6 +67,7 @@ var (
 						history.History,
 						questions.QuestionDetail.Upvote,
 						questions.Question,
+						teacher.Teacher.UpdatePerm,
 					)
 				})
 			})

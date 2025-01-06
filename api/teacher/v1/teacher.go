@@ -22,11 +22,6 @@ type TeacherRes struct {
 	TeacherList []TeacherBase `json:"teachers"`
 }
 
-type TeacherPinReq struct {
-	g.Meta    `path:"/info/teacher/pin" method:"GET" tags:"Info" summary:"请求教师信息"`
-	TeacherId int `json:"teacher_id" v:"required" dc:"教师id"`
-}
-
 type QFM struct {
 	ID        int      `json:"id"`
 	Title     string   `json:"title"`
@@ -36,6 +31,28 @@ type QFM struct {
 	ImageURLs []string `json:"image_urls"`
 }
 
+type TeacherPinReq struct {
+	g.Meta    `path:"/info/teacher/pin" method:"GET" tags:"Info" summary:"请求教师信息"`
+	TeacherId int `json:"teacher_id" v:"required" dc:"教师id"`
+}
+
 type TeacherPinRes struct {
 	QuestionList []QFM `json:"question_list"`
+}
+
+type Perm string
+
+const (
+	Public    Perm = "public"
+	Private   Perm = "private"
+	Protected Perm = "protected"
+)
+
+type UpdatePermReq struct {
+	g.Meta `path:"/teacher/perm" method:"PUT" tags:"Teacher" summary:"修改教师提问箱权限"`
+	Perm   Perm `json:"perm" v:"required|enums" dc:"要更新的提问箱权限"`
+}
+
+type UpdatePermRes struct {
+	Id int `json:"id" dc:"老师的id"`
 }
