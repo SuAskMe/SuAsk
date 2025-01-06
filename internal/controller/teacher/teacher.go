@@ -2,8 +2,10 @@ package teacher
 
 import (
 	"context"
+	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/util/gconv"
 	v1 "suask/api/teacher/v1"
+	"suask/internal/consts"
 	"suask/internal/model"
 	"suask/internal/service"
 )
@@ -15,7 +17,7 @@ var Teacher cTeacher
 
 func (c *cTeacher) GetTeacher(ctx context.Context, req *v1.TeacherReq) (res *v1.TeacherRes, err error) {
 	out := model.TeacherGetOutput{}
-	out, err = service.Teacher().GetTeacher(ctx, model.TeacherGetInput{})
+	out, err = service.Teacher().GetTeacherList(ctx, model.TeacherGetInput{})
 	if err != nil {
 		return nil, err
 	}
@@ -49,4 +51,26 @@ func (c *cTeacher) GetTeacherPin(ctx context.Context, req *v1.TeacherPinReq) (re
 		return nil, err
 	}
 	return res, err
+}
+
+func (c *cTeacher) UpdatePerm(ctx context.Context, req *v1.UpdatePermReq) (res *v1.UpdatePermRes, err error) {
+	teacherId := gconv.Int(ctx.Value(consts.CtxId))
+	exist, err := service.Teacher().TeacherExist(ctx, teacherId)
+	if err != nil {
+		return nil, err
+	}
+	if !exist {
+		return nil, gerror.New("教师不存在")
+	}
+	_, err = service.Teacher().UpdatePerm(ctx, model.TeacherUpdatePermInput{
+		TeacherId: teacherId,
+		Perm:      gconv.String(req.Perm),
+	})
+	if err != nil {
+		return nil, err
+	}
+	res = &v1.UpdatePermRes{
+		Id: teacherId,
+	}
+	return res, nil
 }

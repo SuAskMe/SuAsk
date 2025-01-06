@@ -22,8 +22,9 @@ type NotificationAnswer struct {
 }
 
 type NotificationUser struct {
-	Id       int    `json:"id"           orm:"id"             description:"用户ID"`
-	Nickname string `json:"nickname"     orm:"nickname"       description:"昵称"`
+	Id           int    `json:"id"           orm:"id"             description:"用户ID"`
+	Nickname     string `json:"nickname"     orm:"nickname"       description:"昵称"`
+	AvatarFileId int    `json:"avatarFileId" orm:"avatar_file_id" description:"头像文件ID，为空时为配置的默认头像"`
 }
 
 type AddNotificationOutput struct {

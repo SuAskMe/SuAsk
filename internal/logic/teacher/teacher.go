@@ -5,6 +5,7 @@ import (
 	v1 "suask/api/teacher/v1"
 	"suask/internal/dao"
 	"suask/internal/model"
+	"suask/internal/model/do"
 	"suask/internal/model/entity"
 	"suask/internal/service"
 )
@@ -12,7 +13,7 @@ import (
 type sTeacher struct {
 }
 
-func (s *sTeacher) GetTeacher(ctx context.Context, _ model.TeacherGetInput) (out model.TeacherGetOutput, err error) {
+func (s *sTeacher) GetTeacherList(ctx context.Context, _ model.TeacherGetInput) (out model.TeacherGetOutput, err error) {
 	var teacherList []entity.Teachers
 	var count int
 	err = dao.Teachers.Ctx(ctx).ScanAndCount(&teacherList, &count, false)
@@ -32,6 +33,28 @@ func (s *sTeacher) GetTeacher(ctx context.Context, _ model.TeacherGetInput) (out
 			Email:        teacher.Email,
 			Perm:         teacher.Perm,
 		}
+	}
+	return out, nil
+}
+
+func (s *sTeacher) TeacherExist(ctx context.Context, TeacherId int) (exist bool, err error) {
+	count, err := dao.Teachers.Ctx(ctx).WherePri(TeacherId).Count()
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+func (s *sTeacher) UpdatePerm(ctx context.Context, in model.TeacherUpdatePermInput) (out model.TeacherUpdatePermOutput, err error) {
+	update := do.Teachers{
+		Perm: in.Perm,
+	}
+	_, err = dao.Teachers.Ctx(ctx).WherePri(in.TeacherId).Update(update)
+	if err != nil {
+		return model.TeacherUpdatePermOutput{}, err
+	}
+	out = model.TeacherUpdatePermOutput{
+		TeacherId: in.TeacherId,
 	}
 	return out, nil
 }
