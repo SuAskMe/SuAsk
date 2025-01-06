@@ -7,8 +7,8 @@ import (
 )
 
 type AddQuestionReq struct {
-	g.Meta    `path:"/questions/add" method:"post" tags:"Question" summary:"添加一个问题"`
-	SrcUserId int                 `json:"src_user_id"`
+	g.Meta `path:"/questions/add" method:"post" tags:"Question" summary:"添加一个问题"`
+	//SrcUserId int                 `json:"src_user_id"`
 	DstUserId int                 `json:"dst_user_id"`
 	Title     string              `json:"title" v:"required"`
 	Content   string              `json:"content" v:"required"`
