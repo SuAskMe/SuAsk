@@ -5,6 +5,7 @@ import (
 	v1 "suask/api/questions/v1"
 	"suask/internal/model"
 	"suask/internal/service"
+	"suask/utility/validation"
 
 	"github.com/gogf/gf/v2/util/gconv"
 )
@@ -16,6 +17,12 @@ var TeacherQuestion = cTeacherQuestion{}
 func GetQuestionOfTeacherImpl(ctx context.Context, req interface{}) (res interface{}, err error) {
 	baseInput := model.GetBaseOfTeacherInput{}
 	gconv.Scan(req, &baseInput)
+
+	err = validation.TeacherPerm(ctx, baseInput.TeacherID)
+	if err != nil {
+		return
+	}
+
 	baseOutput, err := service.TeacherQuestion().GetBase(ctx, &baseInput)
 	if err != nil {
 		return
@@ -45,7 +52,7 @@ func GetQuestionOfTeacherImpl(ctx context.Context, req interface{}) (res interfa
 }
 
 func (cTeacherQuestion) Get(ctx context.Context, req *v1.GetPageOfTeacherReq) (res *v1.GetPageOfTeacherRes, err error) {
-	res_, err := GetQuestionImpl(ctx, req)
+	res_, err := GetQuestionOfTeacherImpl(ctx, req)
 	if err != nil {
 		return
 	}
@@ -62,7 +69,7 @@ func (cTeacherQuestion) GetKeywords(ctx context.Context, req *v1.GetSearchKeywor
 }
 
 func (cTeacherQuestion) GetByKeyword(ctx context.Context, req *v1.GetPageByKeywordOfTeacherReq) (res *v1.GetPageByKeywordOfTeacherRes, err error) {
-	res_, err := GetQuestionImpl(ctx, req)
+	res_, err := GetQuestionOfTeacherImpl(ctx, req)
 	if err != nil {
 		return
 	}

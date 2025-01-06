@@ -14,6 +14,7 @@ type sTeacherQuestion struct{}
 
 func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeacherInput) (*model.GetBaseOfTeacherOutput, error) {
 	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherID)
+	md = md.WhereGT(dao.Questions.Columns().ReplyCnt, 0)
 	if input.Keyword != "" {
 		md = md.Where("match(title) against (? in boolean mode)", input.Keyword)
 	}
@@ -72,6 +73,7 @@ func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeach
 func (sTeacherQuestion) GetKeyword(ctx context.Context, input *model.GetKeywordsOfTeacherInput) (*model.GetKeywordsOutput, error) {
 	// md := dao.Questions.Ctx(ctx).Cache(keywordCacheMode).WhereNull("dst_user_id")
 	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherID)
+	md = md.WhereGT(dao.Questions.Columns().ReplyCnt, 0)
 	// fmt.Println(input.Keyword)
 	err := utility.SortByType(&md, input.SortType)
 	if err != nil {

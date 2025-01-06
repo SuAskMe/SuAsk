@@ -71,3 +71,9 @@ const (
 	ForgetPassword = "forget_password"
 	ResetPassword  = "reset_password"
 )
+
+const (
+	PermPublic    = "public"
+	PermProtected = "protected"
+	PermPrivate   = "private"
+)
