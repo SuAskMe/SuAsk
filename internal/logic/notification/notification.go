@@ -150,6 +150,7 @@ func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput)
 	err = dao.Users.Ctx(ctx).WhereIn(dao.Users.Columns().Id, userIDs).
 		Fields(dao.Users.Columns().Id).
 		Fields(dao.Users.Columns().Nickname).
+		Fields(dao.Users.Columns().AvatarFileId).
 		Scan(&u)
 	if err != nil {
 		return model.GetNotificationsOutput{}, err
