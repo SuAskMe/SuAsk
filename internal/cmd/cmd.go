@@ -43,7 +43,6 @@ var (
 					teacher.Teacher.GetTeacherPin,
 					questions.TeacherQuestion,
 					notification.Notification,
-					questions.TeacherSelf,
 				)
 				// 这里是登录和非登录共有接口
 				group.Group("/", func(group *ghttp.RouterGroup) {
@@ -68,6 +67,7 @@ var (
 						questions.QuestionDetail.Upvote,
 						questions.Question,
 						teacher.Teacher.UpdatePerm,
+						questions.TeacherSelf,
 					)
 				})
 			})

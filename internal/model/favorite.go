@@ -30,10 +30,10 @@ type GetFavoriteBaseInput struct {
 }
 
 type GetFavoriteBaseOutput struct {
-	QuestionIDs []int              `json:"question_ids"`
-	IdMap       map[int]int        `json:"id_map"`
-	Questions   []FavoriteQuestion `json:"questions"`
-	RemainPage  int                `json:"remain_page"`
+	QuestionIDs []int               `json:"question_ids"`
+	IdMap       map[int]int         `json:"id_map"`
+	Questions   []*FavoriteQuestion `json:"questions"`
+	RemainPage  int                 `json:"remain_page"`
 }
 
 type GetFavoriteKeywordsInput struct {

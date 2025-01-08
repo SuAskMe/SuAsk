@@ -116,16 +116,18 @@ func AnswerPerm(ctx context.Context, question *entity.Questions) error {
 }
 
 // 判断是否为老师
-func IsTeacher(teacherId int) error {
+func IsTeacher(ctx context.Context, teacherId int) error {
 	_, ok := teacherCache.Load(teacherId)
 	if !ok {
-		md := dao.Teachers.Ctx(context.Background()).Where("id = ?", teacherId).Fields(dao.Teachers.Columns().Perm)
+		// fmt.Println("not in cache", teacherId)
+		md := dao.Teachers.Ctx(ctx).Where("id = ?", teacherId).Fields(dao.Teachers.Columns().Perm)
 		var teacher *entity.Teachers
 		err := md.Scan(&teacher)
 		if err != nil {
 			return err
 		}
 		teacherCache.Store(teacherId, teacher)
+		// fmt.Println(teacher)
 		if teacher.Perm == "" {
 			return errors.New("该用户不是老师")
 		}

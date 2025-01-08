@@ -18,6 +18,7 @@ func (s *sFavorite) GetBase(ctx context.Context, in *model.GetFavoriteBaseInput)
 	md := dao.Favorites.Ctx(ctx)
 	//userId := 1
 	userId := gconv.Int(ctx.Value(consts.CtxId))
+
 	md = md.Where(dao.Favorites.Columns().UserId, userId)
 	md = md.Page(in.Page, consts.MaxQuestionsPerPage)
 	err = utility.SortByType(&md, in.SortType)
@@ -37,26 +38,26 @@ func (s *sFavorite) GetBase(ctx context.Context, in *model.GetFavoriteBaseInput)
 	for i, favorite := range f {
 		qIDs[i] = favorite.QuestionId
 	}
-	var q []*custom.Questions
+
+	var q []custom.Questions
 	md = dao.Questions.Ctx(ctx).WhereIn(dao.Questions.Columns().Id, qIDs)
 	err = md.Scan(&q)
+	// fmt.Println("q:", q)
 	if err != nil {
 		return nil, err
 	}
-	pqs := make([]model.FavoriteQuestion, len(q))
+	pqs := make([]*model.FavoriteQuestion, 0, len(q))
 	qMap := make(map[int]*custom.Questions, len(q))
 	for _, question := range q {
-		qMap[question.Id] = question
+		if question.DstUserId != 0 && question.ReplyCnt == 0 { // 严防通过favorite获取到未回复的对老师的提问
+			continue
+		}
+		qMap[question.Id] = &question
 	}
 	idMap := make(map[int]int)
 	for i, id := range qIDs {
 		if q, ok := qMap[id]; ok {
-			if q.DstUserId != 0 && q.ReplyCnt == 0 { // 严防通过favorite获取到未回复的对老师的提问
-				qIDs = append(qIDs[:i], qIDs[i+1:]...)
-				continue
-			}
-			idMap[q.Id] = i
-			pqs[i] = model.FavoriteQuestion{
+			fq := &model.FavoriteQuestion{
 				ID:         q.Id,
 				Title:      q.Title,
 				Content:    utility.TruncateString(q.Contents),
@@ -66,9 +67,15 @@ func (s *sFavorite) GetBase(ctx context.Context, in *model.GetFavoriteBaseInput)
 				DstUserID:  q.DstUserId,
 				IsFavorite: true,
 			}
+			pqs = append(pqs, fq)
+			idMap[q.Id] = len(pqs) - 1
 		}
 	}
-
+	qIDs = make([]int, len(pqs))
+	for i, pq := range pqs {
+		qIDs[i] = pq.ID
+	}
+	// fmt.Println("qIDs:", qIDs)
 	output := &model.GetFavoriteBaseOutput{
 		QuestionIDs: qIDs,
 		Questions:   pqs,

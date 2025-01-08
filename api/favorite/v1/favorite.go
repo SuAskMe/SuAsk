@@ -1,8 +1,9 @@
 package v1
 
 import (
-	"github.com/gogf/gf/v2/frame/g"
 	"suask/internal/model"
+
+	"github.com/gogf/gf/v2/frame/g"
 )
 
 type GetPageBase struct {
@@ -16,8 +17,8 @@ type GetFavoritePageReq struct {
 }
 
 type GetFavoritePageRes struct {
-	QuestionList []model.FavoriteQuestion `json:"favorite_list"`
-	RemainPage   int                      `json:"remain_page"`
+	QuestionList []*model.FavoriteQuestion `json:"favorite_list"`
+	RemainPage   int                       `json:"remain_page"`
 }
 
 // type GetFavoriteSearchKeywordsReq struct {

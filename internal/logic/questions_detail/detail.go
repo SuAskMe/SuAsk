@@ -23,6 +23,15 @@ var UpvoteLock = sync.Mutex{}
 var ViewsLock = sync.Mutex{}
 var ReplyCntLock = sync.Mutex{}
 
+func AddResponseCnt(ctx context.Context, teacherId int) error {
+	md := dao.Teachers.Ctx(ctx).Where(dao.Teachers.Columns().Id, teacherId)
+	_, err := md.Increment(dao.Teachers.Columns().Responses, 1)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (sQuestionDetail) GetQuestionBase(ctx context.Context, in *model.GetQuestionBaseInput) (*model.GetQuestionBaseOutput, error) {
 	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().Id, in.QuestionId)
 	var question entity.Questions
@@ -274,6 +283,14 @@ func (sQuestionDetail) ReplyQuestion(ctx context.Context, in *model.AddAnswerInp
 	if err != nil {
 		return nil, err
 	}
+
+	if question.DstUserId != 0 && question.ReplyCnt == 0 { // 问老师的问题，且第一次回复，增加回复数
+		err = AddResponseCnt(ctx, question.DstUserId)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &model.AddAnswerOutput{
 		Id: int(id),
 	}, nil

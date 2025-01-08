@@ -12,6 +12,7 @@ type HistoryQuestion struct {
 	ImageURLs     []string `json:"image_urls"`
 	AnswerNum     int      `json:"answer_num"`
 	AnswerAvatars []string `json:"answer_avatars"`
+	DstUserID     int      `json:"dst_user_id"`
 }
 
 type History struct {

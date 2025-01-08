@@ -56,7 +56,11 @@ func GetQuestionImpl(ctx context.Context, req interface{}) (res interface{}, err
 			if err_ != nil {
 				return nil, err_
 			}
-			URLs = append(URLs, urls.URL...)
+			if len(URLs) == 0 {
+				URLs = urls.URL
+			} else {
+				URLs = append(urls.URL, URLs[0])
+			}
 			QuestionList[idMap[k]].AnswerAvatars = URLs
 		}
 	}
