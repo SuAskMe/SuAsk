@@ -15,6 +15,7 @@ import (
 type sTeacherQuestionSelf struct{}
 
 func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMInput) (*model.GetQFMOutput, error) {
+	// fmt.Println(input)
 	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherId)
 	switch input.Tag {
 	case consts.Unanswered:

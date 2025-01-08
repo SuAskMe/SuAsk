@@ -45,6 +45,11 @@ func GetHistoryImpl(ctx context.Context, req interface{}) (res interface{}, err 
 	}
 	if answersOutput != nil {
 		for k, v := range answersOutput.AvatarsMap {
+			dstId := QuestionList[idMap[k]].DstUserID
+			if dstId != 0 {
+				QuestionList[idMap[k]].AnswerAvatars = []string{consts.DefaultAvatarURL}
+				continue
+			}
 			idList := make([]int, 0, len(v))
 			URLs := make([]string, 0, len(v))
 			for _, u := range v {
@@ -58,7 +63,11 @@ func GetHistoryImpl(ctx context.Context, req interface{}) (res interface{}, err 
 			if err_ != nil {
 				return nil, err_
 			}
-			URLs = append(URLs, urls.URL...)
+			if len(URLs) == 0 {
+				URLs = urls.URL
+			} else {
+				URLs = append(urls.URL, URLs[0])
+			}
 			QuestionList[idMap[k]].AnswerAvatars = URLs
 		}
 	}

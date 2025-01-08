@@ -58,6 +58,7 @@ func (s *sHistory) GetBase(ctx context.Context, in *model.GetHistoryBaseInput) (
 			CreatedAt: pq.CreatedAt.TimestampMilli(),
 			Views:     pq.Views,
 			AnswerNum: pq.ReplyCnt,
+			DstUserID: pq.DstUserId,
 		}
 	}
 	for _, f := range fav {
