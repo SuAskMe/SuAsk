@@ -12,6 +12,7 @@ import (
 	"suask/internal/model/entity"
 	"suask/internal/service"
 	"suask/utility/send_code"
+	"suask/utility/validation"
 	"time"
 )
 
@@ -185,5 +186,9 @@ func (c *cUser) Info(ctx context.Context, req *v1.UserInfoReq) (res *v1.UserInfo
 	}
 	res.Email = out.Email
 	res.ThemeId = out.ThemeId
+
+	perm, _ := validation.IsTeacher(ctx, userId)
+	res.QuestionBoxPerm = perm
+
 	return res, nil
 }

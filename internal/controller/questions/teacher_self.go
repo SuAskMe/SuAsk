@@ -17,7 +17,7 @@ type cTeacherSelf struct{}
 var TeacherSelf = cTeacherSelf{}
 
 func GetQFMImpl(ctx context.Context, in *model.GetQFMInput) (res *v1.QFMBase, err error) {
-	err = validation.IsTeacher(ctx, in.TeacherId)
+	_, err = validation.IsTeacher(ctx, in.TeacherId)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func GetQFMImpl(ctx context.Context, in *model.GetQFMInput) (res *v1.QFMBase, er
 func (cTeacherSelf) GetQFMAll(ctx context.Context, req *v1.GetQFMReq) (res *v1.GetQFMRes, err error) {
 	Tid := gconv.Int(ctx.Value(consts.CtxId))
 	fmt.Println("GetQFMAll Tid:", Tid)
-	err = validation.IsTeacher(ctx, Tid)
+	_, err = validation.IsTeacher(ctx, Tid)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (cTeacherSelf) GetQFMUnanswered(ctx context.Context, req *v1.GetQFMUnanswer
 func (cTeacherSelf) GetQFMTop(ctx context.Context, _ *v1.GetQFMTopReq) (res *v1.GetQFMTopRes, err error) {
 	Tid := gconv.Int(ctx.Value(consts.CtxId))
 
-	err = validation.IsTeacher(ctx, Tid)
+	_, err = validation.IsTeacher(ctx, Tid)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (cTeacherSelf) GetQFMTop(ctx context.Context, _ *v1.GetQFMTopReq) (res *v1.
 
 func (cTeacherSelf) GetQFMKeywords(ctx context.Context, req *v1.GetQFMSearchKeywordsReq) (res *v1.GetQFMSearchKeywordsRes, err error) {
 	Tid := gconv.Int(ctx.Value(consts.CtxId))
-	err = validation.IsTeacher(ctx, Tid)
+	_, err = validation.IsTeacher(ctx, Tid)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +179,7 @@ func (cTeacherSelf) PinQFMInput(ctx context.Context, req *v1.PinQFMReq) (res *v1
 	// Tid := 2
 	Tid := gconv.Int(ctx.Value(consts.CtxId))
 
-	err = validation.IsTeacher(ctx, Tid)
+	_, err = validation.IsTeacher(ctx, Tid)
 	if err != nil {
 		return nil, err
 	}
