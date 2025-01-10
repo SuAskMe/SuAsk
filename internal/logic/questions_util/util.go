@@ -67,7 +67,7 @@ func (sQuestionUtil) Favorite(ctx context.Context, in *model.FavoriteInput) (out
 		_, err = md.Insert(do.Favorites{
 			UserId:     UserId,
 			QuestionId: in.QuestionID,
-			Package:    "默认收藏夹",
+			Package:    "default",
 		})
 		if err != nil {
 			return nil, err
