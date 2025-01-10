@@ -3,6 +3,7 @@ package validation
 import (
 	"context"
 	"errors"
+	"fmt"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model/entity"
@@ -116,23 +117,25 @@ func AnswerPerm(ctx context.Context, question *entity.Questions) error {
 }
 
 // 判断是否为老师
-func IsTeacher(ctx context.Context, teacherId int) error {
-	_, ok := teacherCache.Load(teacherId)
+func IsTeacher(ctx context.Context, teacherId int) (string, error) {
+	t, ok := teacherCache.Load(teacherId)
 	if !ok {
 		// fmt.Println("not in cache", teacherId)
 		md := dao.Teachers.Ctx(ctx).Where("id = ?", teacherId).Fields(dao.Teachers.Columns().Perm)
 		var teacher *entity.Teachers
 		err := md.Scan(&teacher)
 		if err != nil {
-			return err
+			return "", err
+		}
+		if teacher == nil || teacher.Perm == "" {
+			return "", fmt.Errorf("该用户不是老师")
 		}
 		teacherCache.Store(teacherId, teacher)
-		// fmt.Println(teacher)
-		if teacher.Perm == "" {
-			return errors.New("该用户不是老师")
-		}
+		//fmt.Println(teacher)
+
+		return teacher.Perm, nil
 	}
-	return nil
+	return t.(*entity.Teachers).Perm, nil
 }
 
 func UpdateTeacherPerm(teacherId int, perm string) {

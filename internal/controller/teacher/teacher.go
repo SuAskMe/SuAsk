@@ -8,6 +8,7 @@ import (
 	"suask/internal/consts"
 	"suask/internal/model"
 	"suask/internal/service"
+	"suask/utility/validation"
 )
 
 type cTeacher struct {
@@ -72,5 +73,6 @@ func (c *cTeacher) UpdatePerm(ctx context.Context, req *v1.UpdatePermReq) (res *
 	res = &v1.UpdatePermRes{
 		Id: teacherId,
 	}
+	validation.UpdateTeacherPerm(teacherId, gconv.String(req.Perm))
 	return res, nil
 }

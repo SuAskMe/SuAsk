@@ -11,8 +11,9 @@ type UserInfoReq struct {
 
 type UserInfoRes struct {
 	UserInfoBase
-	Email   string `json:"email"        orm:"email"          description:"邮箱"`
-	ThemeId int    `json:"themeId"      orm:"theme_id"       description:"主题ID，为空时为配置的默认主题"`
+	Email           string `json:"email"        orm:"email"          description:"邮箱"`
+	ThemeId         int    `json:"themeId"      orm:"theme_id"       description:"主题ID，为空时为配置的默认主题"`
+	QuestionBoxPerm string `json:"question_box_perm" dc:"提问箱权限"`
 }
 
 type UserInfoByIdReq struct {
