@@ -1,4 +1,6 @@
 # SuAsk • 速问
+![image](https://github.com/user-attachments/assets/68cbe1a7-1d9a-4487-a639-c86c15fbf6e9)
+
 一个匿名提问箱，为了解决~~苏老师~~匿名提问箱经常跑路的问题
 
 软件工程实训项目
@@ -6,6 +8,8 @@
 ---
 
 ## 它可以实现什么
+![image](https://github.com/user-attachments/assets/a87d6177-c133-469e-8de1-f8d574bc923f)
+
 - 完全匿名，用户可以畅所欲言，后台不会对用户信息进行记录
 - 拥有公开论坛，用户可以自由发表提问
 - 教师匿名提问箱，用户可以匿名提问教师问题，内置学院教师信息，开箱即用
