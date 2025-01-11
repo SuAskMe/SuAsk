@@ -2,14 +2,15 @@ package send_code
 
 import (
 	"context"
+	"github.com/gogf/gf/v2/frame/g"
 
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/karim-w/go-azure-communication-services/emails"
 )
 
-const endpoint = "suask.japan.communication.azure.com"
-const accessKey = "Ed1aRMaseJf37LVH4N5j5hrlJHT6NnvLHLKQIN4Cm545KnK7y4wmJQQJ99ALACULyCpLpMphAAAAAZCSljny"
-const senderAddr = "donotreply@9dae9223-b138-4207-942b-e15bf030c1cf.azurecomm.net"
+var endpoint = g.Cfg().MustGet(context.TODO(), "email.endpoint").String()
+var accessKey = g.Cfg().MustGet(context.TODO(), "email.accessKey").String()
+var senderAddr = g.Cfg().MustGet(context.TODO(), "email.senderAddr").String()
 
 func SendCode(email string) (code string, err error) {
 	code = generateCode()

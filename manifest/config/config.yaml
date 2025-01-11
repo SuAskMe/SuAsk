@@ -129,3 +129,8 @@ upload:
 
 jwt:
   signKey: "114514"
+
+email:
+  endpoint: "suask.japan.communication.azure.com"
+  accessKey: "Ed1aRMaseJf37LVH4N5j5hrlJHT6NnvLHLKQIN4Cm545KnK7y4wmJQQJ99ALACULyCpLpMphAAAAAZCSljny"
+  senderAddr: "donotreply@9dae9223-b138-4207-942b-e15bf030c1cf.azurecomm.net"
