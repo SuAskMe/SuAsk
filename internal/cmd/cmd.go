@@ -41,8 +41,6 @@ var (
 					user.User.GetUserInfoById,
 					teacher.Teacher.GetTeacher,
 					teacher.Teacher.GetTeacherPin,
-					questions.TeacherQuestion,
-					notification.Notification,
 				)
 				// 这里是登录和非登录共有接口
 				group.Group("/", func(group *ghttp.RouterGroup) {
@@ -68,6 +66,8 @@ var (
 						questions.Question,
 						teacher.Teacher.UpdatePerm,
 						questions.TeacherSelf,
+						questions.TeacherQuestion,
+						notification.Notification,
 					)
 				})
 			})

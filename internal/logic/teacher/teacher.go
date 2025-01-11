@@ -16,7 +16,9 @@ type sTeacher struct {
 func (s *sTeacher) GetTeacherList(ctx context.Context, _ model.TeacherGetInput) (out model.TeacherGetOutput, err error) {
 	var teacherList []entity.Teachers
 	var count int
-	err = dao.Teachers.Ctx(ctx).ScanAndCount(&teacherList, &count, false)
+	md := dao.Teachers.Ctx(ctx)
+	md = md.Order("CASE perm WHEN 'public' THEN 1 WHEN 'protected' THEN 2 WHEN 'private' THEN 3 ELSE 4 END;")
+	err = md.ScanAndCount(&teacherList, &count, false)
 	if err != nil {
 		return model.TeacherGetOutput{}, err
 	}
