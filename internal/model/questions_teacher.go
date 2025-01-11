@@ -14,6 +14,7 @@ type GetBaseOfTeacherInput struct {
 	Page      int    `json:"page"`
 	Keyword   string `json:"keyword"`
 	TeacherID int    `json:"teacher_id"`
+	UserId    int    `json:"user_id"`
 }
 
 type GetBaseOfTeacherOutput struct {

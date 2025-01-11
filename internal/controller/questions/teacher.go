@@ -3,6 +3,7 @@ package questions
 import (
 	"context"
 	v1 "suask/api/questions/v1"
+	"suask/internal/consts"
 	"suask/internal/model"
 	"suask/internal/service"
 	"suask/utility/validation"
@@ -23,6 +24,9 @@ func GetQuestionOfTeacherImpl(ctx context.Context, req interface{}) (res interfa
 		return
 	}
 
+	userId := gconv.Int(ctx.Value(consts.CtxId))
+
+	baseInput.UserId = userId
 	baseOutput, err := service.TeacherQuestion().GetBase(ctx, &baseInput)
 	if err != nil {
 		return

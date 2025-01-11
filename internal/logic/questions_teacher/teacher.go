@@ -2,6 +2,7 @@ package questions_teacher
 
 import (
 	"context"
+	"fmt"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
@@ -14,7 +15,8 @@ type sTeacherQuestion struct{}
 
 func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeacherInput) (*model.GetBaseOfTeacherOutput, error) {
 	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherID)
-	md = md.WhereGT(dao.Questions.Columns().ReplyCnt, 0)
+	fmt.Println(input.UserId)
+	md = md.WhereGT(dao.Questions.Columns().ReplyCnt, 0).WhereOr(dao.Questions.Columns().SrcUserId, input.UserId)
 	if input.Keyword != "" {
 		md = md.Where("match(title) against (? in boolean mode)", input.Keyword)
 	}
