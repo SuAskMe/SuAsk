@@ -6,6 +6,9 @@ gfcli:
     name: 'SuAsk'
     arch: "amd64"
     system: "linux,darwin,windows"
+    output: "./bin/"
+    packSrc: "manifest"
+    version: "v1.0.0"
     mod: ""
     cgo: 0
 
