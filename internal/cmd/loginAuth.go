@@ -143,7 +143,7 @@ func isMustLoginPath(path string) bool {
 	mustLoginPath := []string{
 		"/files",
 		"/user/info",
-		//"/favorite",
+		"/favorite",
 		"/history",
 		"/notification",
 		"/questions/public",

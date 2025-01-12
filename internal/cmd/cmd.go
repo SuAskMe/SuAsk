@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"suask/internal/controller/favorite"
-	"suask/internal/controller/file"
 	"suask/internal/controller/history"
 	"suask/internal/controller/notification"
 	"suask/internal/controller/questions"
@@ -49,8 +48,6 @@ var (
 						panic(err)
 					}
 					group.Bind(
-						file.File.GetFileById,
-						file.File.GetFileList,
 						user.User.Info,
 						questions.PublicQuestions,
 						questions.QuestionDetail.GetDetail,
@@ -58,7 +55,6 @@ var (
 						user.User.UpdatePassWord,
 						user.User.SendVerificationCode,
 						user.User.ForgetPassword,
-						file.File.UpdateFile,
 						questions.QuestionDetail.AddAnswer,
 						favorite.Favorite,
 						history.History,
