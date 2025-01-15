@@ -47,6 +47,9 @@ func TeacherPerm(ctx context.Context, teacherId int) error {
 		if err != nil {
 			return err
 		}
+		if teacher == nil || teacher.Perm == "" {
+			return fmt.Errorf("该用户不是老师")
+		}
 		teacherCache.Store(teacherId, teacher)
 		t = teacher
 	}
