@@ -25,16 +25,17 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 	}
 	if input.Keyword != "" {
 		md = md.Where("match(title) against (? in boolean mode)", input.Keyword)
+	} else {
+		err := utility.SortByType(&md, input.SortType)
+		if err != nil {
+			return nil, err
+		}
 	}
 	md = md.Page(input.Page, consts.MaxQuestionsPerPage)
-	err := utility.SortByType(&md, input.SortType)
-	if err != nil {
-		return nil, err
-	}
 
 	var q []*custom.Questions
 	var remain int
-	err = md.ScanAndCount(&q, &remain, false) // 先查不包含favorites的结果
+	err := md.ScanAndCount(&q, &remain, false) // 先查不包含favorites的结果
 	if err != nil {
 		return nil, err
 	}
@@ -129,12 +130,8 @@ func (sTeacherQuestionSelf) GetQFMPinned(ctx context.Context, input *model.GetQF
 func (sTeacherQuestionSelf) GetKeyword(ctx context.Context, input *model.GetQFMKeywordsInput) (*model.GetKeywordsOutput, error) {
 	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherId)
 	md = md.Where("match(title) against (? in boolean mode)", input.Keyword).Limit(8)
-	err := utility.SortByType(&md, input.SortType)
-	if err != nil {
-		return nil, err
-	}
 	words := make([]model.Keyword, consts.MaxKeywordsPerReq)
-	err = md.Scan(&words)
+	err := md.Scan(&words)
 	if err != nil {
 		fmt.Println(err)
 		return nil, nil

@@ -22,12 +22,14 @@ func (s *sHistory) GetBase(ctx context.Context, in *model.GetHistoryBaseInput) (
 	md = md.Where(dao.Questions.Columns().SrcUserId, userId)
 	if in.Keyword != "" {
 		md = md.Where("match(title) against (? in boolean mode)", in.Keyword)
+	} else {
+		err = utility.SortByType(&md, in.SortType)
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	md = md.Page(in.Page, consts.MaxQuestionsPerPage)
-	err = utility.SortByType(&md, in.SortType)
-	if err != nil {
-		return nil, err
-	}
 	var remain int
 	var q []*custom.Questions
 	err = md.ScanAndCount(&q, &remain, false)
@@ -79,7 +81,6 @@ func (s *sHistory) GetKeyWord(ctx context.Context, in *model.GetHistoryKeywordsI
 
 	md := dao.Questions.Ctx(ctx)
 	md = md.Where(dao.Questions.Columns().SrcUserId, userId)
-	err = utility.SortByType(&md, in.SortType)
 	if err != nil {
 		return nil, err
 	}

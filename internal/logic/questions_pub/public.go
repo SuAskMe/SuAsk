@@ -34,15 +34,17 @@ func (sPublicQuestion) GetBase(ctx context.Context, input *model.GetBaseInput) (
 	md := dao.Questions.Ctx(ctx).WhereNull("dst_user_id")
 	if input.Keyword != "" {
 		md = md.Where("match(title) against (? in boolean mode)", input.Keyword)
+	} else {
+		err := utility.SortByType(&md, input.SortType)
+		if err != nil {
+			return nil, err
+		}
 	}
 	md = md.Page(input.Page, consts.MaxQuestionsPerPage)
-	err := utility.SortByType(&md, input.SortType)
-	if err != nil {
-		return nil, err
-	}
+
 	var q []*custom.Questions
 	var remain int
-	err = md.ScanAndCount(&q, &remain, false) // 先查不包含favorites的结果
+	err := md.ScanAndCount(&q, &remain, false) // 先查不包含favorites的结果
 	if err != nil {
 		return nil, err
 	}
@@ -91,12 +93,9 @@ func (sPublicQuestion) GetKeyword(ctx context.Context, input *model.GetKeywordsI
 	// md := dao.Questions.Ctx(ctx).Cache(keywordCacheMode).WhereNull("dst_user_id")
 	md := dao.Questions.Ctx(ctx).WhereNull(dao.Questions.Columns().DstUserId)
 	// fmt.Println(input.Keyword)
-	err := utility.SortByType(&md, input.SortType)
-	if err != nil {
-		return nil, err
-	}
+
 	words := make([]model.Keyword, consts.MaxKeywordsPerReq)
-	err = md.Where("match(title) against (? in boolean mode)", input.Keyword).Limit(8).Scan(&words)
+	err := md.Where("match(title) against (? in boolean mode)", input.Keyword).Limit(8).Scan(&words)
 	if err != nil {
 		return nil, err
 	}
