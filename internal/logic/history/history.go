@@ -81,9 +81,6 @@ func (s *sHistory) GetKeyWord(ctx context.Context, in *model.GetHistoryKeywordsI
 
 	md := dao.Questions.Ctx(ctx)
 	md = md.Where(dao.Questions.Columns().SrcUserId, userId)
-	if err != nil {
-		return nil, err
-	}
 	words := make([]model.Keyword, consts.MaxKeywordsPerReq)
 	err = md.Where("match(title) against (? in boolean mode)", in.Keyword).Limit(8).Scan(&words)
 	if err != nil {
