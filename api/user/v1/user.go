@@ -64,7 +64,7 @@ type SendVerificationCodeReq struct {
 }
 
 type SendVerificationCodeRes struct {
-	Code string `json:"code" dc:"验证码"`
+	Msg string `json:"msg" dc:"消息"`
 }
 
 type ForgetPasswordReq struct {

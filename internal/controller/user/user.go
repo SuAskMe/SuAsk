@@ -2,9 +2,6 @@ package user
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/os/gcache"
-	"github.com/gogf/gf/v2/util/gconv"
 	v1 "suask/api/user/v1"
 	"suask/internal/consts"
 	"suask/internal/dao"
@@ -14,6 +11,10 @@ import (
 	"suask/utility/send_code"
 	"suask/utility/validation"
 	"time"
+
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/os/gcache"
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type cUser struct {
@@ -74,26 +75,29 @@ func (c *cUser) SendVerificationCode(ctx context.Context, req *v1.SendVerificati
 	} else {
 		return nil, err
 	}
+	isSent, _ := gcache.Contains(ctx, req.Email)
+	if isSent {
+		return &v1.SendVerificationCodeRes{Msg: "验证码已发送，请注意查收或稍后再试"}, nil
+	}
 	code, err := send_code.SendCode(req.Email)
 	if err != nil {
 		return nil, err
 	}
-	duplicated, _ := gcache.SetIfNotExist(ctx, req.Email, CodeCache{Code: code, UserId: userId}, 5*time.Minute)
+	duplicated, _ := gcache.SetIfNotExist(ctx, req.Email, CodeCache{Code: code, UserId: userId}, time.Minute)
 	if !duplicated {
-		_, _, err := gcache.Update(ctx, req.Email, CodeCache{Code: code, UserId: userId})
-		if err != nil {
-			return nil, err
-		}
+		// _, _, err := gcache.Update(ctx, req.Email, CodeCache{Code: code, UserId: userId})
+		// if err != nil {
+		// 	return nil, err
+		// }
+		return &v1.SendVerificationCodeRes{Msg: "验证码已发送，请注意查收或稍后再试"}, nil
 	}
-	res = &v1.SendVerificationCodeRes{
-		Code: code,
-	}
-	return res, nil
+
+	return &v1.SendVerificationCodeRes{Msg: "200"}, nil
 }
 
 func (c *cUser) UpdatePassWord(ctx context.Context, req *v1.UpdatePasswordReq) (res *v1.UpdatePasswordRes, err error) {
 	userId := gconv.Int(ctx.Value(consts.CtxId))
-	code, err := gcache.Get(ctx, req.Email)
+	code, _ := gcache.Get(ctx, req.Email)
 	var codeStruct CodeCache
 	err = gconv.Scan(code, &codeStruct)
 	if err != nil {
@@ -116,7 +120,7 @@ func (c *cUser) UpdatePassWord(ctx context.Context, req *v1.UpdatePasswordReq) (
 }
 
 func (c *cUser) ForgetPassword(ctx context.Context, req *v1.ForgetPasswordReq) (res *v1.ForgetPasswordRes, err error) {
-	code, err := gcache.Get(ctx, req.Email)
+	code, _ := gcache.Get(ctx, req.Email)
 	var codeStruct CodeCache
 	err = gconv.Scan(code, &codeStruct)
 	if err != nil {

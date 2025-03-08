@@ -2,16 +2,17 @@ package register
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/os/gcache"
-	"github.com/gogf/gf/v2/util/gconv"
-	"github.com/golang-jwt/jwt/v5"
 	v1 "suask/api/register/v1"
 	"suask/internal/model"
 	"suask/internal/service"
 	"suask/utility"
 	"suask/utility/send_code"
 	"time"
+
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/os/gcache"
+	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type cRegister struct{}
@@ -24,30 +25,35 @@ func (c *cRegister) SendVerificationCode(ctx context.Context, req *v1.SendVerifi
 	if err != nil {
 		return nil, err
 	}
+
+	// 检查是否已经发送过验证码
+	isSent, _ := gcache.Contains(ctx, req.Email)
+	if isSent {
+		return &v1.SendVerificationCodeRes{Msg: "验证码已发送，请注意查收或稍后再试"}, nil
+	}
+	// 检查邮箱和用户名是否重复
 	out, err := service.Register().CheckEmailAndName(ctx, data)
 	if err != nil {
 		return nil, err
 	}
-	var codeTest string
 	// 如果都不重复
 	if !out.NameDuplicated && !out.EmailDuplicated {
 		code, err := send_code.SendCode(data.Email)
 		if err != nil {
 			return nil, err
 		}
-		duplicated, _ := gcache.SetIfNotExist(ctx, req.Email, code, 5*time.Minute)
+		duplicated, _ := gcache.SetIfNotExist(ctx, req.Email, code, time.Minute)
 		if !duplicated {
-			_, _, err := gcache.Update(ctx, req.Email, code)
-			if err != nil {
-				return nil, err
-			}
-			//return nil, gerror.New("你的邮箱和别人重复了")
+			// _, _, err := gcache.Update(ctx, req.Email, code)
+			// if err != nil {
+			// 	return nil, err
+			// }
+			return &v1.SendVerificationCodeRes{Msg: "验证码已发送，请注意查收或稍后再试"}, nil
 		}
-		codeTest = code
 	} else {
-		return nil, gerror.New("邮箱或用户名重复")
+		return &v1.SendVerificationCodeRes{Msg: "邮箱或用户名重复"}, nil
 	}
-	return &v1.SendVerificationCodeRes{Code: codeTest}, nil
+	return &v1.SendVerificationCodeRes{Msg: "200"}, nil
 }
 
 type VerifyClaims struct { // 对邮件验证的token
@@ -57,8 +63,10 @@ type VerifyClaims struct { // 对邮件验证的token
 
 func (c *cRegister) VerifyVerificationCode(ctx context.Context, req *v1.VerifyVerificationCodeReq) (res *v1.VerifyVerificationCodeRes, err error) {
 	code, err := gcache.Get(ctx, req.Email)
-	if code == nil {
-		return nil, gerror.New("怎么有人偷跑，你压根没获取验证码好吧")
+	if err != nil {
+		return nil, err
+	} else if code == nil {
+		return nil, gerror.New("验证码已过期，请重新获取")
 	}
 	verificationCode := gconv.String(code)
 	if verificationCode != req.Code {
