@@ -1,0 +1,46 @@
+name: 自动部署 # 步骤名称
+
+on:
+  push:
+    branches:
+      - master
+    # paths-ignore:
+    #   - README.md
+    #   - LICENSE
+    paths:
+      - src/**
+      - package.json
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v2
+
+      - name: 安装依赖
+        run: apt update && apt install golang && go get -u -v github.com/gogf/gf/v2
+
+      - name: 编译构建
+        run: gf build
+
+      - name: SSH 命令删除旧文件
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.DEPLOY_KEY }}
+
+
+          script: |
+            rm -rf /home/suask/backend/main
+
+      - name: 部署到服务器
+        uses: wlixcc/SFTP-Deploy-Action@v1.0
+        with:
+          server: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          ssh_private_key: ${{ secrets.DEPLOY_KEY }}
+          local_path: './bin/main'
+          remote_path: '/home/suask/backend/'
