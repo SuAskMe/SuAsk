@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "suask/internal/packed"
+	"suask/utility/send_code"
 
 	_ "suask/internal/logic"
 
@@ -17,5 +18,6 @@ import (
 )
 
 func main() {
+	send_code.InitMail()
 	cmd.Main.Run(gctx.GetInitCtx())
 }

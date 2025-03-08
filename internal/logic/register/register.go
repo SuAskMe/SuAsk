@@ -29,7 +29,7 @@ func (s *sRegister) Register(ctx context.Context, in model.RegisterInput) (out m
 	UserSalt := grand.S(10)
 	in.Password = login.EncryptPassword(in.Password, UserSalt)
 	in.UserSalt = UserSalt
-	in.Role = consts.STUDENT
+	// in.Role = consts.STUDENT
 
 	registerUser := do.Users{
 		Name:         in.Name,
