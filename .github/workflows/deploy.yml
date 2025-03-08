@@ -51,3 +51,14 @@ jobs:
           ssh_private_key: ${{ secrets.DEPLOY_KEY }}
           local_path: './bin/main'
           remote_path: '/home/suask/backend/'
+
+      - name: SSH 命令运行新程序
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.DEPLOY_KEY }}
+
+
+          script: |
+            systemctl restart gfapp
