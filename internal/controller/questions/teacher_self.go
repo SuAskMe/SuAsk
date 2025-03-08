@@ -2,7 +2,6 @@ package questions
 
 import (
 	"context"
-	"fmt"
 	v1 "suask/api/questions/v1"
 	"suask/internal/consts"
 	"suask/internal/model"
@@ -50,7 +49,7 @@ func GetQFMImpl(ctx context.Context, in *model.GetQFMInput) (res *v1.QFMBase, er
 
 func (cTeacherSelf) GetQFMAll(ctx context.Context, req *v1.GetQFMReq) (res *v1.GetQFMRes, err error) {
 	Tid := gconv.Int(ctx.Value(consts.CtxId))
-	fmt.Println("GetQFMAll Tid:", Tid)
+	// fmt.Println("GetQFMAll Tid:", Tid)
 	_, err = validation.IsTeacher(ctx, Tid)
 	if err != nil {
 		return nil, err
