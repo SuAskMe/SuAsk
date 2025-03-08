@@ -9,7 +9,7 @@ type SendVerificationCodeReq struct {
 }
 
 type SendVerificationCodeRes struct {
-	Code string `json:"code"`
+	Msg string `json:"msg"`
 }
 
 type VerifyVerificationCodeReq struct {
