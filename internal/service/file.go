@@ -13,7 +13,9 @@ import (
 type (
 	IFile interface {
 		UploadFile(ctx context.Context, in model.FileUploadInput) (out *model.FileUploadOutput, err error)
+		UploadFileList(_ context.Context, in model.FileListAddInput) (out model.FileListAddOutput, err error)
 		Get(ctx context.Context, in model.FileGetInput) (out model.FileGetOutput, err error)
+		GetList(ctx context.Context, in model.FileListGetInput) (out model.FileListGetOutput, err error)
 	}
 )
 

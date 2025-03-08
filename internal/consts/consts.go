@@ -1,12 +1,30 @@
 package consts
 
 const (
-	DefaultAvatarURL      = "/src/assets/default_avatar.png"
-	NumOfQuestionsPerPage = 30
+	MaxQuestionsPerPage   = 30
+	MaxKeywordsPerReq     = 8
+	MaxAvatarsPerQuestion = 3
 	SortByTimeDsc         = 0
 	SortByTimeAsc         = 1
 	SortByViewsDsc        = 2
 	SortByViewsAsc        = 3
+)
+
+// default settings
+
+const (
+	DefaultUserId    = 1
+	DefaultUserName  = "匿名用户"
+	DefaultThemeId   = 1
+	DefaultAvatarURL = "default-avatar"
+)
+
+// for question status
+
+const (
+	Answered   = "已回答"
+	Unanswered = "未回答"
+	OnTop      = "置顶"
 )
 
 // for User Role
@@ -18,7 +36,6 @@ const (
 )
 
 // for gToken
-
 const (
 	TokenType       = "Bearer"
 	CacheMode       = 1 // gcache
@@ -33,7 +50,24 @@ const (
 	CtxRole = "CtxRole"
 )
 
-// const DefaultAvatarURL = "https://p1-arco.byteimg.com/tos-cn-i-uwbnlip3yd/3ee5f13fb09879ecb5185e440cef6eb9.png~tplv-uwbnlip3yd-webp.webp"
-const DefaultThemeId = 0
+// for question
 
-const FileUploadMaxMinutes = 10
+const QuestionFileType = "picture"
+
+// for notification
+const (
+	NewQuestion = "new_question"
+	NewAnswer   = "new_answer"
+	NewReply    = "new_reply"
+)
+
+const (
+	ForgetPassword = "forget_password"
+	ResetPassword  = "reset_password"
+)
+
+const (
+	PermPublic    = "public"
+	PermProtected = "protected"
+	PermPrivate   = "private"
+)

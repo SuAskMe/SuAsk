@@ -5,14 +5,15 @@
 
 package service
 
-import(
+import (
 	"context"
 	"suask/internal/model"
 )
 
 type (
 	IHistory interface {
-		LoadHistoryInfo(ctx context.Context, in *model.GetHistoryInput) (out *model.GetHistoryOutput, err error)
+		GetBase(ctx context.Context, in *model.GetHistoryBaseInput) (out *model.GetHistoryBaseOutput, err error)
+		GetKeyWord(ctx context.Context, in *model.GetHistoryKeywordsInput) (out *model.GetHistoryKeywordsOutput, err error)
 	}
 )
 

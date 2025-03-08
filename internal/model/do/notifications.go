@@ -15,7 +15,10 @@ type Notifications struct {
 	Id         interface{} // 提醒ID
 	UserId     interface{} // 用户ID
 	QuestionId interface{} // 问题ID
-	Type       interface{} // 提醒类型（新提问或新回复）
-	CreatedAt  *gtime.Time //
-	DeletedAt  *gtime.Time //
+	ReplyToId  interface{} // 回复问题的ID
+	AnswerId   interface{} // 问题ID
+	Type       interface{} // 提醒类型（新提问、新回复、新回答）
+	IsRead     interface{} // 是否已读
+	CreatedAt  *gtime.Time // 创建时间
+	DeletedAt  *gtime.Time // 删除时间
 }

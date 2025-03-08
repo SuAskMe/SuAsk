@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"context"
-	"suask/internal/controller/file"
-	"suask/internal/controller/hello"
+	"suask/internal/controller/favorite"
+	"suask/internal/controller/history"
+	"suask/internal/controller/notification"
+	"suask/internal/controller/questions"
 	"suask/internal/controller/register"
+	"suask/internal/controller/teacher"
 	"suask/internal/controller/user"
 	"suask/internal/service"
 
@@ -29,28 +32,48 @@ var (
 			s.Group("/", func(group *ghttp.RouterGroup) {
 				group.Middleware(
 					ghttp.MiddlewareHandlerResponse,
-					service.Middleware().CORS)
-				// 这里是不需要认证的接口
+					service.Middleware().CORS,
+				)
+				// 这里无需登录，不需要请求用户数据
 				group.Bind(
 					register.Register,
 					user.User.GetUserInfoById,
-					file.File.GetFileById,
+					teacher.Teacher.GetTeacher,
+					teacher.Teacher.GetTeacherPin,
 				)
+				// 这里是登录和非登录共有接口
 				group.Group("/", func(group *ghttp.RouterGroup) {
-					err := gfToken.Middleware(ctx, group)
+					err := Middleware(gfToken, ctx, group)
 					if err != nil {
 						panic(err)
 					}
 					group.Bind(
-						hello.NewV1(),
-						// 这里是需要认证的接口
 						user.User.Info,
+						questions.PublicQuestions,
+						questions.QuestionDetail.GetDetail,
 						user.User.UpdateUserInfo,
 						user.User.UpdatePassWord,
-						file.File.UpdateFile,
+						user.User.SendVerificationCode,
+						user.User.ForgetPassword,
+						questions.QuestionDetail.AddAnswer,
+						favorite.Favorite,
+						history.History,
+						questions.QuestionDetail.Upvote,
+						questions.Question,
+						teacher.Teacher.UpdatePerm,
+						questions.TeacherSelf,
+						questions.TeacherQuestion,
+						notification.Notification,
 					)
 				})
 			})
+			// 设置静态文件服务
+			s.SetIndexFolder(true)
+			s.SetFileServerEnabled(true)
+			s.SetServerRoot(".")
+			//s.AddSearchPath("/Users/john/Documents")
+
+			// 启动服务器
 			s.Run()
 			return nil
 		},

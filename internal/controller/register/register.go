@@ -10,15 +10,13 @@ import (
 	"suask/internal/model"
 	"suask/internal/service"
 	"suask/utility"
-	"suask/utility/register"
+	"suask/utility/send_code"
 	"time"
 )
 
 type cRegister struct{}
 
 var Register = cRegister{}
-
-//var verificationCode string
 
 func (c *cRegister) SendVerificationCode(ctx context.Context, req *v1.SendVerificationCodeReq) (res *v1.SendVerificationCodeRes, err error) {
 	data := model.CheckEmailAndNameInput{}
@@ -33,17 +31,23 @@ func (c *cRegister) SendVerificationCode(ctx context.Context, req *v1.SendVerifi
 	var codeTest string
 	// 如果都不重复
 	if !out.NameDuplicated && !out.EmailDuplicated {
-		code, err := register.SendCode(data.Email)
+		code, err := send_code.SendCode(data.Email)
 		if err != nil {
 			return nil, err
 		}
 		duplicated, _ := gcache.SetIfNotExist(ctx, req.Email, code, 5*time.Minute)
 		if !duplicated {
-			return nil, gerror.New("你的邮箱和别人重复了")
+			_, _, err := gcache.Update(ctx, req.Email, code)
+			if err != nil {
+				return nil, err
+			}
+			//return nil, gerror.New("你的邮箱和别人重复了")
 		}
 		codeTest = code
+	} else {
+		return nil, gerror.New("邮箱或用户名重复")
 	}
-	return &v1.SendVerificationCodeRes{EmailDuplicated: out.EmailDuplicated, NameDuplicated: out.NameDuplicated, Code: codeTest}, nil
+	return &v1.SendVerificationCodeRes{Code: codeTest}, nil
 }
 
 type VerifyClaims struct { // 对邮件验证的token

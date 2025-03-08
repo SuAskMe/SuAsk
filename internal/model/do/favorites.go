@@ -16,4 +16,5 @@ type Favorites struct {
 	UserId     interface{} // 用户ID
 	QuestionId interface{} // 问题ID
 	CreatedAt  *gtime.Time // 创建时间
+	Package    interface{} // 收藏夹
 }

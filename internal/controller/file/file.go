@@ -44,3 +44,21 @@ func (c *cFile) GetFileById(ctx context.Context, req *v1.GetFileReq) (res *v1.Ge
 		CreatedAt:  out.CreatedAt,
 	}, nil
 }
+
+func (c *cFile) GetFileList(ctx context.Context, req *v1.GetFileListReq) (res *v1.GetFileListRes, err error) {
+	fileList := model.FileListGetInput{}
+	err = gconv.Struct(req, &fileList)
+	if err != nil {
+		return nil, err
+	}
+	out, err := service.File().GetList(ctx, fileList)
+	if err != nil {
+		return nil, err
+	}
+	res = &v1.GetFileListRes{}
+	err = gconv.Struct(out, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}

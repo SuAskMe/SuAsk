@@ -15,6 +15,15 @@ type FileUploadOutput struct {
 	URL  string
 }
 
+type FileListAddInput struct {
+	UploaderId int
+	FileList   []*ghttp.UploadFile
+}
+
+type FileListAddOutput struct {
+	IdList []int
+}
+
 type FileGetInput struct {
 	Id int `json:"id"`
 }
@@ -25,4 +34,16 @@ type FileGetOutput struct {
 	HashString string      `json:"hash"`
 	UploaderId int         `json:"uploader_id" orm:"uploader_id"`
 	CreatedAt  *gtime.Time `json:"created_at" orm:"created_at"`
+}
+
+type FileListGetInput struct {
+	IdList []int `json:"id"`
+}
+
+type FileListGetOutput struct {
+	FileId     []int         `json:"id"`
+	Name       []string      `json:"name"`
+	URL        []string      `json:"url"`
+	UploaderId []int         `json:"uploader_id"`
+	CreatedAt  []*gtime.Time `json:"created_at"`
 }

@@ -20,5 +20,5 @@ type Questions struct {
 	IsPrivate interface{} // 是否私密提问，仅在问教师时可为是
 	CreatedAt *gtime.Time // 创建时间
 	Views     interface{} // 浏览量
-	Upvotes   interface{} // 点赞量
+	ReplyCnt  interface{} // 回复数
 }

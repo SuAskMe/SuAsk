@@ -5,100 +5,96 @@ import (
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
+	"suask/internal/model/custom"
 	"suask/internal/service"
+	"suask/utility"
+
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
-type HistoryOperation struct{}
+type sHistory struct{}
 
-// 查找历史提问模块需要的信息
-func (h HistoryOperation) LoadHistoryInfo(ctx context.Context, in *model.GetHistoryInput) (out *model.GetHistoryOutput, err error) {
+func (s *sHistory) GetBase(ctx context.Context, in *model.GetHistoryBaseInput) (out *model.GetHistoryBaseOutput, err error) {
+	//userId := 1
+	userId := gconv.Int(ctx.Value(consts.CtxId))
 
-	// 得到用户提问的所有提问记录
-	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().SrcUserId, in.UserId)
-
-	// 按照时间顺序降序，问题id降序
-	md.Order("CreatedAt desc").Order("Id desc")
-
-	// 将排序之后的结果分页并得到对应的查询结果
-	historyQuestionAll := md.Page(in.Page, consts.NumOfQuestionsPerPage)
-
-	var mqq []*model.MultiQueryQuestions
-
-	err = historyQuestionAll.Scan(&mqq)
-	if err != nil {
-		return nil, err
-	}
-	// 初始化myhistoryquestion
-	mhq := make([]model.MyHistoryQuestion, len(mqq))
-
-	// key是问题的id  value是对应附件所有的url
-	imageUrlMap := make(map[int][]string)
-
-	for _, m := range mqq {
-		for i := range m.Images {
-			tempFileID := m.Images[i].FileID
-
-			// 得到结构体sFile的  用tempFileID做出来的
-			var tempFileGetInput = model.FileGetInput{
-				Id: tempFileID, // 确保 tempFileID 是 int 类型
-			}
-			var tempFileGetOutput = model.FileGetOutput{}
-			var tempUrl string
-			tempFileGetOutput, err = service.IFile.Get(service.File(), ctx, tempFileGetInput)
-			tempUrl = tempFileGetOutput.URL
-			if err != nil {
-				return nil, err
-			}
-			imageUrlMap[m.Id] = append(imageUrlMap[m.Id], tempUrl)
+	md := dao.Questions.Ctx(ctx)
+	md = md.Where(dao.Questions.Columns().SrcUserId, userId)
+	if in.Keyword != "" {
+		md = md.Where("match(title) against (? in boolean mode)", in.Keyword)
+	} else {
+		err = utility.SortByType(&md, in.SortType)
+		if err != nil {
+			return nil, err
 		}
 	}
 
-	// MyQuestionList切片完成
-	for i := range mqq {
-		mhq[i] = model.MyHistoryQuestion{
-			Id:        mqq[i].Id,              //int
-			Contents:  mqq[i].Contents,        //string
-			CreatedAt: mqq[i].CreatedAt,       //*gtime.Time
-			Views:     mqq[i].Views,           //int
-			ImageURLs: imageUrlMap[mqq[i].Id], //[]string
-		}
-	}
-	remain, err := md.Count()
+	md = md.Page(in.Page, consts.MaxQuestionsPerPage)
+	var remain int
+	var q []*custom.Questions
+	err = md.ScanAndCount(&q, &remain, false)
 	if err != nil {
 		return nil, err
 	}
-	remainNum := remain - consts.NumOfQuestionsPerPage*in.Page
-	remain = remainNum / consts.NumOfQuestionsPerPage
-	if remainNum%consts.NumOfQuestionsPerPage > 0 {
-		remain += 1
-	}
-	ultimate_out := model.GetHistoryOutput{
-		Question:   mhq,
-		RemainPage: remain,
-	}
 
-	return &ultimate_out, nil
+	remain = utility.CountRemainPage(remain, in.Page)
+
+	qIDs := make([]int, len(q))
+	for i, question := range q {
+		qIDs[i] = question.Id
+	}
+	var fav []*custom.MyFavorites
+	md = dao.Favorites.Ctx(ctx).WhereIn(dao.Favorites.Columns().QuestionId, qIDs).Where(dao.Favorites.Columns().UserId, userId)
+	err = md.Scan(&fav)
+	if err != nil {
+		return nil, err
+	}
+	pqs := make([]model.HistoryQuestion, len(q))
+	idMap := make(map[int]int)
+	for i, pq := range q {
+		idMap[pq.Id] = i
+		pqs[i] = model.HistoryQuestion{
+			ID:        pq.Id,
+			Title:     pq.Title,
+			Content:   utility.TruncateString(pq.Contents),
+			CreatedAt: pq.CreatedAt.TimestampMilli(),
+			Views:     pq.Views,
+			AnswerNum: pq.ReplyCnt,
+			DstUserID: pq.DstUserId,
+		}
+	}
+	for _, f := range fav {
+		pqs[idMap[f.QuestionId]].IsFavorite = true
+	}
+	output := model.GetHistoryBaseOutput{
+		QuestionIDs: qIDs,
+		IdMap:       idMap,
+		Questions:   pqs,
+		RemainPage:  remain,
+	}
+	return &output, err
 }
 
-// // 辅助函数仅通过文件id得到图片url
-// func (h HistoryOperation) GetUrlUseFileId(ctx context.Context, id int) (out string, err error) {
-// 	file := entity.Files{}
-// 	err = dao.Files.Ctx(ctx).Where(dao.Files.Columns().Id, id).Scan(&file)
-// 	if err != nil {
-// 		return "", fmt.Errorf("无法查询文件记录：%w", err)
-// 	}
-// 	URL, err := files.GetURL(file.Hash, file.Name)
-// 	if err != nil {
-// 		return "", fmt.Errorf("生成文件 URL 失败：%w", err)
-// 	}
+func (s *sHistory) GetKeyWord(ctx context.Context, in *model.GetHistoryKeywordsInput) (out *model.GetHistoryKeywordsOutput, err error) {
+	//userId := 1
+	userId := gconv.Int(ctx.Value(consts.CtxId))
 
-// 	return URL, nil
-// }
+	md := dao.Questions.Ctx(ctx)
+	md = md.Where(dao.Questions.Columns().SrcUserId, userId)
+	words := make([]model.Keyword, consts.MaxKeywordsPerReq)
+	err = md.Where("match(title) against (? in boolean mode)", in.Keyword).Limit(8).Scan(&words)
+	if err != nil {
+		return nil, err
+	}
+	output := &model.GetHistoryKeywordsOutput{}
+	output.Words = words
+	return output, nil
+}
 
 func init() {
 	service.RegisterHistory(New())
 }
 
-func New() *HistoryOperation {
-	return &HistoryOperation{}
+func New() *sHistory {
+	return &sHistory{}
 }

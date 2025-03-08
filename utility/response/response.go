@@ -8,7 +8,7 @@ import (
 
 type JsonRes struct {
 	Code    int         `json:"code"`
-	Message string      `json:"msg"`
+	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
 }
 
@@ -41,7 +41,7 @@ func dataReturn(r *ghttp.Request, code int, req ...interface{}) *JsonRes {
 		data = req[1]
 	}
 	if code != 1 && !gconv.Bool(r.GetCtxVar("api_code")) {
-		code = 0
+		code = 50
 	}
 	response := &JsonRes{
 		Code:    code,
@@ -54,5 +54,10 @@ func dataReturn(r *ghttp.Request, code int, req ...interface{}) *JsonRes {
 
 func Auth(r *ghttp.Request) {
 	res := dataReturn(r, 999, "请登录")
+	r.Response.WriteJsonExit(res)
+}
+
+func NeedReLogin(r *ghttp.Request) {
+	res := dataReturn(r, 999, "登录已过期，请重新登录")
 	r.Response.WriteJsonExit(res)
 }

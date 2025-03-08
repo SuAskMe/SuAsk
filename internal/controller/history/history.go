@@ -3,6 +3,7 @@ package history
 import (
 	"context"
 	v1 "suask/api/history/v1"
+	"suask/internal/consts"
 	"suask/internal/model"
 	"suask/internal/service"
 
@@ -13,21 +14,108 @@ type cHistory struct{}
 
 var History = cHistory{}
 
-func (cHistory) Get(cxt context.Context, req *v1.LoadHistoryQuestionReq) (res *v1.LoadHistoryQuestionRes, err error) {
-	// 声明与数据库交互的in结构体
-	in := model.GetHistoryInput{}
-	err = gconv.Scan(req, &in)
+func GetHistoryImpl(ctx context.Context, req interface{}) (res interface{}, err error) {
+	baseInput := model.GetHistoryBaseInput{}
+	err = gconv.Scan(req, &baseInput)
 	if err != nil {
 		return nil, err
 	}
-	// 使用接口中的注册接口方法调用login中的逻辑函数
-	out, err := service.History().LoadHistoryInfo(cxt, &in)
+	baseOutput, err := service.History().GetBase(ctx, &baseInput)
 	if err != nil {
 		return nil, err
 	}
-	res = &v1.LoadHistoryQuestionRes{
-		HistoryQuestionList: out.Question,
-		RemainPage:          out.RemainPage,
+	QuestionList := baseOutput.Questions
+	idMap := baseOutput.IdMap
+	// 获取图片
+	imagesOutput, err := service.QuestionUtil().GetImages(ctx, &model.GetImagesInput{QuestionIDs: baseOutput.QuestionIDs})
+	if err != nil {
+		return
 	}
-	return
+	for k, v := range imagesOutput.ImageMap {
+		urls, err_ := service.File().GetList(ctx, model.FileListGetInput{IdList: v})
+		if err_ != nil {
+			return nil, err_
+		}
+		QuestionList[idMap[k]].ImageURLs = urls.URL
+	}
+	// 获取回答数
+	answersOutput, err := service.PublicQuestion().GetAnswers(ctx, &model.GetAnswersInput{QuestionIDs: baseOutput.QuestionIDs})
+	if err != nil {
+		return
+	}
+	if answersOutput != nil {
+		for k, v := range answersOutput.AvatarsMap {
+			dstId := QuestionList[idMap[k]].DstUserID
+			if dstId != 0 {
+				QuestionList[idMap[k]].AnswerAvatars = []string{consts.DefaultAvatarURL}
+				continue
+			}
+			idList := make([]int, 0, len(v))
+			URLs := make([]string, 0, len(v))
+			for _, u := range v {
+				if u != 0 {
+					idList = append(idList, u)
+				} else {
+					URLs = append(URLs, consts.DefaultAvatarURL)
+				}
+			}
+			urls, err_ := service.File().GetList(ctx, model.FileListGetInput{IdList: idList})
+			if err_ != nil {
+				return nil, err_
+			}
+			if len(URLs) == 0 {
+				URLs = urls.URL
+			} else {
+				URLs = append(urls.URL, URLs[0])
+			}
+			QuestionList[idMap[k]].AnswerAvatars = URLs
+		}
+	}
+	// 返回结果
+	res = &v1.GetHistoryPageRes{
+		QuestionList: QuestionList,
+		RemainPage:   baseOutput.RemainPage,
+	}
+	return res, nil
+}
+
+func (c *cHistory) Get(ctx context.Context, req *v1.GetHistoryPageReq) (res *v1.GetHistoryPageRes, err error) {
+	data, err := GetHistoryImpl(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	err = gconv.Scan(data, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, err
+}
+
+func (c *cHistory) GetKeyWords(ctx context.Context, req *v1.GetHistorySearchKeywordsReq) (res *v1.GetHistorySearchKeywordsRes, err error) {
+	input := model.GetHistoryKeywordsInput{}
+	err = gconv.Scan(req, &input)
+	if err != nil {
+		return nil, err
+	}
+	out, err := service.History().GetKeyWord(ctx, &input)
+	if err != nil {
+		return nil, err
+	}
+	err = gconv.Scan(out, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (c *cHistory) GetByKeyWord(ctx context.Context, req *v1.GetHistoryPageByKeywordReq) (res *v1.GetHistoryPageByKeywordRes, err error) {
+	data, err := GetHistoryImpl(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	err = gconv.Scan(data, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, err
 }

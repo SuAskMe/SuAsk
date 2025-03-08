@@ -1,85 +1,51 @@
-# SuAsk
-an anonymous Question Box for Dr. Su
+# SuAsk • 速问
+![image](https://github.com/user-attachments/assets/68cbe1a7-1d9a-4487-a639-c86c15fbf6e9)
+
+一个匿名提问箱，为了解决~~苏老师~~匿名提问箱经常跑路的问题
+
+软件工程实训项目
+
+---
+
+## 它可以实现什么
+![image](https://github.com/user-attachments/assets/a87d6177-c133-469e-8de1-f8d574bc923f)
+
+- 完全匿名，用户可以畅所欲言，后台不会对用户信息进行记录
+- 拥有公开论坛，用户可以自由发表提问
+- 教师匿名提问箱，用户可以匿名提问教师问题，内置学院教师信息，开箱即用
+- 提供提醒功能，你不会错过任何一条有关信息
+
+---
+
+## 如何使用
+
+### 环境依赖
+`go 1.22`
+
+`goframe v2.7.4`
 
 
-
-# 环境搭建
-
-本项目使用goframe框架进行开发，且最新版goframe要求go语言版本大于1.22，请查看自己的go语言版本时候符合条件
-
-goframe官方文档：[GoFrame官网 - 类似PHP-Laravel,Java-SpringBoot的Go企业级开发框架](https://goframe.org/)
-
-**本项目推荐使用linux环境进行开发**
-
-### Linux & Mac 安装
-
+### 启动命令
 ```shell
-wget -O gf https://github.com/gogf/gf/releases/latest/download/gf_$(go env GOOS)_$(go env GOARCH) && chmod +x gf && ./gf install -y && rm ./gf
-```
-
-### Windows 安装
-
-请到官方文档下自行获取相关链接教程：[工具安装-install | GoFrame官网 - 类似PHP-Laravel,Java-SpringBoot的Go企业级开发框架](https://goframe.org/docs/cli/install)
-
-### 通用安装方式 （推荐）
-
-```shell
-go install github.com/gogf/gf/cmd/gf/v2@latest
-```
-
-
-
-# 使用
-
-**本项目已经初始化好仓库并且搭好脚手架**
-
-查看goframe版本
-
-```shell
-gf -v
-```
-
-在`SuAsk`目录下启动项目
-
-```shell
+git clone https://github.com/DreamingLri/SuAsk.git
+cd SuAsk
 gf run main.go
 ```
 
-构建项目 (目前尚未配置
+除此之外，您还需要配置此项目的[前端](https://github.com/DreamingLri/SuAsk-Web)
 
-```
-gf build
-```
+---
 
+## Q&A
 
+**Q: 为什么要创建这个项目？**
+A: 学院的苏老师深受商用匿名提问箱跑路的迫害，~~据他所说已经用跑路了3个~~，便希望我们开发一个属于学院的匿名提问箱
 
-# 项目目录
+**Q: 为什么使用go-frame？**
+A: 这个项目本质上还是本专业的中级实训大作业，当时指明要求使用go语言来编写后端，而go-frame是一个较成熟的框架，便采用了
 
-```
-/
-├── api                 请求接口输入/输出数据结构定义
-├── hack                项目开发工具、脚本
-├── internal            业务逻辑存放目录，核心代码
-│   ├── cmd             入口指令与其他命令工具目录
-│   ├── consts          常量定义目录
-│   ├── controller      控制器目录，接收/解析用户请求
-│   ├── dao             数据访问对象目录，用于和底层数据库交互
-│   ├── logic           核心业务逻辑代码目录
-│   ├── model           数据结构管理模块，管理数据实体对象，以及输入与输出数据结构定义
-│   |   ├── do          数据操作中业务模型与实例模型转换，由工具维护，不能手动修改
-│   │   └── entity      数据模型是模型与数据集合的一对一关系，由工具维护，不用手动修改。
-│   └── service         业务接口定义层。具体的接口实现在logic中进行注入。
-├── manifest            包含程序编译、部署、运行、配置的文件
-├── resource            静态资源文件
-├── utility
-├── go.mod
-└── main.go             程序入口文件
-```
+**Q: 我发现了bug怎么办？**
+A: 欢迎提交[Issue](https://github.com/DreamingLri/SuAsk/issues/new)
 
 
 
-# 学习
-
-* **3小时快速入门课程：**[Go语言Web开发|GoFrame框架入门_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1Uu4y1u7kX?spm_id_from=333.788.videopod.episodes&vd_source=03dcb05712764a790687a977fee70f9d)
-
-* **课程笔记：**[gitee链接](https://gitee.com/unlimited13/code/blob/master/GO/GoFrame.md)

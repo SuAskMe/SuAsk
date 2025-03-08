@@ -12,8 +12,9 @@ gf
 main
 main.exe
 output/
+manifest
 manifest/output/
 temp/
 temp.yaml
 bin
-#**/config/config.yaml
+**/config/config.yaml
