@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"strings"
 	v1 "suask/api/login/v1"
@@ -133,7 +132,7 @@ func authAfterFunc(r *ghttp.Request, respData gtoken.Resp) {
 		r.SetCtxVar(consts.CtxId, userInfo.Id)
 	}
 
-	fmt.Println("login_id", r.GetCtxVar(consts.CtxId))
+	// fmt.Println("login_id", r.GetCtxVar(consts.CtxId))
 
 	r.Middleware.Next()
 }

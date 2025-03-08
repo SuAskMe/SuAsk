@@ -23,7 +23,7 @@ func (cQuestion) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v1.AddQu
 	//	return nil, fmt.Errorf("user not login")
 	//}
 	if req.DstUserId == 0 && UserId == consts.DefaultUserId {
-		return nil, fmt.Errorf("未登陆用户不能提问大家")
+		return nil, fmt.Errorf("未登录用户不能提问大家")
 	}
 	if req.DstUserId != 0 {
 		// 防止非法提问
