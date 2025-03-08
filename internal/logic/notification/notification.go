@@ -55,7 +55,7 @@ func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput)
 	}
 	//fmt.Println("newQuestion:", newQuestion, nqc)
 	//fmt.Println("newAnswer:", newAnswer, nac)
-	//fmt.Println("newReply:", newReply, nrc)
+	//fmt.Println("newReply:", newReply[0], nrc)
 
 	// 塞入 Set 里面
 	qIDSet := make(map[int]pad)
@@ -75,7 +75,7 @@ func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput)
 	}
 	for _, n := range newReply {
 		if _, ok := qIDSet[n.QuestionId]; !ok {
-			aIDSet[n.AnswerId] = pad{}
+			qIDSet[n.QuestionId] = pad{}
 		}
 		if _, ok := aIDSet[n.AnswerId]; !ok {
 			aIDSet[n.AnswerId] = pad{}
@@ -206,10 +206,12 @@ func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput)
 		respdId := userMap[aMap[n.ReplyToId].UserId].Id
 		// 在问老师的问题里，如果问题的目标是自己，回复者是匿名用户
 		// 依赖其他的逻辑保证，只有回答拥有者才能获得该通知
+
 		if qMap[qid].DstUserId == in.UserId {
 			respdName = consts.DefaultUserName
 			respdId = consts.DefaultUserId
 		}
+
 		out.NewReply[i] = model.NotificationNewReply{
 			NotificationBase: model.NotificationBase{
 				Id:              n.Id,
