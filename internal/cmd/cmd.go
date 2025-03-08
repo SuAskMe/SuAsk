@@ -71,7 +71,6 @@ var (
 			s.SetIndexFolder(true)
 			s.SetFileServerEnabled(true)
 			s.SetServerRoot(".")
-			//s.AddSearchPath("/Users/john/Documents")
 
 			// 启动服务器
 			s.Run()
