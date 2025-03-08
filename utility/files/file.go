@@ -10,7 +10,6 @@ import (
 	"io"
 	"log"
 	"mime/multipart"
-	"suask/internal/consts"
 )
 
 func HashFile(file multipart.File) []byte {
@@ -52,7 +51,7 @@ func GetURL(fileHash []byte, fileName string) (URL string, err error) {
 	if uploadPath == "" {
 		return "", gerror.New("配置不存在，请配置文件地址")
 	}
-
-	URL = consts.FileServerPrefix + "/" + uploadPath + "/" + fileName[0:2] + "/" + fileName[2:4] + "/" + fileName
+	var serverPrefix = g.Cfg().MustGet(context.TODO(), "upload.prefix").String()
+	URL = serverPrefix + "/" + uploadPath + "/" + fileName[0:2] + "/" + fileName[2:4] + "/" + fileName
 	return URL, nil
 }

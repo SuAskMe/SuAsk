@@ -87,8 +87,9 @@ func (s *sFile) UploadFile(ctx context.Context, in model.FileUploadInput) (out *
 	if err != nil {
 		return nil, err
 	}
-	if count > consts.FileUploadMaxMinutes {
-		return nil, gerror.New("上传频繁，一分钟只能传" + strconv.Itoa(consts.FileUploadMaxMinutes) + "次")
+	var fileUploadMaxMinutes = g.Cfg().MustGet(context.TODO(), "upload.max_minutes").Int()
+	if count > fileUploadMaxMinutes {
+		return nil, gerror.New("上传频繁，一分钟只能传" + strconv.Itoa(fileUploadMaxMinutes) + "次")
 	}
 	fileInfo, err := uploadFile(in.File, upLoaderId)
 	if err != nil {
