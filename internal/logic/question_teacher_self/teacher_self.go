@@ -2,7 +2,6 @@ package questions_teacher_self
 
 import (
 	"context"
-	"fmt"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
@@ -133,7 +132,7 @@ func (sTeacherQuestionSelf) GetKeyword(ctx context.Context, input *model.GetQFMK
 	words := make([]model.Keyword, consts.MaxKeywordsPerReq)
 	err := md.Scan(&words)
 	if err != nil {
-		fmt.Println(err)
+		// fmt.Println(err)
 		return nil, nil
 	}
 	output := &model.GetKeywordsOutput{}
