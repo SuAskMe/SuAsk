@@ -25,6 +25,15 @@ type LoginRes struct {
 	//Introduction string `json:"introduction" orm:"introduction"   dc:"简介"`
 }
 
+// 心跳
+type HeartBeatsReq struct {
+	g.Meta `path:"/user/heartbeat" method:"POST" tag:"HeartBeats" summary:"心跳请求"`
+}
+
+type HeartBeatsRes struct {
+	UserId int `json:"id"`
+}
+
 // 登出
 
 type LogoutReq struct {

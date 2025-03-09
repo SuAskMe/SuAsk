@@ -4,6 +4,7 @@ import (
 	"context"
 	"suask/internal/controller/favorite"
 	"suask/internal/controller/history"
+	"suask/internal/controller/login"
 	"suask/internal/controller/notification"
 	"suask/internal/controller/questions"
 	"suask/internal/controller/register"
@@ -49,6 +50,7 @@ var (
 					}
 					group.Bind(
 						user.User.Info,
+						login.Login.HeartBeats,
 						questions.PublicQuestions,
 						questions.QuestionDetail.GetDetail,
 						user.User.UpdateUserInfo,
