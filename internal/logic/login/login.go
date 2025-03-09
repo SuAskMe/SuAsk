@@ -18,6 +18,11 @@ func (s sLogin) Logout(ctx context.Context) error {
 	panic("implement me")
 }
 
+func (s sLogin) HeartBeats(ctx context.Context) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func init() {
 	service.RegisterLogin(New())
 }

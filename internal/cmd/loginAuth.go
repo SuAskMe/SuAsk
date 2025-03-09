@@ -147,6 +147,7 @@ func isMustLoginPath(path string) bool {
 		"/notification",
 		"/questions/public",
 		"/teacher/question",
+		"/user/heartbeat",
 	}
 	for _, v := range mustLoginPath {
 		if strings.HasPrefix(path, v) {

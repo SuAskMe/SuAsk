@@ -1,3 +1,8 @@
+// ================================================================================
+// Code generated and maintained by GoFrame CLI tool. DO NOT EDIT.
+// You can delete these comments if you wish manually maintain this interface file.
+// ================================================================================
+
 package service
 
 import (
@@ -9,6 +14,7 @@ type (
 	ILogin interface {
 		Login(ctx context.Context, in model.UserLoginInput) error
 		Logout(ctx context.Context) error
+		HeartBeats(ctx context.Context) error
 	}
 )
 
