@@ -2,6 +2,7 @@ package register
 
 import (
 	"context"
+	"strings"
 	v1 "suask/api/register/v1"
 	"suask/internal/model"
 	"suask/internal/service"
@@ -31,6 +32,12 @@ func (c *cRegister) SendVerificationCode(ctx context.Context, req *v1.SendVerifi
 	if isSent {
 		return &v1.SendVerificationCodeRes{Msg: "验证码已发送，请注意查收或稍后再试"}, nil
 	}
+
+	// 检查是否为学校邮箱（暂时）
+	if !strings.HasSuffix(req.Email, "@mail.sysu.edu.cn") && !strings.HasSuffix(req.Email, "@mail2.sysu.edu.cn") {
+		return nil, gerror.New("暂不支持非学校邮箱注册")
+	}
+
 	// 检查邮箱和用户名是否重复
 	out, err := service.Register().CheckEmailAndName(ctx, data)
 	if err != nil {
