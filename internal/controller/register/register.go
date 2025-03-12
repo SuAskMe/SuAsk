@@ -2,8 +2,8 @@ package register
 
 import (
 	"context"
-	"strings"
 	v1 "suask/api/register/v1"
+	"suask/internal/consts"
 	"suask/internal/model"
 	"suask/internal/service"
 	"suask/utility"
@@ -33,10 +33,10 @@ func (c *cRegister) SendVerificationCode(ctx context.Context, req *v1.SendVerifi
 		return &v1.SendVerificationCodeRes{Msg: "验证码已发送，请注意查收或稍后再试"}, nil
 	}
 
-	// 检查是否为学校邮箱（暂时）
-	if !strings.HasSuffix(req.Email, "@mail.sysu.edu.cn") && !strings.HasSuffix(req.Email, "@mail2.sysu.edu.cn") {
-		return nil, gerror.New("暂不支持非学校邮箱注册")
-	}
+	//// 检查是否为学校邮箱（暂时）
+	//if !strings.HasSuffix(req.Email, "@mail.sysu.edu.cn") && !strings.HasSuffix(req.Email, "@mail2.sysu.edu.cn") {
+	//	return nil, gerror.New("暂不支持非学校邮箱注册")
+	//}
 
 	// 检查邮箱和用户名是否重复
 	out, err := service.Register().CheckEmailAndName(ctx, data)
@@ -116,7 +116,16 @@ func (c *cRegister) Register(ctx context.Context, req *v1.RegisterReq) (res *v1.
 	if err != nil {
 		return nil, err
 	}
+	// 注册user表
 	out, err := service.Register().Register(ctx, data)
+	if err != nil {
+		return nil, err
+	}
+	// 注册setting表
+	_, err = service.Setting().AddSetting(ctx, model.AddSettingInput{
+		Id:      out.Id,
+		ThemeId: consts.DefaultThemeId,
+	})
 	if err != nil {
 		return nil, err
 	}

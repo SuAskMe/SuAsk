@@ -23,10 +23,11 @@ type cUser struct {
 var User cUser
 
 func (c *cUser) UpdateUserInfo(ctx context.Context, req *v1.UpdateUserReq) (res *v1.UpdateUserRes, err error) {
-	userInfo := model.UpdateUserInput{}
-	err = gconv.Struct(req, &userInfo)
-	if err != nil {
-		return nil, err
+	userId := gconv.Int(ctx.Value(consts.CtxId))
+	userInfo := model.UpdateUserInput{
+		UserId:       userId,
+		Nickname:     req.Nickname,
+		Introduction: req.Introduction,
 	}
 	// 上传头像
 	if req.AvatarFile.FileHeader != nil {
@@ -38,7 +39,17 @@ func (c *cUser) UpdateUserInfo(ctx context.Context, req *v1.UpdateUserReq) (res 
 		avatarId := data.Id
 		userInfo.AvatarFileId = avatarId
 	}
+	// 更新基础数据
 	out, err := service.User().UpdateUser(ctx, userInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	// 更新设置
+	_, err = service.Setting().UpdateSetting(ctx, model.UpdateSettingInput{
+		Id:      userId,
+		ThemeId: gconv.Int(req.ThemeId),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -170,17 +181,19 @@ func (c *cUser) GetUserInfoById(ctx context.Context, req *v1.UserInfoByIdReq) (r
 
 func (c *cUser) Info(ctx context.Context, req *v1.UserInfoReq) (res *v1.UserInfoRes, err error) {
 	userId := gconv.Int(ctx.Value(consts.CtxId))
-	out, err := service.User().GetUser(ctx, model.UserInfoInput{Id: userId})
+
+	// 获取用户基本信息
+	user, err := service.User().GetUser(ctx, model.UserInfoInput{Id: userId})
 	if err != nil {
 		return nil, err
 	}
 	res = &v1.UserInfoRes{}
-	res.Id = out.Id
-	res.Name = out.Name
-	res.Nickname = out.Nickname
-	res.Role = out.Role
-	res.Introduction = out.Introduction
-	avatarId := out.AvatarFileId
+	res.Id = user.Id
+	res.Name = user.Name
+	res.Nickname = user.Nickname
+	res.Role = user.Role
+	res.Introduction = user.Introduction
+	avatarId := user.AvatarFileId
 	if avatarId != 0 {
 		file, err1 := service.File().Get(ctx, model.FileGetInput{Id: avatarId})
 		if err1 != nil {
@@ -188,9 +201,16 @@ func (c *cUser) Info(ctx context.Context, req *v1.UserInfoReq) (res *v1.UserInfo
 		}
 		res.AvatarURL = file.URL
 	}
-	res.Email = out.Email
-	res.ThemeId = out.ThemeId
+	res.Email = user.Email
 
+	// 获取设置内容
+	setting, err := service.Setting().GetSetting(ctx, model.GetSettingInput{Id: userId})
+	if err != nil {
+		return nil, err
+	}
+	res.ThemeId = setting.ThemeId
+
+	// 获取提问箱权限（如果是教师）
 	perm, _ := validation.IsTeacher(ctx, userId)
 	res.QuestionBoxPerm = perm
 

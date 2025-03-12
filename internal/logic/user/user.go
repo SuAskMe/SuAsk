@@ -2,9 +2,7 @@ package user
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
-	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/model/do"
@@ -22,18 +20,18 @@ func (s sUser) GetUser(ctx context.Context, in model.UserInfoInput) (out model.U
 }
 
 func (s sUser) UpdateUser(ctx context.Context, in model.UpdateUserInput) (out model.UpdateUserOutput, err error) {
-	userId := gconv.Int(ctx.Value(consts.CtxId))
+	//userId := gconv.Int(ctx.Value(consts.CtxId))
 	userInfo := do.Users{
 		Nickname:     in.Nickname,
 		Introduction: in.Introduction,
-		ThemeId:      in.ThemeId,
+		//ThemeId:      in.ThemeId,
 		AvatarFileId: in.AvatarFileId,
 	}
-	_, err = dao.Users.Ctx(ctx).WherePri(userId).Update(userInfo)
+	_, err = dao.Users.Ctx(ctx).WherePri(in.UserId).Update(userInfo)
 	if err != nil {
 		return model.UpdateUserOutput{}, err
 	}
-	return model.UpdateUserOutput{Id: userId}, nil
+	return model.UpdateUserOutput{Id: in.UserId}, nil
 }
 
 func (s sUser) UpdatePassword(ctx context.Context, in model.UpdatePasswordInput) (out model.UpdatePasswordOutput, err error) {
