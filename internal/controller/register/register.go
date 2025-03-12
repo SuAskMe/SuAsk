@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	v1 "suask/api/register/v1"
+	"suask/internal/consts"
 	"suask/internal/model"
 	"suask/internal/service"
 	"suask/utility"
@@ -116,7 +117,16 @@ func (c *cRegister) Register(ctx context.Context, req *v1.RegisterReq) (res *v1.
 	if err != nil {
 		return nil, err
 	}
+	// 注册user表
 	out, err := service.Register().Register(ctx, data)
+	if err != nil {
+		return nil, err
+	}
+	// 注册setting表
+	_, err = service.Setting().AddSetting(ctx, model.AddSettingInput{
+		Id:      out.Id,
+		ThemeId: consts.DefaultThemeId,
+	})
 	if err != nil {
 		return nil, err
 	}

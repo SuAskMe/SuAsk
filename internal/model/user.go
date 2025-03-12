@@ -3,10 +3,11 @@ package model
 type Role string
 
 type UpdateUserInput struct {
+	UserId       int         `json:"userId" dc:"用户ID"`
 	Nickname     interface{} `json:"nickname" orm:"nickname" dc:"昵称"`
 	Introduction interface{} `json:"introduction" orm:"introduction" dc:"简介"`
 	AvatarFileId interface{} `json:"avatarId" orm:"avatar_file_id" dc:"头像文件ID，为空时为配置的默认头像"`
-	ThemeId      interface{} `json:"themeId" orm:"theme_id" dc:"主题ID，为空时为配置的默认主题"`
+	//ThemeId      interface{} `json:"themeId" orm:"theme_id" dc:"主题ID，为空时为配置的默认主题"`
 }
 
 type UpdateUserOutput struct {
@@ -33,5 +34,5 @@ type UserInfoOutput struct {
 	Introduction string `json:"introduction" orm:"introduction"   description:"简介"`
 	AvatarFileId int    `json:"avatarFileId" orm:"avatar_file_id" description:"头像文件ID，为空时为配置的默认头像"`
 	Email        string `json:"email"        orm:"email"          description:"邮箱"`
-	ThemeId      int    `json:"themeId"      orm:"theme_id"       description:"主题ID，为空时为配置的默认主题"`
+	//ThemeId      int    `json:"themeId"      orm:"theme_id"       description:"主题ID，为空时为配置的默认主题"`
 }

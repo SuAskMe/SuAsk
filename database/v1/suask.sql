@@ -218,3 +218,30 @@ CREATE TABLE `users`  (
   INDEX `avatar_file_id`(`avatar_file_id` ASC) USING BTREE,
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`avatar_file_id`) REFERENCES `files` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for settings
+-- ----------------------------
+
+DROP TABLE IF EXISTS `settings`;
+CREATE TABLE `settings` (
+    `id` int NOT NULL COMMENT '设置id',
+    `theme_id` int NULL DEFAULT NULL COMMENT '主题ID，为空时为配置的默认主题',
+    `question_box_perm` enum('public','protected','private') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '提问箱权限',
+    PRIMARY KEY (`id`) USING BTREE,
+    CONSTRAINT `settings_ibfk_1` FOREIGN KEY (`id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for viewed
+-- ----------------------------
+
+DROP TABLE IF EXISTS `viewed`;
+CREATE TABLE `viewed` (
+    `user_id` int NOT NULL COMMENT '用户id',
+    `question_id` int NOT NULL COMMENT '问题id',
+    PRIMARY KEY (`user_id`, `question_id`) USING BTREE,
+    CONSTRAINT `viewed_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT `viewed_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    INDEX `viewed_id` (`user_id` ASC , `question_id` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_zh_0900_as_cs ROW_FORMAT = DYNAMIC;

@@ -39,7 +39,7 @@ func (s *sRegister) Register(ctx context.Context, in model.RegisterInput) (out m
 		Role:         consts.STUDENT,
 		Nickname:     in.Name,
 		Introduction: "",
-		ThemeId:      consts.DefaultThemeId,
+		//ThemeId:      consts.DefaultThemeId,
 	}
 
 	lastInsertID, err := dao.Users.Ctx(ctx).InsertAndGetId(registerUser)
