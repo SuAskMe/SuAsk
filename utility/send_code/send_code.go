@@ -23,32 +23,35 @@ var tmplPath = g.Cfg().MustGet(context.TODO(), "email.tmplPath").String()
 
 var msgTmpl = `<html><body><p>您的验证码为：%s</p></body></html>`
 
-func InitMail() error {
+func InitMail() {
 	file, err := os.Open(tmplPath)
 	if err != nil {
-		return err
+		fmt.Println(err)
+		return
 	}
 	defer file.Close()
 
 	fileInfo, err := file.Stat()
 	if err != nil {
-		return err
+		fmt.Println(err)
+		return
 	}
 	if fileInfo.Size() > 1024*1024 {
-		return fmt.Errorf("template file too large")
+		fmt.Println("template file too large")
+		return
 	}
 	data := make([]byte, fileInfo.Size())
 	_, err = file.Read(data)
 	if err != nil {
-		return err
+		fmt.Println(err)
+		return
 	}
 	target := "%s"
 	msgTmpl = string(data)
 	if !strings.Contains(msgTmpl, target) {
-		msgTmpl = `<html><body><p>您的验证码为：%s</p></body></html>`
-		return fmt.Errorf("template file format error")
+		fmt.Println("template file format error")
+		return
 	}
-	return nil
 }
 
 // func SendCode(email string) (code string, err error) {

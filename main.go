@@ -18,9 +18,6 @@ import (
 )
 
 func main() {
-	err := send_code.InitMail()
-	if err != nil {
-		panic(err)
-	}
+	send_code.InitMail()
 	cmd.Main.Run(gctx.GetInitCtx())
 }
