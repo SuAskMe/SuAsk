@@ -233,13 +233,22 @@ func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput)
 }
 
 func (s *sNotification) Update(ctx context.Context, in model.UpdateNotificationInput) (out model.UpdateNotificationOutput, err error) {
-	out = model.UpdateNotificationOutput{}
 	_, err = dao.Notifications.Ctx(ctx).WherePri(in.Id).Update(do.Notifications{IsRead: true})
 	if err != nil {
 		return model.UpdateNotificationOutput{}, err
 	}
 	out.IsRead = true
 	out.Id = in.Id
+	return out, nil
+}
+
+func (s *sNotification) UpdateAoQ(ctx context.Context, in model.UpdateAoQInput) (out model.UpdateAoQOutput, err error) {
+	_, err = dao.Notifications.Ctx(ctx).Where(dao.Notifications.Columns().UserId, in.UserID).Where(dao.Notifications.Columns().QuestionId, in.QuestionID).Update(do.Notifications{IsRead: true})
+	if err != nil {
+		return model.UpdateAoQOutput{}, err
+	}
+	out.QuestionID = in.QuestionID
+	out.IsRead = true
 	return out, nil
 }
 

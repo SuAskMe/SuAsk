@@ -83,6 +83,12 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 		answerList[IdMap[k]].ImageURLs = url.URL
 	}
 	res.Answers = answerList
+
+	// 更新通知
+	_, err = service.Notification().UpdateAoQ(ctx, model.UpdateAoQInput{UserID: userId, QuestionID: req.QuestionID})
+	if err != nil {
+		return nil, err
+	}
 	return
 }
 
