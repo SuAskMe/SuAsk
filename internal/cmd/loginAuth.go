@@ -3,19 +3,41 @@ package cmd
 import (
 	"context"
 	"strconv"
-	"strings"
 	v1 "suask/api/login/v1"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model/entity"
 	"suask/utility/login"
 	"suask/utility/response"
+	triemux "suask/utility/trie_mux"
 
 	"github.com/goflyfox/gtoken/gtoken"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/util/gconv"
 )
+
+var trieMux *triemux.TrieMux
+
+func init() {
+	// 这里添加必须登陆的路由，前缀匹配
+	mustLoginPath := []string{
+		"/files",
+		"/user/info",
+		"/favorite",
+		"/history",
+		"/notification",
+		"/questions/public",
+		"/teacher/question",
+		"/user/heartbeat",
+	}
+	trieMux = triemux.NewTrieMux()
+	for _, v := range mustLoginPath {
+		if err := trieMux.Insert(v); err != nil {
+			panic(err)
+		}
+	}
+}
 
 func LoginToken() (gfToken *gtoken.GfToken, err error) {
 	gfToken = &gtoken.GfToken{
@@ -51,7 +73,7 @@ func LoginToken() (gfToken *gtoken.GfToken, err error) {
 //	return
 //}
 
-func loginFuncFrontend(r *ghttp.Request) (string, interface{}) {
+func loginFuncFrontend(r *ghttp.Request) (string, any) {
 	name := r.Get("name").String()
 	email := r.Get("email").String()
 	password := r.Get("password").String()
@@ -113,7 +135,6 @@ func loginAfterFunc(r *ghttp.Request, respData gtoken.Resp) {
 		//data.ThemeId = userInfo.ThemeId
 		response.JsonExit(r, 0, "login success", data)
 	}
-	return
 }
 
 func authAfterFunc(r *ghttp.Request, respData gtoken.Resp) {
@@ -138,21 +159,5 @@ func authAfterFunc(r *ghttp.Request, respData gtoken.Resp) {
 }
 
 func isMustLoginPath(path string) bool {
-	// 这里添加必须登陆的路由，前缀匹配
-	mustLoginPath := []string{
-		"/files",
-		"/user/info",
-		"/favorite",
-		"/history",
-		"/notification",
-		"/questions/public",
-		"/teacher/question",
-		"/user/heartbeat",
-	}
-	for _, v := range mustLoginPath {
-		if strings.HasPrefix(path, v) {
-			return true
-		}
-	}
-	return false
+	return trieMux.HasPrefix(path)
 }
