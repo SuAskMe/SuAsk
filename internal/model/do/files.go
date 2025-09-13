@@ -12,9 +12,9 @@ import (
 // Files is the golang structure of table files for DAO operations like Where/Data.
 type Files struct {
 	g.Meta     `orm:"table:files, do:true"`
-	Id         interface{} // 文件ID
-	Name       interface{} // 文件名，不得包含非法字符例如斜杠
+	Id         any         // 文件ID
+	Name       any         // 文件名，不得包含非法字符例如斜杠
 	Hash       []byte      // 文件哈希，算法暂定为BLAKE2b
-	UploaderId interface{} // 上传者用户ID
+	UploaderId any         // 上传者用户ID
 	CreatedAt  *gtime.Time // 文件上传时间
 }

@@ -41,7 +41,7 @@ func TeacherPerm(ctx context.Context, teacherId int) error {
 	}
 	t, ok := teacherCache.Load(teacherId)
 	if !ok {
-		md := dao.Teachers.Ctx(ctx).Where("id = ?", teacherId).Fields(dao.Teachers.Columns().Perm)
+		md := dao.Teachers.Ctx(ctx).Where("id = ?", teacherId).Fields(dao.Teachers.Columns().Name, dao.Teachers.Columns().Perm)
 		var teacher *entity.Teachers
 		err := md.Scan(&teacher)
 		if err != nil {
@@ -135,13 +135,31 @@ func IsTeacher(ctx context.Context, teacherId int) (string, error) {
 		}
 		teacherCache.Store(teacherId, teacher)
 		//fmt.Println(teacher)
-
-		return teacher.Perm, nil
+		t = teacher
 	}
 	return t.(*entity.Teachers).Perm, nil
 }
 
-func UpdateTeacherPerm(teacherId int, perm string) {
+func UpdateTeacherPerm(teacherId int, name, perm string) {
 	teacher := &entity.Teachers{Perm: perm}
 	teacherCache.Store(teacherId, teacher)
+}
+
+func GetTeacherName(ctx context.Context, teacherId int) (string, error) {
+	t, ok := teacherCache.Load(teacherId)
+	if !ok {
+		// fmt.Println("not in cache", teacherId)
+		md := dao.Teachers.Ctx(ctx).Where("id = ?", teacherId).Fields(dao.Teachers.Columns().Name)
+		var teacher *entity.Teachers
+		err := md.Scan(&teacher)
+		if err != nil {
+			return "", err
+		}
+		if teacher == nil || teacher.Name == "" {
+			return "", fmt.Errorf("该用户不是老师")
+		}
+		teacherCache.Store(teacherId, teacher)
+		t = teacher
+	}
+	return t.(*entity.Teachers).Name, nil
 }

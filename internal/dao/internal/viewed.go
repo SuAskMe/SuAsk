@@ -11,64 +11,58 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 )
 
-// FilesDao is the data access object for the table files.
-type FilesDao struct {
+// ViewedDao is the data access object for the table viewed.
+type ViewedDao struct {
 	table    string             // table is the underlying table name of the DAO.
 	group    string             // group is the database configuration group name of the current DAO.
-	columns  FilesColumns       // columns contains all the column names of Table for convenient usage.
+	columns  ViewedColumns      // columns contains all the column names of Table for convenient usage.
 	handlers []gdb.ModelHandler // handlers for customized model modification.
 }
 
-// FilesColumns defines and stores column names for the table files.
-type FilesColumns struct {
-	Id         string // 文件ID
-	Name       string // 文件名，不得包含非法字符例如斜杠
-	Hash       string // 文件哈希，算法暂定为BLAKE2b
-	UploaderId string // 上传者用户ID
-	CreatedAt  string // 文件上传时间
+// ViewedColumns defines and stores column names for the table viewed.
+type ViewedColumns struct {
+	UserId     string // 用户id
+	QuestionId string // 问题id
 }
 
-// filesColumns holds the columns for the table files.
-var filesColumns = FilesColumns{
-	Id:         "id",
-	Name:       "name",
-	Hash:       "hash",
-	UploaderId: "uploader_id",
-	CreatedAt:  "created_at",
+// viewedColumns holds the columns for the table viewed.
+var viewedColumns = ViewedColumns{
+	UserId:     "user_id",
+	QuestionId: "question_id",
 }
 
-// NewFilesDao creates and returns a new DAO object for table data access.
-func NewFilesDao(handlers ...gdb.ModelHandler) *FilesDao {
-	return &FilesDao{
+// NewViewedDao creates and returns a new DAO object for table data access.
+func NewViewedDao(handlers ...gdb.ModelHandler) *ViewedDao {
+	return &ViewedDao{
 		group:    "default",
-		table:    "files",
-		columns:  filesColumns,
+		table:    "viewed",
+		columns:  viewedColumns,
 		handlers: handlers,
 	}
 }
 
 // DB retrieves and returns the underlying raw database management object of the current DAO.
-func (dao *FilesDao) DB() gdb.DB {
+func (dao *ViewedDao) DB() gdb.DB {
 	return g.DB(dao.group)
 }
 
 // Table returns the table name of the current DAO.
-func (dao *FilesDao) Table() string {
+func (dao *ViewedDao) Table() string {
 	return dao.table
 }
 
 // Columns returns all column names of the current DAO.
-func (dao *FilesDao) Columns() FilesColumns {
+func (dao *ViewedDao) Columns() ViewedColumns {
 	return dao.columns
 }
 
 // Group returns the database configuration group name of the current DAO.
-func (dao *FilesDao) Group() string {
+func (dao *ViewedDao) Group() string {
 	return dao.group
 }
 
 // Ctx creates and returns a Model for the current DAO. It automatically sets the context for the current operation.
-func (dao *FilesDao) Ctx(ctx context.Context) *gdb.Model {
+func (dao *ViewedDao) Ctx(ctx context.Context) *gdb.Model {
 	model := dao.DB().Model(dao.table)
 	for _, handler := range dao.handlers {
 		model = handler(model)
@@ -82,6 +76,6 @@ func (dao *FilesDao) Ctx(ctx context.Context) *gdb.Model {
 //
 // Note: Do not commit or roll back the transaction in function f,
 // as it is automatically handled by this function.
-func (dao *FilesDao) Transaction(ctx context.Context, f func(ctx context.Context, tx gdb.TX) error) (err error) {
+func (dao *ViewedDao) Transaction(ctx context.Context, f func(ctx context.Context, tx gdb.TX) error) (err error) {
 	return dao.Ctx(ctx).Transaction(ctx, f)
 }

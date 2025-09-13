@@ -12,11 +12,11 @@ import (
 // Answers is the golang structure of table answers for DAO operations like Where/Data.
 type Answers struct {
 	g.Meta     `orm:"table:answers, do:true"`
-	Id         interface{} // 回答ID
-	UserId     interface{} // 用户ID
-	QuestionId interface{} // 问题ID
-	InReplyTo  interface{} // 回复的回答ID，可为空
-	Contents   interface{} // 回答内容
+	Id         any         // 回答ID
+	UserId     any         // 用户ID
+	QuestionId any         // 问题ID
+	InReplyTo  any         // 回复的回答ID，可为空
+	Contents   any         // 回答内容
 	CreatedAt  *gtime.Time // 创建时间
-	Upvotes    interface{} // 点赞量
+	Upvotes    any         // 点赞量
 }

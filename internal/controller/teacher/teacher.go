@@ -2,13 +2,14 @@ package teacher
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/util/gconv"
 	v1 "suask/api/teacher/v1"
 	"suask/internal/consts"
 	"suask/internal/model"
 	"suask/internal/service"
 	"suask/utility/validation"
+
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type cTeacher struct {
@@ -56,11 +57,11 @@ func (c *cTeacher) GetTeacherPin(ctx context.Context, req *v1.TeacherPinReq) (re
 
 func (c *cTeacher) UpdatePerm(ctx context.Context, req *v1.UpdatePermReq) (res *v1.UpdatePermRes, err error) {
 	teacherId := gconv.Int(ctx.Value(consts.CtxId))
-	exist, err := service.Teacher().TeacherExist(ctx, teacherId)
+	name, err := service.Teacher().TeacherExist(ctx, teacherId)
 	if err != nil {
 		return nil, err
 	}
-	if !exist {
+	if len(name) == 0 {
 		return nil, gerror.New("教师不存在")
 	}
 	_, err = service.Teacher().UpdatePerm(ctx, model.TeacherUpdatePermInput{
@@ -73,6 +74,6 @@ func (c *cTeacher) UpdatePerm(ctx context.Context, req *v1.UpdatePermReq) (res *
 	res = &v1.UpdatePermRes{
 		Id: teacherId,
 	}
-	validation.UpdateTeacherPerm(teacherId, gconv.String(req.Perm))
+	validation.UpdateTeacherPerm(teacherId, name, gconv.String(req.Perm))
 	return res, nil
 }

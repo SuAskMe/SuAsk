@@ -39,12 +39,13 @@ func (s *sTeacher) GetTeacherList(ctx context.Context, _ model.TeacherGetInput) 
 	return out, nil
 }
 
-func (s *sTeacher) TeacherExist(ctx context.Context, TeacherId int) (exist bool, err error) {
-	count, err := dao.Teachers.Ctx(ctx).WherePri(TeacherId).Count()
+func (s *sTeacher) TeacherExist(ctx context.Context, TeacherId int) (name string, err error) {
+	md := dao.Teachers.Ctx(ctx).WherePri(TeacherId).Fields(dao.Teachers.Columns().Name)
+	err = md.Scan(&name)
 	if err != nil {
-		return false, err
+		return "", err
 	}
-	return count > 0, nil
+	return name, nil
 }
 
 func (s *sTeacher) UpdatePerm(ctx context.Context, in model.TeacherUpdatePermInput) (out model.TeacherUpdatePermOutput, err error) {

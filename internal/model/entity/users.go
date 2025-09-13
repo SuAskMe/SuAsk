@@ -19,7 +19,6 @@ type Users struct {
 	Nickname     string      `json:"nickname"     orm:"nickname"       description:"昵称"`                 // 昵称
 	Introduction string      `json:"introduction" orm:"introduction"   description:"简介"`                 // 简介
 	AvatarFileId int         `json:"avatarFileId" orm:"avatar_file_id" description:"头像文件ID，为空时为配置的默认头像"` // 头像文件ID，为空时为配置的默认头像
-	ThemeId      int         `json:"themeId"      orm:"theme_id"       description:"主题ID，为空时为配置的默认主题"`   // 主题ID，为空时为配置的默认主题
 	CreatedAt    *gtime.Time `json:"createdAt"    orm:"created_at"     description:"创建时间"`               // 创建时间
 	UpdatedAt    *gtime.Time `json:"updatedAt"    orm:"updated_at"     description:""`                   //
 	DeletedAt    *gtime.Time `json:"deletedAt"    orm:"deleted_at"     description:""`                   //

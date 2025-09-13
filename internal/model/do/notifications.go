@@ -12,13 +12,13 @@ import (
 // Notifications is the golang structure of table notifications for DAO operations like Where/Data.
 type Notifications struct {
 	g.Meta     `orm:"table:notifications, do:true"`
-	Id         interface{} // 提醒ID
-	UserId     interface{} // 用户ID
-	QuestionId interface{} // 问题ID
-	ReplyToId  interface{} // 回复问题的ID
-	AnswerId   interface{} // 问题ID
-	Type       interface{} // 提醒类型（新提问、新回复、新回答）
-	IsRead     interface{} // 是否已读
+	Id         any         // 提醒ID
+	UserId     any         // 用户ID
+	QuestionId any         // 问题ID
+	ReplyToId  any         // 回复问题的ID
+	AnswerId   any         // 问题ID
+	Type       any         // 提醒类型（新提问、新回复、新回答）
+	IsRead     any         // 是否已读
 	CreatedAt  *gtime.Time // 创建时间
 	DeletedAt  *gtime.Time // 删除时间
 }

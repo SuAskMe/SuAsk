@@ -2,7 +2,6 @@ package main
 
 import (
 	_ "suask/internal/packed"
-	"suask/utility/send_code"
 
 	_ "suask/internal/logic"
 
@@ -18,9 +17,5 @@ import (
 )
 
 func main() {
-	err := send_code.InitMail()
-	if err != nil {
-		panic(err)
-	}
 	cmd.Main.Run(gctx.GetInitCtx())
 }

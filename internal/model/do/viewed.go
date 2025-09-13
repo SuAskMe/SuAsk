@@ -8,9 +8,9 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 )
 
-// UserRelation is the golang structure of table user_relation for DAO operations like Where/Data.
-type UserRelation struct {
-	g.Meta     `orm:"table:user_relation, do:true"`
-	QuestionId any //
-	UserId     any //
+// Viewed is the golang structure of table viewed for DAO operations like Where/Data.
+type Viewed struct {
+	g.Meta     `orm:"table:viewed, do:true"`
+	UserId     any // 用户id
+	QuestionId any // 问题id
 }

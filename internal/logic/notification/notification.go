@@ -32,6 +32,7 @@ func (s *sNotification) Add(ctx context.Context, in model.AddNotificationInput) 
 	return out, nil
 }
 
+// 效率极差，必须从数据库层面开始优化
 func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput) (out model.GetNotificationsOutput, err error) {
 	md := dao.Notifications.Ctx(ctx).Where(dao.Notifications.Columns().UserId, in.UserId).OrderAsc(dao.Notifications.Columns().IsRead).OrderDesc(dao.Notifications.Columns().CreatedAt)
 	var newQuestion []*entity.Notifications
