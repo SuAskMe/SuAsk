@@ -41,7 +41,7 @@ type UpdateUserReq struct {
 	Introduction any               `json:"introduction" orm:"introduction"   description:"简介"`
 	AvatarFile   *ghttp.UploadFile `json:"avatar"       description:"头像文件"`
 	ThemeId      any               `json:"themeId"      orm:"theme_id"       description:"主题ID，为空时为配置的默认主题"`
-	NotifyEmail  any               `json:"notifyEmail"  orm:"notify_email"   description:"通知邮箱"`
+	NotifyEmail  any               `json:"notifyEmail"  orm:"notify_email"   description:"通知邮箱，为空时关闭邮件通知"`
 }
 
 type UpdateUserRes struct {

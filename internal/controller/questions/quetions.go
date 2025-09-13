@@ -78,13 +78,15 @@ func (cQuestion) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v1.AddQu
 		if err != nil {
 			return nil, err
 		}
-		er := send_email.SendNotice(userSetting.NotifyEmail, &send_email.Notice{
-			User:    "SuAsk用户",
-			Type:    "新的提问",
-			Content: req.Content,
-			URL:     "https://suask.me/question-detail/" + gconv.String(questionOut.ID)})
-		if er != nil {
-			g.Log("Email").Errorf(ctx, "send email to user %d error: %v", req.DstUserId, er)
+		if userSetting.NotifyEmail != "" {
+			er := send_email.SendNotice(userSetting.NotifyEmail, &send_email.Notice{
+				User:    "SuAsk用户",
+				Type:    "新的提问",
+				Content: req.Content,
+				URL:     "https://suask.me/question-detail/" + gconv.String(questionOut.ID)})
+			if er != nil {
+				g.Log("Email").Errorf(ctx, "send email to user %d error: %v", req.DstUserId, er)
+			}
 		}
 	}
 	return res, nil

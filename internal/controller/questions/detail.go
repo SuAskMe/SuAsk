@@ -176,15 +176,18 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 		if err != nil {
 			return nil, err
 		}
-		er := send_email.SendNotice(userSetting.NotifyEmail, &send_email.Notice{
-			User:    "SuAsk用户",
-			Type:    "新的回答",
-			Content: input.Content,
-			URL:     "https://suask.me/question-detail/" + gconv.String(req.QuestionId) + "#" + gconv.String(output.Id),
-		})
-		if er != nil {
-			g.Log("Email").Errorf(ctx, "send email to user %d error: %v", srcUserId, er)
+		if userSetting.NotifyEmail != "" {
+			er := send_email.SendNotice(userSetting.NotifyEmail, &send_email.Notice{
+				User:    "SuAsk用户",
+				Type:    "新的回答",
+				Content: input.Content,
+				URL:     "https://suask.me/question-detail/" + gconv.String(req.QuestionId) + "#" + gconv.String(output.Id),
+			})
+			if er != nil {
+				g.Log("Email").Errorf(ctx, "send email to user %d error: %v", srcUserId, er)
+			}
 		}
+
 	}
 
 	// 如果是回复别人的回答
@@ -209,14 +212,16 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 			if err != nil {
 				return nil, err
 			}
-			er := send_email.SendNotice(userSetting.NotifyEmail, &send_email.Notice{
-				User:    "SuAsk用户",
-				Type:    "新的回复",
-				Content: input.Content,
-				URL:     "https://suask.me/question-detail/" + gconv.String(req.QuestionId) + "#" + gconv.String(output.Id),
-			})
-			if er != nil {
-				g.Log("Email").Errorf(ctx, "send email to user %d error: %v", srcUserId, er)
+			if userSetting.NotifyEmail != "" {
+				er := send_email.SendNotice(userSetting.NotifyEmail, &send_email.Notice{
+					User:    "SuAsk用户",
+					Type:    "新的回复",
+					Content: input.Content,
+					URL:     "https://suask.me/question-detail/" + gconv.String(req.QuestionId) + "#" + gconv.String(output.Id),
+				})
+				if er != nil {
+					g.Log("Email").Errorf(ctx, "send email to user %d error: %v", srcUserId, er)
+				}
 			}
 		}
 	}
