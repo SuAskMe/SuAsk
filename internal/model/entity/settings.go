@@ -12,4 +12,5 @@ type Settings struct {
 	NotifyEmail     string `json:"notifyEmail"     orm:"notify_email"      description:"通知邮箱"`             // 通知邮箱
 	NotifyMergeCnt  int    `json:"notifyMergeCnt"  orm:"notify_merge_cnt"  description:"合并提醒数量"`           // 合并提醒数量
 	NotifyMaxDelay  int    `json:"notifyMaxDelay"  orm:"notify_max_delay"  description:"最大延迟时间(min)"`      // 最大延迟时间(min)
+	NotifySwitch    bool   `json:"notifySwitch"    orm:"notify_switch"     description:"通知开关"`             // 通知开关
 }

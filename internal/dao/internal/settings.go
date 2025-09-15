@@ -27,6 +27,7 @@ type SettingsColumns struct {
 	NotifyEmail     string // 通知邮箱
 	NotifyMergeCnt  string // 合并提醒数量
 	NotifyMaxDelay  string // 最大延迟时间(min)
+	NotifySwitch    string // 通知开关
 }
 
 // settingsColumns holds the columns for the table settings.
@@ -37,6 +38,7 @@ var settingsColumns = SettingsColumns{
 	NotifyEmail:     "notify_email",
 	NotifyMergeCnt:  "notify_merge_cnt",
 	NotifyMaxDelay:  "notify_max_delay",
+	NotifySwitch:    "notify_switch",
 }
 
 // NewSettingsDao creates and returns a new DAO object for table data access.

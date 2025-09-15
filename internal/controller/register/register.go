@@ -124,9 +124,10 @@ func (c *cRegister) Register(ctx context.Context, req *v1.RegisterReq) (res *v1.
 	}
 	// 注册setting表
 	_, err = service.Setting().AddSetting(ctx, model.AddSettingInput{
-		Id:          out.Id,
-		ThemeId:     consts.DefaultThemeId,
-		NotifyEmail: data.Email,
+		Id:           out.Id,
+		ThemeId:      consts.DefaultThemeId,
+		NotifySwitch: true,
+		NotifyEmail:  data.Email,
 	})
 	if err != nil {
 		return nil, err

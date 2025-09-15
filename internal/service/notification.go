@@ -12,6 +12,7 @@ import (
 
 type (
 	INotification interface {
+		SendNoticeEmail(ctx context.Context, in *model.SendNoticeEmailInput) error
 		Add(ctx context.Context, in model.AddNotificationInput) (out model.AddNotificationOutput, err error)
 		// 效率极差，必须从数据库层面开始优化
 		Get(ctx context.Context, in model.GetNotificationsInput) (out model.GetNotificationsOutput, err error)

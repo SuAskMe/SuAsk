@@ -137,6 +137,52 @@ Authorization: Bearer <token>
 }
 ```
 
+#### 2.2 发送注册验证码
+
+**接口地址**: `POST /register/send-verification-code`
+
+**请求参数**:
+```json
+{
+  "email": "邮箱",
+  "name": "用户名"
+}
+```
+
+**响应参数**:
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "msg": "消息"
+  }
+}
+```
+
+#### 2.3 验证注册验证码
+
+**接口地址**: `POST /register/verify-verification-code`
+
+**请求参数**:
+```json
+{
+  "email": "邮箱",
+  "code": "验证码"
+}
+```
+
+**响应参数**:
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "token": "验证成功的Token"
+  }
+}
+```
+
 ### 3. 用户信息相关
 
 #### 3.1 获取当前用户信息
@@ -159,7 +205,9 @@ Authorization: Bearer <token>
     "avatar": "头像文件链接",
     "email": "邮箱",
     "themeId": 1,
-    "question_box_perm": "提问箱权限"
+    "question_box_perm": "提问箱权限",
+    "notifySwitch": true,
+    "notifyEmail": "通知邮箱"
   }
 }
 ```
@@ -199,7 +247,9 @@ id: 用户ID
   "nickname": "昵称",
   "introduction": "简介",
   "avatar": "头像文件",
-  "themeId": 1
+  "themeId": 1,
+  "notifySwitch": true,
+  "notifyEmail": "通知邮箱"
 }
 ```
 
@@ -223,7 +273,7 @@ id: 用户ID
 {
   "email": "邮箱",
   "code": "验证码",
-  "password": "新密码"
+  "password": "新的密码"
 }
 ```
 
@@ -270,7 +320,7 @@ id: 用户ID
 {
   "email": "邮箱",
   "code": "验证码",
-  "password": "新密码"
+  "password": "新的密码"
 }
 ```
 
@@ -302,7 +352,7 @@ id: 用户ID
     "teachers": [
       {
         "id": 1,
-        "responses": 0,
+        "responses": 10,
         "name": "老师名字",
         "avatarUrl": "老师头像链接",
         "introduction": "老师简介",
@@ -314,7 +364,7 @@ id: 用户ID
 }
 ```
 
-#### 4.2 获取指定教师的问题列表
+#### 4.2 获取教师置顶问题
 
 **接口地址**: `GET /info/teacher/pin?teacher_id={teacher_id}`
 
@@ -334,7 +384,7 @@ teacher_id: 教师ID
         "id": 1,
         "title": "问题标题",
         "contents": "问题内容",
-        "views": 0,
+        "views": 100,
         "created_at": 1234567890,
         "image_urls": ["图片链接1", "图片链接2"]
       }
@@ -343,14 +393,14 @@ teacher_id: 教师ID
 }
 ```
 
-#### 4.3 更新教师提问箱权限
+#### 4.3 修改教师提问箱权限
 
 **接口地址**: `PUT /teacher/perm`
 
 **请求参数**:
 ```json
 {
-  "perm": "权限(public, private, protected)"
+  "perm": "提问箱权限" // 可选值: public, private, protected
 }
 ```
 
@@ -365,35 +415,9 @@ teacher_id: 教师ID
 }
 ```
 
-### 5. 问题相关
+### 5. 公开问题相关
 
-#### 5.1 添加问题
-
-**接口地址**: `POST /questions/add`
-
-**请求参数**:
-```json
-{
-  "dst_user_id": 1,
-  "title": "问题标题",
-  "content": "问题内容",
-  "is_private": 0,
-  "files": ["文件1", "文件2"]
-}
-```
-
-**响应参数**:
-```json
-{
-  "code": 0,
-  "message": "success",
-  "data": {
-    "id": 1
-  }
-}
-```
-
-#### 5.2 获取公开问题列表
+#### 5.1 获取公开问题列表
 
 **接口地址**: `GET /questions/public?sort_type={sort_type}&page={page}`
 
@@ -417,7 +441,7 @@ page: 页码(从1开始)
 }
 ```
 
-#### 5.3 搜索公开问题关键字
+#### 5.2 搜索公开问题关键字
 
 **接口地址**: `GET /questions/public/keywords?keyword={keyword}&sort_type={sort_type}`
 
@@ -442,7 +466,7 @@ sort_type: 排序类型(0-3)
 }
 ```
 
-#### 5.4 根据关键字获取公开问题列表
+#### 5.3 根据关键字获取公开问题列表
 
 **接口地址**: `GET /questions/public/search?keyword={keyword}&sort_type={sort_type}&page={page}`
 
@@ -467,7 +491,7 @@ page: 页码(从1开始)
 }
 ```
 
-#### 5.5 获取教师问题列表
+#### 5.4 获取教师问题列表
 
 **接口地址**: `GET /questions/teacher?sort_type={sort_type}&page={page}&teacher_id={teacher_id}`
 
@@ -492,7 +516,7 @@ teacher_id: 教师ID
 }
 ```
 
-#### 5.6 搜索教师问题关键字
+#### 5.5 搜索教师问题关键字
 
 **接口地址**: `GET /questions/teacher/keywords?keyword={keyword}&sort_type={sort_type}&teacher_id={teacher_id}`
 
@@ -514,6 +538,32 @@ teacher_id: 教师ID
         "value": "关键字"
       }
     ]
+  }
+}
+```
+
+#### 5.6 根据关键字获取教师问题列表
+
+**接口地址**: `GET /questions/teacher/search?keyword={keyword}&sort_type={sort_type}&page={page}&teacher_id={teacher_id}`
+
+**请求参数**:
+```
+keyword: 关键字
+sort_type: 排序类型(0-3)
+page: 页码(从1开始)
+teacher_id: 教师ID
+```
+
+**响应参数**:
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "question_list": [
+      // 教师问题列表
+    ],
+    "remain_page": 5
   }
 }
 ```
@@ -779,10 +829,32 @@ page: 页码(从1开始)
   "code": 0,
   "message": "success",
   "data": {
-    "favorite_list": [
+    "question_list": [
       // 收藏列表
     ],
     "remain_page": 5
+  }
+}
+```
+
+#### 8.2 收藏问题
+
+**接口地址**: `POST /favorites`
+
+**请求参数**:
+```json
+{
+  "question_id": 1
+}
+```
+
+**响应参数**:
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "is_favorite": true
   }
 }
 ```
@@ -805,7 +877,7 @@ page: 页码(从1开始)
   "code": 0,
   "message": "success",
   "data": {
-    "favorite_list": [
+    "question_list": [
       // 历史记录列表
     ],
     "remain_page": 5
@@ -819,7 +891,7 @@ page: 页码(从1开始)
 
 **请求参数**:
 ```
-keyword: 关键字(长度2-100)
+keyword: 关键字
 sort_type: 排序类型(0-3)
 ```
 
@@ -834,6 +906,31 @@ sort_type: 排序类型(0-3)
         "value": "关键字"
       }
     ]
+  }
+}
+```
+
+#### 9.3 根据关键字获取历史记录列表
+
+**接口地址**: `GET /history/search?keyword={keyword}&sort_type={sort_type}&page={page}`
+
+**请求参数**:
+```
+keyword: 关键字
+sort_type: 排序类型(0-3)
+page: 页码(从1开始)
+```
+
+**响应参数**:
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "question_list": [
+      // 历史记录列表
+    ],
+    "remain_page": 5
   }
 }
 ```
@@ -868,7 +965,7 @@ user_id: 用户ID
 }
 ```
 
-#### 10.2 更新已读信息
+#### 10.2 更新通知已读状态
 
 **接口地址**: `PUT /notification`
 
@@ -891,7 +988,7 @@ user_id: 用户ID
 }
 ```
 
-#### 10.3 删除提醒
+#### 10.3 删除通知
 
 **接口地址**: `DELETE /notification`
 
@@ -911,7 +1008,7 @@ user_id: 用户ID
 }
 ```
 
-#### 10.4 获取提醒数目
+#### 10.4 获取通知数量
 
 **接口地址**: `GET /notification/count?user_id={user_id}`
 
@@ -929,6 +1026,77 @@ user_id: 用户ID
     "new_question_count": 0,
     "new_reply_count": 0,
     "new_answer_count": 0
+  }
+}
+```
+
+### 11. 文件相关
+
+#### 11.1 上传文件
+
+**接口地址**: `POST /files`
+
+**请求参数**:
+```
+file: 要上传的文件
+```
+
+**响应参数**:
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "id": 1,
+    "name": "文件名",
+    "url": "文件URL"
+  }
+}
+```
+
+#### 11.2 获取文件信息
+
+**接口地址**: `GET /files?id={id}`
+
+**请求参数**:
+```
+id: 文件ID
+```
+
+**响应参数**:
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "url": "文件URL",
+    "name": "文件名",
+    "hash": "文件Hash值",
+    "uploader_id": 1,
+    "created_at": "2025-01-01 00:00:00"
+  }
+}
+```
+
+#### 11.3 获取文件列表信息
+
+**接口地址**: `GET /file-list?id={id1}&id={id2}&...`
+
+**请求参数**:
+```
+id: 文件ID列表
+```
+
+**响应参数**:
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "url": ["文件URL1", "文件URL2"],
+    "name": ["文件名1", "文件名2"],
+    "uploader_id": [1, 2],
+    "created_at": ["2025-01-01 00:00:00", "2025-01-01 00:00:00"]
   }
 }
 ```

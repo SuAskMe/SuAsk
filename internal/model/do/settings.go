@@ -17,4 +17,5 @@ type Settings struct {
 	NotifyEmail     any // 通知邮箱
 	NotifyMergeCnt  any // 合并提醒数量
 	NotifyMaxDelay  any // 最大延迟时间(min)
+	NotifySwitch    any // 通知开关
 }

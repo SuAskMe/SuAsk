@@ -183,6 +183,7 @@ CREATE TABLE `settings` (
   `id` int NOT NULL COMMENT '设置id',
   `theme_id` int DEFAULT NULL COMMENT '主题ID，为空时为配置的默认主题',
   `question_box_perm` enum('public','protected','private') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '提问箱权限',
+  `notify_switch` bit(1) NOT NULL DEFAULT b'1' COMMENT '通知开关',
   `notify_email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs DEFAULT NULL COMMENT '通知邮箱',
   `notify_merge_cnt` int DEFAULT 1 COMMENT '合并提醒数量',
   `notify_max_delay` int DEFAULT 0 COMMENT '最大延迟时间(min)',

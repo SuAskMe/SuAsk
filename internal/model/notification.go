@@ -1,5 +1,7 @@
 package model
 
+import "suask/utility/send_email"
+
 type AddNotificationInput struct {
 	UserId     int    `json:"user_id"     orm:"user_id"     dc:"用户ID"`
 	QuestionId int    `json:"question_id" orm:"question_id" dc:"问题ID"`
@@ -110,4 +112,9 @@ type NewNotificationCountOutput struct {
 	NewQuestionCount int `json:"new_question_count" dc:"新问题数目"`
 	NewReplyCount    int `json:"new_reply_count" dc:"新回复数目"`
 	NewAnswerCount   int `json:"new_answer_count" dc:"新回答数目"`
+}
+
+type SendNoticeEmailInput struct {
+	To     int                `json:"to" dc:"接收者ID"`
+	Notice *send_email.Notice `json:"notice" dc:"通知内容"`
 }

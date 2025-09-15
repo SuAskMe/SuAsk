@@ -47,9 +47,10 @@ func (c *cUser) UpdateUserInfo(ctx context.Context, req *v1.UpdateUserReq) (res 
 
 	// 更新设置
 	_, err = service.Setting().UpdateSetting(ctx, model.UpdateSettingInput{
-		Id:          userId,
-		ThemeId:     req.ThemeId,
-		NotifyEmail: req.NotifyEmail,
+		Id:           userId,
+		ThemeId:      req.ThemeId,
+		NotifySwitch: req.NotifySwitch,
+		NotifyEmail:  req.NotifyEmail,
 	})
 	if err != nil {
 		return nil, err
@@ -212,6 +213,7 @@ func (c *cUser) Info(ctx context.Context, req *v1.UserInfoReq) (res *v1.UserInfo
 	}
 	res.ThemeId = setting.ThemeId
 	res.NotifyEmail = setting.NotifyEmail
+	res.NotifySwitch = setting.NotifySwitch
 
 	// 获取提问箱权限（如果是教师）
 	perm, _ := validation.IsTeacher(ctx, userId)
