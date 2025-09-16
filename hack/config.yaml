@@ -5,7 +5,7 @@ gfcli:
   build: # 编译配置
     name: 'SuAsk'
     arch: "amd64"
-    system: "linux,darwin,windows"
+    system: "linux,windows"
     output: "./bin/"
     packSrc: ""
     version: "v1.0.0"
