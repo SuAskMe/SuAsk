@@ -64,10 +64,10 @@ func (t *TrieMux) HasPrefix(path string) bool {
 		ed = t.getSplitIndexFrom(&path, '/', st)
 		next, ok := node.children[path[st:ed]]
 		// fmt.Println("next", next, "ok", ok, "path[st:ed]", path[st:ed])
-		if next.isEnd {
-			return true
-		} else if !ok {
+		if !ok {
 			return false
+		} else if next.isEnd {
+			return true
 		}
 		node = next
 	}

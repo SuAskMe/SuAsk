@@ -73,7 +73,7 @@ func (cQuestion) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v1.AddQu
 		if err != nil {
 			return nil, err
 		}
-		service.Notification().SendNoticeEmail(ctx, &model.SendNoticeEmailInput{
+		err = service.Notification().SendNoticeEmail(ctx, &model.SendNoticeEmailInput{
 			To: req.DstUserId,
 			Notice: &send_email.Notice{
 				User:    "SuAsk用户",
