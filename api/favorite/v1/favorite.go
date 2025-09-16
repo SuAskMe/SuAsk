@@ -17,7 +17,7 @@ type GetFavoritePageReq struct {
 }
 
 type GetFavoritePageRes struct {
-	QuestionList []*model.FavoriteQuestion `json:"favorite_list"`
+	QuestionList []*model.FavoriteQuestion `json:"question_list"`
 	RemainPage   int                       `json:"remain_page"`
 }
 

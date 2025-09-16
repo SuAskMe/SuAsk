@@ -32,6 +32,7 @@ func (s *sNotification) Add(ctx context.Context, in model.AddNotificationInput) 
 	return out, nil
 }
 
+// 效率极差，必须从数据库层面开始优化
 func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput) (out model.GetNotificationsOutput, err error) {
 	md := dao.Notifications.Ctx(ctx).Where(dao.Notifications.Columns().UserId, in.UserId).OrderAsc(dao.Notifications.Columns().IsRead).OrderDesc(dao.Notifications.Columns().CreatedAt)
 	var newQuestion []*entity.Notifications
@@ -233,8 +234,8 @@ func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput)
 }
 
 func (s *sNotification) Update(ctx context.Context, in model.UpdateNotificationInput) (out model.UpdateNotificationOutput, err error) {
-	out = model.UpdateNotificationOutput{}
-	_, err = dao.Notifications.Ctx(ctx).WherePri(in.Id).Update(do.Notifications{IsRead: true})
+	_, err = dao.Notifications.Ctx(ctx).Where(dao.Notifications.Columns().Id, in.Id).
+		Update(do.Notifications{IsRead: true})
 	if err != nil {
 		return model.UpdateNotificationOutput{}, err
 	}
@@ -243,8 +244,18 @@ func (s *sNotification) Update(ctx context.Context, in model.UpdateNotificationI
 	return out, nil
 }
 
+func (s *sNotification) UpdateAoQ(ctx context.Context, in model.UpdateAoQInput) (out model.UpdateAoQOutput, err error) {
+	_, err = dao.Notifications.Ctx(ctx).Where(dao.Notifications.Columns().UserId, in.UserID).Where(dao.Notifications.Columns().QuestionId, in.QuestionID).Update(do.Notifications{IsRead: true})
+	if err != nil {
+		return model.UpdateAoQOutput{}, err
+	}
+	out.QuestionID = in.QuestionID
+	out.IsRead = true
+	return out, nil
+}
+
 func (s *sNotification) Delete(ctx context.Context, in model.DeleteNotificationInput) (out model.DeleteNotificationOutput, err error) {
-	_, err = dao.Notifications.Ctx(ctx).WherePri(in.Id).Delete()
+	_, err = dao.Notifications.Ctx(ctx).Where(dao.Notifications.Columns().Id, in.Id).Delete()
 	if err != nil {
 		return model.DeleteNotificationOutput{}, err
 	}

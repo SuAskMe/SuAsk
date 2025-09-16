@@ -2,10 +2,11 @@ package file
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/util/gconv"
 	v1 "suask/api/file/v1"
 	"suask/internal/model"
 	"suask/internal/service"
+
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type cFile struct {
@@ -13,7 +14,7 @@ type cFile struct {
 
 var File cFile
 
-func (c *cFile) UpdateFile(ctx context.Context, req *v1.UploadFileReq) (res *v1.UploadFileRes, err error) {
+func (c *cFile) UploadFile(ctx context.Context, req *v1.UploadFileReq) (res *v1.UploadFileRes, err error) {
 	FileInfo := model.FileUploadInput{}
 	err = gconv.Struct(req, &FileInfo)
 	if err != nil {

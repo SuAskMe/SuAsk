@@ -8,7 +8,7 @@ import (
 	"suask/internal/model"
 	"suask/internal/service"
 	"suask/utility"
-	"suask/utility/send_code"
+	"suask/utility/send_email"
 	"time"
 
 	"github.com/gogf/gf/v2/errors/gerror"
@@ -46,7 +46,7 @@ func (c *cRegister) SendVerificationCode(ctx context.Context, req *v1.SendVerifi
 	}
 	// 如果都不重复
 	if !out.NameDuplicated && !out.EmailDuplicated {
-		code, err := send_code.SendCode(data.Email)
+		code, err := send_email.SendCode(data.Email)
 		if err != nil {
 			return nil, err
 		}
@@ -124,8 +124,10 @@ func (c *cRegister) Register(ctx context.Context, req *v1.RegisterReq) (res *v1.
 	}
 	// 注册setting表
 	_, err = service.Setting().AddSetting(ctx, model.AddSettingInput{
-		Id:      out.Id,
-		ThemeId: consts.DefaultThemeId,
+		Id:           out.Id,
+		ThemeId:      consts.DefaultThemeId,
+		NotifySwitch: true,
+		NotifyEmail:  data.Email,
 	})
 	if err != nil {
 		return nil, err

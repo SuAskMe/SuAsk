@@ -8,6 +8,8 @@ import (
 	"suask/internal/model/do"
 	"suask/internal/model/entity"
 	"suask/internal/service"
+
+	"github.com/gogf/gf/v2/frame/g"
 )
 
 type sTeacher struct {
@@ -39,19 +41,22 @@ func (s *sTeacher) GetTeacherList(ctx context.Context, _ model.TeacherGetInput) 
 	return out, nil
 }
 
-func (s *sTeacher) TeacherExist(ctx context.Context, TeacherId int) (exist bool, err error) {
-	count, err := dao.Teachers.Ctx(ctx).WherePri(TeacherId).Count()
+func (s *sTeacher) TeacherExist(ctx context.Context, TeacherId int) (name string, err error) {
+	md := dao.Teachers.Ctx(ctx).Where(dao.Teachers.Columns().Id, TeacherId).Fields(dao.Teachers.Columns().Name)
+	var teacher entity.Teachers
+	err = md.Scan(&teacher)
 	if err != nil {
-		return false, err
+		g.Log().Debug(ctx, "teacher not exist", TeacherId)
+		return "", err
 	}
-	return count > 0, nil
+	return teacher.Name, nil
 }
 
 func (s *sTeacher) UpdatePerm(ctx context.Context, in model.TeacherUpdatePermInput) (out model.TeacherUpdatePermOutput, err error) {
 	update := do.Teachers{
 		Perm: in.Perm,
 	}
-	_, err = dao.Teachers.Ctx(ctx).WherePri(in.TeacherId).Update(update)
+	_, err = dao.Teachers.Ctx(ctx).Where(dao.Teachers.Columns().Id, in.TeacherId).Update(update)
 	if err != nil {
 		return model.TeacherUpdatePermOutput{}, err
 	}
