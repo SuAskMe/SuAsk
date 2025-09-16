@@ -7,7 +7,7 @@ import (
 
 type TrieMuxNode struct {
 	children map[string]*TrieMuxNode
-	// isEnd    bool
+	isEnd    bool
 }
 
 type TrieMux struct {
@@ -18,7 +18,7 @@ func NewTrieMux() *TrieMux {
 	return &TrieMux{
 		root: &TrieMuxNode{
 			children: make(map[string]*TrieMuxNode),
-			// isEnd:    false,
+			isEnd:    false,
 		},
 	}
 }
@@ -36,12 +36,12 @@ func (t *TrieMux) Insert(path string) error {
 		if _, ok := node.children[word]; !ok {
 			node.children[word] = &TrieMuxNode{
 				children: make(map[string]*TrieMuxNode),
-				// isEnd:    false,
+				isEnd:    false,
 			}
 		}
 		node = node.children[word]
 	}
-	// node.isEnd = true
+	node.isEnd = true
 	return nil
 }
 
@@ -53,6 +53,7 @@ func (t *TrieMux) getSplitIndexFrom(path *string, singleSep byte, st int) int {
 	}
 	return len(*path)
 }
+
 func (t *TrieMux) HasPrefix(path string) bool {
 	if path[0] != '/' {
 		return false
@@ -62,10 +63,13 @@ func (t *TrieMux) HasPrefix(path string) bool {
 	for st := 1; st < len(path); st = ed + 1 {
 		ed = t.getSplitIndexFrom(&path, '/', st)
 		next, ok := node.children[path[st:ed]]
-		if !ok {
+		// fmt.Println("next", next, "ok", ok, "path[st:ed]", path[st:ed])
+		if next.isEnd {
+			return true
+		} else if !ok {
 			return false
 		}
 		node = next
 	}
-	return true
+	return false
 }

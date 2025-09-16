@@ -16,7 +16,7 @@ type sSetting struct {
 func (s *sSetting) GetSetting(ctx context.Context, in model.GetSettingInput) (out model.GetSettingOutput, err error) {
 	setting := model.GetSettingOutput{}
 	// fmt.Println("id", in.Id)
-	err = dao.Settings.Ctx(ctx).WherePri(in.Id).Scan(&setting)
+	err = dao.Settings.Ctx(ctx).Where(dao.Settings.Columns().Id, in.Id).Scan(&setting)
 	if err != nil {
 		return model.GetSettingOutput{}, err
 	}
@@ -46,7 +46,8 @@ func (s *sSetting) UpdateSetting(ctx context.Context, in model.UpdateSettingInpu
 		NotifySwitch: in.NotifySwitch,
 		NotifyEmail:  in.NotifyEmail,
 	}
-	_, err = dao.Settings.Ctx(ctx).WherePri(in.Id).Update(input)
+	_, err = dao.Settings.Ctx(ctx).Where(dao.Settings.Columns().Id, in.Id).
+		Update(input)
 	if err != nil {
 		return model.UpdateSettingOutput{}, err
 	}

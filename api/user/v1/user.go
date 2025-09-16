@@ -42,7 +42,7 @@ type UpdateUserReq struct {
 	Introduction any               `json:"introduction" orm:"introduction"   description:"简介"`
 	AvatarFile   *ghttp.UploadFile `json:"avatar"       description:"头像文件"`
 	ThemeId      any               `json:"themeId"      orm:"theme_id"       description:"主题ID，为空时为配置的默认主题"`
-	NotifySwitch any               `json:"notifySwitch"    orm:"notify_switch" description:"是否开启邮件通知，0为关闭，1为开启"`
+	NotifySwitch bool              `json:"notifySwitch"    orm:"notify_switch" description:"是否开启邮件通知，0为关闭，1为开启"`
 	NotifyEmail  any               `json:"notifyEmail"  orm:"notify_email"   description:"通知邮箱，为空时关闭邮件通知"`
 }
 

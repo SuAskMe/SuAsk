@@ -2,12 +2,14 @@ package user
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/util/grand"
+	"errors"
 	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/model/do"
 	"suask/internal/service"
 	"suask/utility/login"
+
+	"github.com/gogf/gf/v2/util/grand"
 )
 
 type sUser struct {
@@ -21,13 +23,18 @@ func (s sUser) GetUser(ctx context.Context, in model.UserInfoInput) (out model.U
 
 func (s sUser) UpdateUser(ctx context.Context, in model.UpdateUserInput) (out model.UpdateUserOutput, err error) {
 	//userId := gconv.Int(ctx.Value(consts.CtxId))
+	nn, ok := in.Nickname.(string)
+	if ok && (len([]rune(nn))) > 20 {
+		return out, errors.New("昵称长度不能超过20")
+	}
 	userInfo := do.Users{
 		Nickname:     in.Nickname,
 		Introduction: in.Introduction,
 		//ThemeId:      in.ThemeId,
 		AvatarFileId: in.AvatarFileId,
 	}
-	_, err = dao.Users.Ctx(ctx).WherePri(in.UserId).Update(userInfo)
+	_, err = dao.Users.Ctx(ctx).Where(dao.Users.Columns().Id, in.UserId).
+		Update(userInfo)
 	if err != nil {
 		return model.UpdateUserOutput{}, err
 	}
@@ -41,7 +48,8 @@ func (s sUser) UpdatePassword(ctx context.Context, in model.UpdatePasswordInput)
 		Salt:         salt,
 		PasswordHash: password,
 	}
-	_, err = dao.Users.Ctx(ctx).WherePri(in.UserId).Update(update)
+	_, err = dao.Users.Ctx(ctx).Where(dao.Users.Columns().Id, in.UserId).
+		Update(update)
 	if err != nil {
 		return model.UpdatePasswordOutput{}, err
 	}

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"slices"
 	"strconv"
 	v1 "suask/api/login/v1"
 	"suask/internal/consts"
@@ -28,7 +29,7 @@ func init() {
 		"/history",
 		"/notification",
 		"/questions/public",
-		"/teacher/question",
+		"/teacher",
 		"/user/heartbeat",
 	}
 	trieMux = triemux.NewTrieMux()
@@ -114,7 +115,7 @@ func loginAfterFunc(r *ghttp.Request, respData gtoken.Resp) {
 		respData.Code = 1
 		userId := respData.GetString("userKey")
 		userInfo := entity.Users{}
-		err := dao.Users.Ctx(context.TODO()).WherePri(userId).
+		err := dao.Users.Ctx(context.TODO()).Where(dao.Users.Columns().Id, userId).
 			Fields(dao.Users.Columns().Id).
 			Fields(dao.Users.Columns().Role).
 			Scan(&userInfo)
@@ -142,8 +143,10 @@ func authAfterFunc(r *ghttp.Request, respData gtoken.Resp) {
 	err := gconv.Struct(respData.GetString("data"), &userInfo)
 	//fmt.Println("Not Must Login", respData)
 	if err != nil {
+		g.Log().Debug(context.TODO(), "authAfterFunc err", err, r.URL.String())
 		if isMustLoginPath(r.URL.String()) {
 			//fmt.Println("login fail, block")
+			g.Log().Debug(context.TODO(), "is Must Login")
 			response.Auth(r)
 		}
 		//fmt.Println("login fail, set 1")
@@ -159,5 +162,10 @@ func authAfterFunc(r *ghttp.Request, respData gtoken.Resp) {
 }
 
 func isMustLoginPath(path string) bool {
-	return trieMux.HasPrefix(path)
+	ok := trieMux.HasPrefix(path)
+	if ok {
+		return ok
+	}
+	fullUrlMatch := []string{"/user"}
+	return slices.Contains(fullUrlMatch, path)
 }
