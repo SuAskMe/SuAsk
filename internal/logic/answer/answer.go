@@ -11,7 +11,8 @@ type sAnswer struct{}
 
 func (s *sAnswer) GetAnswerIDs(ctx context.Context, answerId int) (out entity.Answers, err error) {
 	out = entity.Answers{}
-	err = dao.Answers.Ctx(ctx).WherePri(answerId).Fields("id, user_id, question_id").Scan(&out)
+	err = dao.Answers.Ctx(ctx).Where(dao.Answers.Columns().Id, answerId).
+		Fields("id, user_id, question_id").Scan(&out)
 	if err != nil {
 		return entity.Answers{}, err
 	}

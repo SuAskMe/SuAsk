@@ -1,39 +1,117 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-</head>
-<body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px;">
-    
-    <div style="border-bottom: 2px solid #4F46E5; padding-bottom: 15px; margin-bottom: 25px;">
-        <h1 style="color: #1F2937; margin: 0;">🔒 SuAsk - 验证码</h1>
-    </div>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>你有一条新消息 | Suask 提问箱</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f7f9fc;
+      color: #333;
+    "
+  >
+    <table
+      role="presentation"
+      width="100%"
+      cellspacing="0"
+      cellpadding="0"
+      style="
+        max-width: 600px;
+        margin: 32px auto;
+        background: #ffffff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      "
+    >
+      <!-- Header -->
+      <tr>
+        <td align="center" style="padding: 30px 20px 20px; background-color: #6c63ff">
+          <h1 style="color: #fff; margin: 0; font-size: 28px">📬 SuAsk</h1>
+          <p style="color: #e0e5ff; margin-top: 8px; font-size: 16px">听见每一份悄悄话</p>
+        </td>
+      </tr>
 
-    <p style="color: #4B5563;">欢迎使用 SuAsk 匿名提问箱！您的验证码为：</p>
-    
-    <div style="background-color: #F5F3FF; padding: 15px 25px; 
-                border-radius: 8px; margin: 25px 0; 
-                font-size: 24px; font-weight: bold; 
-                color: #4F46E5; letter-spacing: 2px;
-                text-align: center;">
-        【%s】
-    </div>
+      <!-- Content -->
+      <tr>
+        <td style="padding: 30px">
+          <h2 style="color: #333; font-size: 22px; margin: 0 0 16px">亲爱的 <strong>$user$</strong>，</h2>
+          <p style="font-size: 16px; line-height: 1.6; color: #555">
+            有人在 <strong>Suask 提问箱</strong> 给你留下了一条新消息 💬！
+          </p>
 
-    <div style="background-color: #F3F4F6; padding: 15px; 
-                border-radius: 6px; margin-top: 30px;">
-        <p style="margin: 0; color: #6B7280; font-size: 14px;">
-            ⏳ 验证码有效期：1分钟<br>
-            🔐 安全提示：请勿向他人泄露验证码<br>
-            📧 如非本人操作，请忽略本邮件
-        </p>
-    </div>
+          <!-- 消息类型与内容预览 -->
+          <div
+            style="
+              background-color: #f8f9ff;
+              border-left: 4px solid #6c63ff;
+              padding: 14px 20px;
+              margin: 20px 0;
+              border-radius: 6px;
+            "
+          >
+            <p style="margin: 0; font-size: 15px; color: #444">
+              <strong>消息类型：</strong>
+              <span style="color: #6c63ff; font-weight: 500">$type$</span>
+            </p>
+            <p style="margin: 10px 0 0; font-size: 15px; color: #555; line-height: 1.5">
+              <strong>内容预览：</strong><br />
+              <em>"$content$"</em>
+            </p>
+          </div>
 
-    <footer style="margin-top: 30px; color: #9CA3AF; 
-                font-size: 12px; text-align: center;
-                border-top: 1px solid #E5E7EB; padding-top: 20px;">
-        <p>SuAsk 团队 · 让匿名提问更安全</p>
-        <p>需要帮助？请联系 <a href="mailto:support@suask.com" 
-            style="color: #4F46E5; text-decoration: none;">1730072668@qq.com</a></p>
-    </footer>
-</body>
+          <!-- View Button -->
+          <div style="text-align: center; margin: 28px 0">
+            <a
+              href="$url$"
+              style="
+                display: inline-block;
+                padding: 14px 32px;
+                background-color: #6c63ff;
+                color: #ffffff;
+                text-decoration: none;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: 16px;
+                box-shadow: 0 4px 10px rgba(108, 99, 255, 0.3);
+              "
+            >
+              查看我的新消息
+            </a>
+          </div>
+
+          <p style="font-size: 15px; color: #666; line-height: 1.6">
+            或复制以下链接到浏览器中打开：<br />
+            <a href="$url$" style="word-break: break-all; color: #6c63ff">$url$</a>
+          </p>
+
+          <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0" />
+
+          <p style="font-size: 14px; color: #888; line-height: 1.5">
+            💡 小提示：老师可以登录 SuAsk 账户管理提问权限、设置是否允许匿名提问，以及开启/关闭邮件提醒。
+          </p>
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td style="padding: 20px 30px; background-color: #f5f7fa; font-size: 13px; color: #aaa; text-align: center">
+          <p style="margin: 0">
+            © 2025 SuAsk. 所有权利保留。<br />
+            官网：<a href="https://suask.me" style="color: #aaa; text-decoration: underline">suask.me</a>
+          </p>
+          <p style="margin: 12px 0 0">
+            你正在接收此邮件是因为你注册了 SuAsk 并启用了消息通知。<br />
+            如不再希望收到此类提醒，请前往
+            <a href="https://suask.me/setting" style="color: #aaa; text-decoration: underline">账户设置</a>
+            关闭邮件通知。
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
 </html>

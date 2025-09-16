@@ -1,11 +1,13 @@
 package model
 
+import "suask/utility/send_email"
+
 type AddNotificationInput struct {
-	UserId     int         `json:"user_id"     orm:"user_id"     dc:"用户ID"`
-	QuestionId int         `json:"question_id" orm:"question_id" dc:"问题ID"`
-	ReplyToId  interface{} `json:"reply_to_id"  orm:"reply_to_id" dc:"回复问题的ID"`
-	AnswerId   interface{} `json:"answer_id"   orm:"answer_id"   dc:"回复ID"`
-	Type       string      `json:"type"       orm:"type"        dc:"提醒类型（新提问、新回复、新回答）"`
+	UserId     int    `json:"user_id"     orm:"user_id"     dc:"用户ID"`
+	QuestionId int    `json:"question_id" orm:"question_id" dc:"问题ID"`
+	ReplyToId  int    `json:"reply_to_id"  orm:"reply_to_id" dc:"回复问题的ID"`
+	AnswerId   int    `json:"answer_id"   orm:"answer_id"   dc:"回复ID"`
+	Type       string `json:"type"       orm:"type"        dc:"提醒类型（新提问、新回复、新回答）"`
 }
 
 type NotificationQuestion struct {
@@ -86,6 +88,16 @@ type UpdateNotificationOutput struct {
 	IsRead bool `json:"isRead"     orm:"is_read"     dc:"是否已读"`
 }
 
+type UpdateAoQInput struct {
+	UserID     int `json:"user_id"     orm:"user_id"     dc:"用户ID"`
+	QuestionID int `json:"question_id" orm:"question_id" dc:"问题ID"`
+}
+
+type UpdateAoQOutput struct {
+	QuestionID int  `json:"question_id" orm:"question_id" dc:"问题ID"`
+	IsRead     bool `json:"isRead"     orm:"is_read"     dc:"是否已读"`
+}
+
 type DeleteNotificationInput struct {
 	Id int `json:"id"         orm:"id"          dc:"提醒ID"`
 }
@@ -100,4 +112,9 @@ type NewNotificationCountOutput struct {
 	NewQuestionCount int `json:"new_question_count" dc:"新问题数目"`
 	NewReplyCount    int `json:"new_reply_count" dc:"新回复数目"`
 	NewAnswerCount   int `json:"new_answer_count" dc:"新回答数目"`
+}
+
+type SendNoticeEmailInput struct {
+	To     int                `json:"to" dc:"接收者ID"`
+	Notice *send_email.Notice `json:"notice" dc:"通知内容"`
 }

@@ -11,14 +11,15 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 )
 
-// FilesDao is the data access object for table files.
+// FilesDao is the data access object for the table files.
 type FilesDao struct {
-	table   string       // table is the underlying table name of the DAO.
-	group   string       // group is the database configuration group name of current DAO.
-	columns FilesColumns // columns contains all the column names of Table for convenient usage.
+	table    string             // table is the underlying table name of the DAO.
+	group    string             // group is the database configuration group name of the current DAO.
+	columns  FilesColumns       // columns contains all the column names of Table for convenient usage.
+	handlers []gdb.ModelHandler // handlers for customized model modification.
 }
 
-// FilesColumns defines and stores column names for table files.
+// FilesColumns defines and stores column names for the table files.
 type FilesColumns struct {
 	Id         string // 文件ID
 	Name       string // 文件名，不得包含非法字符例如斜杠
@@ -27,7 +28,7 @@ type FilesColumns struct {
 	CreatedAt  string // 文件上传时间
 }
 
-// filesColumns holds the columns for table files.
+// filesColumns holds the columns for the table files.
 var filesColumns = FilesColumns{
 	Id:         "id",
 	Name:       "name",
@@ -37,44 +38,49 @@ var filesColumns = FilesColumns{
 }
 
 // NewFilesDao creates and returns a new DAO object for table data access.
-func NewFilesDao() *FilesDao {
+func NewFilesDao(handlers ...gdb.ModelHandler) *FilesDao {
 	return &FilesDao{
-		group:   "default",
-		table:   "files",
-		columns: filesColumns,
+		group:    "default",
+		table:    "files",
+		columns:  filesColumns,
+		handlers: handlers,
 	}
 }
 
-// DB retrieves and returns the underlying raw database management object of current DAO.
+// DB retrieves and returns the underlying raw database management object of the current DAO.
 func (dao *FilesDao) DB() gdb.DB {
 	return g.DB(dao.group)
 }
 
-// Table returns the table name of current dao.
+// Table returns the table name of the current DAO.
 func (dao *FilesDao) Table() string {
 	return dao.table
 }
 
-// Columns returns all column names of current dao.
+// Columns returns all column names of the current DAO.
 func (dao *FilesDao) Columns() FilesColumns {
 	return dao.columns
 }
 
-// Group returns the configuration group name of database of current dao.
+// Group returns the database configuration group name of the current DAO.
 func (dao *FilesDao) Group() string {
 	return dao.group
 }
 
-// Ctx creates and returns the Model for current DAO, It automatically sets the context for current operation.
+// Ctx creates and returns a Model for the current DAO. It automatically sets the context for the current operation.
 func (dao *FilesDao) Ctx(ctx context.Context) *gdb.Model {
-	return dao.DB().Model(dao.table).Safe().Ctx(ctx)
+	model := dao.DB().Model(dao.table)
+	for _, handler := range dao.handlers {
+		model = handler(model)
+	}
+	return model.Safe().Ctx(ctx)
 }
 
 // Transaction wraps the transaction logic using function f.
-// It rollbacks the transaction and returns the error from function f if it returns non-nil error.
+// It rolls back the transaction and returns the error if function f returns a non-nil error.
 // It commits the transaction and returns nil if function f returns nil.
 //
-// Note that, you should not Commit or Rollback the transaction in function f
+// Note: Do not commit or roll back the transaction in function f,
 // as it is automatically handled by this function.
 func (dao *FilesDao) Transaction(ctx context.Context, f func(ctx context.Context, tx gdb.TX) error) (err error) {
 	return dao.Ctx(ctx).Transaction(ctx, f)

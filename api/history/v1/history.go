@@ -17,7 +17,7 @@ type GetHistoryPageReq struct {
 }
 
 type GetHistoryPageRes struct {
-	QuestionList []model.HistoryQuestion `json:"favorite_list"`
+	QuestionList []model.HistoryQuestion `json:"question_list"`
 	RemainPage   int                     `json:"remain_page"`
 }
 
@@ -40,6 +40,6 @@ type GetHistoryPageByKeywordReq struct {
 }
 
 type GetHistoryPageByKeywordRes struct {
-	QuestionList []model.HistoryQuestion `json:"favorite_list"`
+	QuestionList []model.HistoryQuestion `json:"question_list"`
 	RemainPage   int                     `json:"remain_page"`
 }

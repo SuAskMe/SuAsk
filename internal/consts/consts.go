@@ -1,7 +1,7 @@
 package consts
 
 const (
-	MaxQuestionsPerPage   = 30
+	MaxQuestionsPerPage   = 10
 	MaxKeywordsPerReq     = 8
 	MaxAvatarsPerQuestion = 3
 	SortByTimeDsc         = 0

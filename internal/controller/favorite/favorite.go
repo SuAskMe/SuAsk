@@ -91,6 +91,17 @@ func (c *cFavorite) Get(ctx context.Context, req *v1.GetFavoritePageReq) (res *v
 	return res, err
 }
 
+func (c *cFavorite) Favorite(ctx context.Context, req *v1.FavoriteReq) (res *v1.FavoriteRes, err error) {
+	output, err := service.QuestionUtil().Favorite(ctx, &model.FavoriteInput{QuestionID: req.QuestionID})
+	if err != nil {
+		return nil, err
+	}
+	res = &v1.FavoriteRes{
+		IsFavorite: output.IsFavorite,
+	}
+	return
+}
+
 // func (c *cFavorite) GetKeyWords(ctx context.Context, req *v1.GetFavoriteSearchKeywordsReq) (res *v1.GetFavoriteSearchKeywordsRes, err error) {
 // 	input := model.GetFavoriteKeywordsInput{}
 // 	err = gconv.Scan(req, &input)
@@ -119,14 +130,3 @@ func (c *cFavorite) Get(ctx context.Context, req *v1.GetFavoritePageReq) (res *v
 // 	}
 // 	return res, err
 // }
-
-func (c *cFavorite) Favorite(ctx context.Context, req *v1.FavoriteReq) (res *v1.FavoriteRes, err error) {
-	output, err := service.QuestionUtil().Favorite(ctx, &model.FavoriteInput{QuestionID: req.QuestionID})
-	if err != nil {
-		return nil, err
-	}
-	res = &v1.FavoriteRes{
-		IsFavorite: output.IsFavorite,
-	}
-	return
-}

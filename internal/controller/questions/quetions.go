@@ -7,6 +7,7 @@ import (
 	"suask/internal/consts"
 	"suask/internal/model"
 	"suask/internal/service"
+	"suask/utility/send_email"
 	"suask/utility/validation"
 
 	"github.com/gogf/gf/v2/util/gconv"
@@ -38,7 +39,7 @@ func (cQuestion) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v1.AddQu
 		return nil, err
 	}
 	questionInput.SrcUserID = UserId
-	questionId, err := service.PublicQuestion().AddQuestion(ctx, &questionInput)
+	questionOut, err := service.PublicQuestion().AddQuestion(ctx, &questionInput)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +52,7 @@ func (cQuestion) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v1.AddQu
 			return nil, err
 		}
 		attachment := model.AddAttachmentInput{
-			QuestionId: questionId.ID,
+			QuestionId: questionOut.ID,
 			Type:       consts.QuestionFileType,
 			FileId:     fileIdList.IdList,
 		}
@@ -60,14 +61,25 @@ func (cQuestion) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v1.AddQu
 			return nil, err
 		}
 	}
-	res = &v1.AddQuestionRes{Id: questionId.ID}
+	res = &v1.AddQuestionRes{Id: questionOut.ID}
 
 	// 添加通知
 	if req.DstUserId != 0 {
 		_, err := service.Notification().Add(ctx, model.AddNotificationInput{
 			UserId:     req.DstUserId,
-			QuestionId: questionId.ID,
+			QuestionId: questionOut.ID,
 			Type:       consts.NewQuestion,
+		})
+		if err != nil {
+			return nil, err
+		}
+		service.Notification().SendNoticeEmail(ctx, &model.SendNoticeEmailInput{
+			To: req.DstUserId,
+			Notice: &send_email.Notice{
+				User:    "SuAsk用户",
+				Type:    "新的提问",
+				Content: req.Content,
+				URL:     "https://suask.me/question-detail/" + gconv.String(questionOut.ID)},
 		})
 		if err != nil {
 			return nil, err

@@ -14,6 +14,8 @@ type UserInfoRes struct {
 	Email           string `json:"email"        orm:"email"          description:"邮箱"`
 	ThemeId         int    `json:"themeId"      orm:"theme_id"       description:"主题ID，为空时为配置的默认主题"`
 	QuestionBoxPerm string `json:"question_box_perm" dc:"提问箱权限"`
+	NotifySwitch    bool   `json:"notifySwitch"    orm:"notify_switch" description:"是否开启邮件通知，0为关闭，1为开启"`
+	NotifyEmail     string `json:"notifyEmail" dc:"通知邮箱"`
 }
 
 type UserInfoByIdReq struct {
@@ -36,10 +38,12 @@ type UserInfoBase struct {
 
 type UpdateUserReq struct {
 	g.Meta       `path:"/user" method:"PUT" tags:"User" summary:"更新用户信息"`
-	Nickname     interface{}       `json:"nickname"     orm:"nickname"       description:"昵称"`
-	Introduction interface{}       `json:"introduction" orm:"introduction"   description:"简介"`
+	Nickname     any               `json:"nickname"     orm:"nickname"       description:"昵称"`
+	Introduction any               `json:"introduction" orm:"introduction"   description:"简介"`
 	AvatarFile   *ghttp.UploadFile `json:"avatar"       description:"头像文件"`
-	ThemeId      interface{}       `json:"themeId"      orm:"theme_id"       description:"主题ID，为空时为配置的默认主题"`
+	ThemeId      any               `json:"themeId"      orm:"theme_id"       description:"主题ID，为空时为配置的默认主题"`
+	NotifySwitch bool              `json:"notifySwitch"    orm:"notify_switch" description:"是否开启邮件通知，0为关闭，1为开启"`
+	NotifyEmail  any               `json:"notifyEmail"  orm:"notify_email"   description:"通知邮箱，为空时关闭邮件通知"`
 }
 
 type UpdateUserRes struct {

@@ -7,6 +7,7 @@ import (
 	"suask/internal/consts"
 	"suask/internal/model"
 	"suask/internal/service"
+	"suask/utility/send_email"
 
 	"github.com/gogf/gf/v2/util/gconv"
 )
@@ -83,6 +84,12 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 		answerList[IdMap[k]].ImageURLs = url.URL
 	}
 	res.Answers = answerList
+
+	// 更新通知
+	_, err = service.Notification().UpdateAoQ(ctx, model.UpdateAoQInput{UserID: userId, QuestionID: req.QuestionID})
+	if err != nil {
+		return nil, err
+	}
 	return
 }
 
@@ -160,6 +167,21 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 			AnswerId:   output.Id,
 			Type:       consts.NewAnswer,
 		})
+		if err != nil {
+			return nil, err
+		}
+		err = service.Notification().SendNoticeEmail(ctx, &model.SendNoticeEmailInput{
+			To: srcUserId,
+			Notice: &send_email.Notice{
+				User:    "SuAsk用户",
+				Type:    "新的回答",
+				Content: input.Content,
+				URL:     "https://suask.me/question-detail/" + gconv.String(req.QuestionId) + "#" + gconv.String(output.Id),
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// 如果是回复别人的回答
@@ -176,6 +198,18 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 				ReplyToId:  output.Id,
 				QuestionId: answer.QuestionId,
 				Type:       consts.NewReply,
+			})
+			if err != nil {
+				return nil, err
+			}
+			err = service.Notification().SendNoticeEmail(ctx, &model.SendNoticeEmailInput{
+				To: answer.UserId,
+				Notice: &send_email.Notice{
+					User:    "SuAsk用户",
+					Type:    "新的回复",
+					Content: input.Content,
+					URL:     "https://suask.me/question-detail/" + gconv.String(req.QuestionId) + "#" + gconv.String(output.Id),
+				},
 			})
 			if err != nil {
 				return nil, err

@@ -11,6 +11,6 @@ import (
 // UserRelation is the golang structure of table user_relation for DAO operations like Where/Data.
 type UserRelation struct {
 	g.Meta     `orm:"table:user_relation, do:true"`
-	QuestionId interface{} //
-	UserId     interface{} //
+	QuestionId any //
+	UserId     any //
 }

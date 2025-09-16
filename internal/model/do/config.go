@@ -11,7 +11,7 @@ import (
 // Config is the golang structure of table config for DAO operations like Where/Data.
 type Config struct {
 	g.Meta            `orm:"table:config, do:true"`
-	Id                interface{} // 配置ID，限制为0
-	DefaultAvatarPath interface{} // 默认头像文件路径
-	DefaultThemeId    interface{} // 默认主题ID
+	Id                any // 配置ID，限制为0
+	DefaultAvatarPath any // 默认头像文件路径
+	DefaultThemeId    any // 默认主题ID
 }

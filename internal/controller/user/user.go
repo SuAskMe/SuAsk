@@ -8,7 +8,7 @@ import (
 	"suask/internal/model"
 	"suask/internal/model/entity"
 	"suask/internal/service"
-	"suask/utility/send_code"
+	"suask/utility/send_email"
 	"suask/utility/validation"
 	"time"
 
@@ -47,8 +47,10 @@ func (c *cUser) UpdateUserInfo(ctx context.Context, req *v1.UpdateUserReq) (res 
 
 	// 更新设置
 	_, err = service.Setting().UpdateSetting(ctx, model.UpdateSettingInput{
-		Id:      userId,
-		ThemeId: gconv.Int(req.ThemeId),
+		Id:           userId,
+		ThemeId:      req.ThemeId,
+		NotifySwitch: req.NotifySwitch,
+		NotifyEmail:  req.NotifyEmail,
 	})
 	if err != nil {
 		return nil, err
@@ -63,7 +65,8 @@ type CodeCache struct {
 
 func (c *cUser) SendVerificationCode(ctx context.Context, req *v1.SendVerificationCodeReq) (res *v1.SendVerificationCodeRes, err error) {
 	var userId int
-	if req.Type == consts.ResetPassword {
+	switch req.Type {
+	case consts.ResetPassword:
 		userId = gconv.Int(ctx.Value(consts.CtxId))
 		if userId == consts.DefaultUserId {
 			return nil, gerror.New("默认用户不能改密码")
@@ -75,7 +78,7 @@ func (c *cUser) SendVerificationCode(ctx context.Context, req *v1.SendVerificati
 		if req.Email != user.Email {
 			return nil, gerror.New("用户注册邮箱与输入邮箱不同")
 		}
-	} else if req.Type == consts.ForgetPassword {
+	case consts.ForgetPassword:
 		user := entity.Users{}
 		var count int
 		_ = dao.Users.Ctx(ctx).Where(dao.Users.Columns().Email, req.Email).ScanAndCount(&user, &count, false)
@@ -83,14 +86,14 @@ func (c *cUser) SendVerificationCode(ctx context.Context, req *v1.SendVerificati
 			return nil, gerror.New("邮箱不存在")
 		}
 		userId = user.Id
-	} else {
+	default:
 		return nil, err
 	}
 	isSent, _ := gcache.Contains(ctx, req.Email)
 	if isSent {
 		return &v1.SendVerificationCodeRes{Msg: "验证码已发送，请注意查收或稍后再试"}, nil
 	}
-	code, err := send_code.SendCode(req.Email)
+	code, err := send_email.SendCode(req.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -209,6 +212,8 @@ func (c *cUser) Info(ctx context.Context, req *v1.UserInfoReq) (res *v1.UserInfo
 		return nil, err
 	}
 	res.ThemeId = setting.ThemeId
+	res.NotifyEmail = setting.NotifyEmail
+	res.NotifySwitch = setting.NotifySwitch
 
 	// 获取提问箱权限（如果是教师）
 	perm, _ := validation.IsTeacher(ctx, userId)
