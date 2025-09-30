@@ -10,7 +10,7 @@ import (
 	"suask/internal/model/do"
 	"suask/internal/model/entity"
 	"suask/internal/service"
-	"suask/utility/validation"
+	"suask/module/validation"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/util/gconv"

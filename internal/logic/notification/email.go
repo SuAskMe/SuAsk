@@ -4,7 +4,7 @@ import (
 	"context"
 	"suask/internal/model"
 	"suask/internal/service"
-	"suask/utility/send_email"
+	"suask/module/send_email"
 
 	"github.com/gogf/gf/v2/frame/g"
 )

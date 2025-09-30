@@ -17,6 +17,7 @@ const (
 	DefaultUserName  = "匿名用户"
 	DefaultThemeId   = 1
 	DefaultAvatarURL = "default-avatar"
+	ErrInternal      = "出错了，请联系管理员"
 )
 
 // for question status
@@ -37,10 +38,8 @@ const (
 
 // for gToken
 const (
-	TokenType       = "Bearer"
-	CacheMode       = 1 // gcache
-	ServerName      = "SuAsk"
-	ErrLoginFaulMsg = "登录失败，账号或密码错误"
+	TokenType  = "Bearer"
+	ServerName = "SuAsk"
 )
 
 // for login

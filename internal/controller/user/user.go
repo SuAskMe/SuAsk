@@ -6,14 +6,12 @@ import (
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
-	"suask/internal/model/entity"
 	"suask/internal/service"
-	"suask/utility/send_email"
-	"suask/utility/validation"
-	"time"
+	"suask/module/send_email"
+	"suask/module/validation"
 
 	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/os/gcache"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/util/gconv"
 )
 
@@ -79,31 +77,34 @@ func (c *cUser) SendVerificationCode(ctx context.Context, req *v1.SendVerificati
 			return nil, gerror.New("用户注册邮箱与输入邮箱不同")
 		}
 	case consts.ForgetPassword:
-		user := entity.Users{}
-		var count int
-		_ = dao.Users.Ctx(ctx).Where(dao.Users.Columns().Email, req.Email).ScanAndCount(&user, &count, false)
+		count, _ := dao.Users.Ctx(ctx).Where(dao.Users.Columns().Email, req.Email).Count()
 		if count == 0 {
 			return nil, gerror.New("邮箱不存在")
 		}
-		userId = user.Id
 	default:
 		return nil, err
 	}
-	isSent, _ := gcache.Contains(ctx, req.Email)
-	if isSent {
+	v, err := g.Redis().Get(ctx, consts.RedisSendCodePrefix+req.Email)
+	if err != nil {
+		g.Log().Error(ctx, err)
+		return nil, gerror.New(consts.ErrInternal)
+	}
+	if v.String() != "" {
 		return &v1.SendVerificationCodeRes{Msg: "验证码已发送，请注意查收或稍后再试"}, nil
 	}
 	code, err := send_email.SendCode(req.Email)
 	if err != nil {
 		return nil, err
 	}
-	duplicated, _ := gcache.SetIfNotExist(ctx, req.Email, CodeCache{Code: code, UserId: userId}, time.Minute)
-	if !duplicated {
-		// _, _, err := gcache.Update(ctx, req.Email, CodeCache{Code: code, UserId: userId})
-		// if err != nil {
-		// 	return nil, err
-		// }
-		return &v1.SendVerificationCodeRes{Msg: "验证码已发送，请注意查收或稍后再试"}, nil
+	err = g.Redis().SetEX(ctx, consts.RedisSendCodePrefix+req.Email, code, 60)
+	if err != nil {
+		g.Log().Error(ctx, err)
+		return nil, gerror.New(consts.ErrInternal)
+	}
+	err = g.Redis().SetEX(ctx, consts.RedisCountCodePrefix+req.Email, 10, 60)
+	if err != nil {
+		g.Log().Error(ctx, err)
+		return nil, gerror.New(consts.ErrInternal)
 	}
 
 	return &v1.SendVerificationCodeRes{Msg: "200"}, nil
@@ -111,20 +112,19 @@ func (c *cUser) SendVerificationCode(ctx context.Context, req *v1.SendVerificati
 
 func (c *cUser) UpdatePassWord(ctx context.Context, req *v1.UpdatePasswordReq) (res *v1.UpdatePasswordRes, err error) {
 	userId := gconv.Int(ctx.Value(consts.CtxId))
-	code, _ := gcache.Get(ctx, req.Email)
-	var codeStruct CodeCache
-	err = gconv.Scan(code, &codeStruct)
+	v, err := g.Redis().Get(ctx, consts.RedisSendCodePrefix+req.Email)
 	if err != nil {
-		return nil, err
+		g.Log().Error(ctx, err)
+		return nil, gerror.New(consts.ErrInternal)
 	}
-	if code == nil {
+	verificationCode := v.String()
+	if verificationCode == "" {
 		return nil, gerror.New("怎么有人偷跑，你压根没获取验证码好吧")
 	}
-	verificationCode := gconv.String(codeStruct.Code)
 	if verificationCode != req.Code {
 		return nil, gerror.New("验证码错误")
 	}
-	input := model.UpdatePasswordInput{Password: req.Password, UserId: userId}
+	input := model.UpdatePasswordInput{Type: consts.ResetPassword, Password: req.Password, UserId: userId}
 	out, err := service.User().UpdatePassword(ctx, input)
 	if err != nil {
 		return nil, err
@@ -134,20 +134,19 @@ func (c *cUser) UpdatePassWord(ctx context.Context, req *v1.UpdatePasswordReq) (
 }
 
 func (c *cUser) ForgetPassword(ctx context.Context, req *v1.ForgetPasswordReq) (res *v1.ForgetPasswordRes, err error) {
-	code, _ := gcache.Get(ctx, req.Email)
-	var codeStruct CodeCache
-	err = gconv.Scan(code, &codeStruct)
+	v, err := g.Redis().Get(ctx, consts.RedisSendCodePrefix+req.Email)
 	if err != nil {
-		return nil, err
+		g.Log().Error(ctx, err)
+		return nil, gerror.New(consts.ErrInternal)
 	}
-	if code == nil {
+	verificationCode := v.String()
+	if verificationCode == "" {
 		return nil, gerror.New("怎么有人偷跑，你压根没获取验证码好吧")
 	}
-	verificationCode := gconv.String(codeStruct.Code)
 	if verificationCode != req.Code {
 		return nil, gerror.New("验证码错误")
 	}
-	input := model.UpdatePasswordInput{Password: req.Password, UserId: codeStruct.UserId}
+	input := model.UpdatePasswordInput{Type: consts.ForgetPassword, Password: req.Password, Email: req.Email}
 	out, err := service.User().UpdatePassword(ctx, input)
 	if err != nil {
 		return nil, err

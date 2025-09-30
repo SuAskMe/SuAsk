@@ -11,7 +11,6 @@ import (
 	_ "suask/internal/logic/file"
 	_ "suask/internal/logic/history"
 	_ "suask/internal/logic/login"
-	_ "suask/internal/logic/middleware"
 	_ "suask/internal/logic/notification"
 	_ "suask/internal/logic/question_teacher_self"
 	_ "suask/internal/logic/questions_detail"

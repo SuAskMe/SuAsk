@@ -9,7 +9,8 @@ import (
 type LoginReq struct {
 	g.Meta   `path:"/login" method:"POST" tag:"Login" summary:"登录请求"`
 	Name     string `json:"name"`
-	Password string `json:"password"`
+	Email    string `json:"email"`
+	Password string `json:"password" v:"required"`
 }
 
 type LoginRes struct {
@@ -44,10 +45,10 @@ type LogoutRes struct{}
 
 // 刷新 Token
 
-type RefreshTokenReq struct {
-	Token string `json:"token"`
-}
+// type RefreshTokenReq struct {
+// 	Token string `json:"token"`
+// }
 
-type RefreshTokenRes struct {
-	Token string `json:"token"`
-}
+// type RefreshTokenRes struct {
+// 	Token string `json:"token"`
+// }

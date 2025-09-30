@@ -15,7 +15,9 @@ type UpdateUserOutput struct {
 }
 
 type UpdatePasswordInput struct {
+	Type     string `json:"type" dc:"方式"`
 	UserId   int    `json:"userId" dc:"用户ID"`
+	Email    string `json:"email" v:"required" dc:"邮箱"`
 	Password string `json:"password" v:"required" dc:"新的密码"`
 }
 

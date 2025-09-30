@@ -12,7 +12,7 @@ import (
 
 type (
 	ILogin interface {
-		Login(ctx context.Context, in model.UserLoginInput) error
+		Login(ctx context.Context, in *model.UserLoginInput) (res *model.UserLoginOutput, err error)
 		Logout(ctx context.Context) error
 		HeartBeats(ctx context.Context) error
 	}

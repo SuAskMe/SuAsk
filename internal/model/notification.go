@@ -1,6 +1,6 @@
 package model
 
-import "suask/utility/send_email"
+import "suask/module/send_email"
 
 type AddNotificationInput struct {
 	UserId     int    `json:"user_id"     orm:"user_id"     dc:"用户ID"`
