@@ -40,32 +40,38 @@ var _authCodeCache *cache
 var _messageCache *cache
 var dailer *gomail.Dialer
 
-func loadTmplFile(path string, targets []string) string {
+func loadTmplFileWithDefault(path string, targets []string, deflt string) string {
 	file, err := os.Open(path)
 	if err != nil {
-		panic(err)
+		g.Log().Error(context.TODO(), err)
+		return deflt
 	}
 	defer file.Close()
 	fileInfo, err := file.Stat()
 	if err != nil {
-		panic(err)
+		g.Log().Error(context.TODO(), err)
+		return deflt
 	}
 	if fileInfo.Size() > M16KB {
-		panic(errors.New("template file too large"))
+		g.Log().Error(context.TODO(), errors.New("template file too large"))
+		return deflt
 	}
 	var sb strings.Builder
 	sb.Grow(int(fileInfo.Size()))
 	n, err := io.Copy(&sb, file)
 	if err != nil {
-		panic(err)
+		g.Log().Error(context.TODO(), err)
+		return deflt
 	}
 	if n != fileInfo.Size() {
-		panic(errors.New("template file size not match"))
+		g.Log().Error(context.TODO(), errors.New("emplate file size not match"))
+		return deflt
 	}
 	data := sb.String()
 	for _, target := range targets {
 		if !strings.Contains(data, target) {
-			panic(errors.New("template file format error"))
+			g.Log().Error(context.TODO(), errors.New("template file format error"))
+			return deflt
 		}
 	}
 	return data
@@ -76,10 +82,10 @@ func init() {
 	var messageTmpl = _NEW_MESSAGE_TMPL
 	var authCodeTmpl = _AUTH_CODE_TMPL
 	if len(authCodeTmplPath) > 0 {
-		authCodeTmpl = loadTmplFile(authCodeTmplPath, authCodeTargets)
+		authCodeTmpl = loadTmplFileWithDefault(authCodeTmplPath, authCodeTargets, authCodeTmpl)
 	}
 	if len(msgTmplPath) > 0 {
-		messageTmpl = loadTmplFile(msgTmplPath, messageTargets)
+		messageTmpl = loadTmplFileWithDefault(msgTmplPath, messageTargets, messageTmpl)
 	}
 	if _authCodeCache, err = formatTmpl(authCodeTmpl, authCodeTargets); err != nil {
 		panic(err)
