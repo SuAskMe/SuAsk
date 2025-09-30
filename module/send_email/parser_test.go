@@ -9,7 +9,7 @@ func TestFormatTmpl(t *testing.T) {
 	// 测试验证码模板
 	// authCodeTmpl := `<html><body><p>您的验证码为：$code$</p></body></html>`
 	authCodeTargets := []string{"$code$"}
-	authCodeTmpl := loadTmplFile("/home/jacko/FILES/SuAsk/auth_code.tmpl", authCodeTargets)
+	authCodeTmpl := loadTmplFileWithDefault("/home/jacko/FILES/SuAsk/auth_code.tmpl", authCodeTargets, "")
 
 	cache, err := formatTmpl(authCodeTmpl, authCodeTargets)
 	if err != nil {
@@ -32,7 +32,7 @@ func TestFormatTmpl(t *testing.T) {
 	// 测试消息模板
 
 	messageTargets := []string{"$user$", "$type$", "$content$", "$url$"}
-	messageTmpl := loadTmplFile("/home/jacko/FILES/SuAsk/msg.tmpl", messageTargets)
+	messageTmpl := loadTmplFileWithDefault("/home/jacko/FILES/SuAsk/msg.tmpl", messageTargets, "")
 	cache, err = formatTmpl(messageTmpl, messageTargets)
 	if err != nil {
 		t.Errorf("formatTmpl returned error: %v", err)
