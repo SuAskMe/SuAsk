@@ -31,6 +31,7 @@ func (c *cLogin) Login(ctx context.Context, req *v1.LoginReq) (res *v1.LoginRes,
 func (c *cLogin) Logout(ctx context.Context, req *v1.LogoutReq) (res *v1.LogoutRes, err error) {
 	userId := gconv.Int(ctx.Value(consts.CtxId))
 	g.Redis().Del(ctx, consts.RedisJWTPrefix+strconv.Itoa(userId))
+	res = &v1.LogoutRes{UserId: userId}
 	return
 }
 

@@ -15,15 +15,17 @@ func (s *sNotification) SendNoticeEmail(ctx context.Context, in *model.SendNotic
 		return err
 	}
 	if userSetting.NotifySwitch && userSetting.NotifyEmail != "" {
-		er := send_email.SendNotice(userSetting.NotifyEmail, &send_email.Notice{
-			User:    in.Notice.User,
-			Type:    in.Notice.Type,
-			Content: in.Notice.Content,
-			URL:     in.Notice.URL,
-		})
-		if er != nil {
-			g.Log("Email").Errorf(ctx, "send email to user %d error: %v", in.To, er)
-		}
+		go func() {
+			er := send_email.SendNotice(userSetting.NotifyEmail, &send_email.Notice{
+				User:    in.Notice.User,
+				Type:    in.Notice.Type,
+				Content: in.Notice.Content,
+				URL:     in.Notice.URL,
+			})
+			if er != nil {
+				g.Log("Email").Errorf(ctx, "send email to user %d error: %v", in.To, er)
+			}
+		}()
 	}
 	return nil
 }

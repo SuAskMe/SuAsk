@@ -29,8 +29,7 @@ func (s sLogin) Login(ctx context.Context, in *model.UserLoginInput) (res *model
 	} else if in.Email != "" {
 		md = md.Where(dao.Users.Columns().Email, in.Email)
 	}
-	err = md.Fields(dao.Users.Columns().Id, dao.Users.Columns().Salt,
-		dao.Users.Columns().PasswordHash).Scan(&userInfo)
+	err = md.Scan(&userInfo)
 	// 查不到用户
 	if err != nil {
 		return nil, gerror.New("登录失败，用户名或密码错误")
