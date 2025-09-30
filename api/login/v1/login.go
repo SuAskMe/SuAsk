@@ -41,7 +41,9 @@ type LogoutReq struct {
 	g.Meta `path:"/user/logout" method:"POST" tag:"Logout" summary:"登出请求"`
 }
 
-type LogoutRes struct{}
+type LogoutRes struct {
+	UserId int `json:"id"`
+}
 
 // 刷新 Token
 

@@ -37,8 +37,7 @@ func JwtToken() (jm *middleware.JWTMiddleware) {
 		"/user",
 	}
 	excpetUrlMatch := []string{"/user/send-code", "/user/forget-password"}
-	jm.BuildMustLoginTrie(prefixUrlMatch, nil, excpetUrlMatch)
-	return jm
+	return middleware.NewJWTMiddleware(prefixUrlMatch, nil, excpetUrlMatch)
 }
 
 // func LoginToken() (gfToken *gtoken.GfToken, err error) {
