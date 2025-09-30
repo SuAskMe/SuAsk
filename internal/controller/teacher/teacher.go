@@ -6,7 +6,7 @@ import (
 	"suask/internal/consts"
 	"suask/internal/model"
 	"suask/internal/service"
-	"suask/utility/validation"
+	"suask/module/validation"
 
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/util/gconv"

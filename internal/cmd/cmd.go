@@ -10,7 +10,7 @@ import (
 	"suask/internal/controller/register"
 	"suask/internal/controller/teacher"
 	"suask/internal/controller/user"
-	"suask/internal/service"
+	"suask/internal/middleware"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
@@ -25,7 +25,7 @@ var (
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
 			s := g.Server()
 
-			gfToken, err := LoginToken()
+			jToken := JwtToken()
 			if err != nil {
 				return err
 			}
@@ -33,7 +33,7 @@ var (
 			s.Group("/", func(group *ghttp.RouterGroup) {
 				group.Middleware(
 					ghttp.MiddlewareHandlerResponse,
-					service.Middleware().CORS,
+					middleware.CORS,
 				)
 				// 这里无需登录，不需要请求用户数据
 				group.Bind(
@@ -44,15 +44,13 @@ var (
 				)
 				// 这里是登录和非登录共有接口
 				group.Group("/", func(group *ghttp.RouterGroup) {
-					err := Middleware(gfToken, ctx, group)
-					if err != nil {
-						panic(err)
-					}
-					group.Bind(
-						user.User.Info,
+					group.Middleware(jToken.JwtAuth)
+					group.Bind(login.Login.Login,
+						login.Login.Logout,
 						login.Login.HeartBeats,
 						questions.PublicQuestions,
 						questions.QuestionDetail.GetDetail,
+						user.User.Info,
 						user.User.UpdateUserInfo,
 						user.User.UpdatePassWord,
 						user.User.SendVerificationCode,

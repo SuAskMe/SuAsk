@@ -3,11 +3,12 @@ package user
 import (
 	"context"
 	"errors"
+	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/model/do"
 	"suask/internal/service"
-	"suask/utility/login"
+	"suask/utility"
 
 	"github.com/gogf/gf/v2/util/grand"
 )
@@ -43,13 +44,19 @@ func (s sUser) UpdateUser(ctx context.Context, in model.UpdateUserInput) (out mo
 
 func (s sUser) UpdatePassword(ctx context.Context, in model.UpdatePasswordInput) (out model.UpdatePasswordOutput, err error) {
 	salt := grand.S(10)
-	password := login.EncryptPassword(in.Password, salt)
+	password := utility.EncryptPassword(in.Password, salt)
 	update := do.Users{
 		Salt:         salt,
 		PasswordHash: password,
 	}
-	_, err = dao.Users.Ctx(ctx).Where(dao.Users.Columns().Id, in.UserId).
-		Update(update)
+	md := dao.Users.Ctx(ctx)
+	switch in.Type {
+	case consts.ResetPassword:
+		md = md.Where(dao.Users.Columns().Id, in.UserId)
+	case consts.ForgetPassword:
+		md = md.Where(dao.Users.Columns().Email, in.Email)
+	}
+	_, err = md.Update(update)
 	if err != nil {
 		return model.UpdatePasswordOutput{}, err
 	}

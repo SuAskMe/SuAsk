@@ -7,12 +7,12 @@ import (
 	"suask/internal/consts"
 	"suask/internal/model"
 	"suask/internal/service"
-	"suask/utility"
-	"suask/utility/send_email"
+	"suask/module/send_email"
+	"suask/module/sjwt"
 	"time"
 
 	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/os/gcache"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -28,15 +28,19 @@ func (c *cRegister) SendVerificationCode(ctx context.Context, req *v1.SendVerifi
 		return nil, err
 	}
 
-	// 检查是否已经发送过验证码
-	isSent, _ := gcache.Contains(ctx, req.Email)
-	if isSent {
-		return &v1.SendVerificationCodeRes{Msg: "验证码已发送，请注意查收或稍后再试"}, nil
-	}
-
 	// 检查是否为学校邮箱（暂时）
 	if !strings.HasSuffix(req.Email, "@mail.sysu.edu.cn") && !strings.HasSuffix(req.Email, "@mail2.sysu.edu.cn") {
-		return nil, gerror.New("暂不支持非学校邮箱注册")
+		return nil, gerror.New("暂不支持非中大邮箱注册")
+	}
+
+	// 检查是否已经发送过验证码
+	v, err := g.Redis().Get(ctx, consts.RedisSendCodePrefix+req.Email)
+	if err != nil {
+		g.Log().Error(ctx, err)
+		return nil, gerror.New(consts.ErrInternal)
+	}
+	if v.String() != "" {
+		return &v1.SendVerificationCodeRes{Msg: "验证码已发送，请注意查收或稍后再试"}, nil
 	}
 
 	// 检查邮箱和用户名是否重复
@@ -50,13 +54,15 @@ func (c *cRegister) SendVerificationCode(ctx context.Context, req *v1.SendVerifi
 		if err != nil {
 			return nil, err
 		}
-		duplicated, _ := gcache.SetIfNotExist(ctx, req.Email, code, time.Minute)
-		if !duplicated {
-			// _, _, err := gcache.Update(ctx, req.Email, code)
-			// if err != nil {
-			// 	return nil, err
-			// }
-			return &v1.SendVerificationCodeRes{Msg: "验证码已发送，请注意查收或稍后再试"}, nil
+		err = g.Redis().SetEX(ctx, consts.RedisSendCodePrefix+req.Email, code, 60)
+		if err != nil {
+			g.Log().Error(ctx, err)
+			return nil, gerror.New(consts.ErrInternal)
+		}
+		err = g.Redis().SetEX(ctx, consts.RedisCountCodePrefix+req.Email, 10, 60)
+		if err != nil {
+			g.Log().Error(ctx, err)
+			return nil, gerror.New(consts.ErrInternal)
 		}
 	} else {
 		return &v1.SendVerificationCodeRes{Msg: "邮箱或用户名重复"}, nil
@@ -70,14 +76,25 @@ type VerifyClaims struct { // 对邮件验证的token
 }
 
 func (c *cRegister) VerifyVerificationCode(ctx context.Context, req *v1.VerifyVerificationCodeReq) (res *v1.VerifyVerificationCodeRes, err error) {
-	code, err := gcache.Get(ctx, req.Email)
+	code, err := g.Redis().Get(ctx, consts.RedisSendCodePrefix+req.Email)
 	if err != nil {
-		return nil, err
-	} else if code == nil {
+		g.Log().Error(ctx, err)
+		return nil, gerror.New(consts.ErrInternal)
+	}
+	verificationCode := code.String()
+	if verificationCode == "" {
 		return nil, gerror.New("验证码已过期，请重新获取")
 	}
-	verificationCode := gconv.String(code)
 	if verificationCode != req.Code {
+		// 防止爆破
+		cnt, err := g.Redis().Decr(ctx, consts.RedisCountCodePrefix+req.Email)
+		if err != nil {
+			g.Log().Error(ctx, err)
+			return nil, gerror.New(consts.ErrInternal)
+		}
+		if cnt <= 0 {
+			g.Redis().Del(ctx, consts.RedisSendCodePrefix+req.Email, consts.RedisCountCodePrefix+req.Email)
+		}
 		return nil, gerror.New("验证码错误")
 	}
 	verifyClaims := &VerifyClaims{
@@ -87,7 +104,7 @@ func (c *cRegister) VerifyVerificationCode(ctx context.Context, req *v1.VerifyVe
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, verifyClaims)
-	key := utility.JwtKey
+	key := sjwt.GetKey()
 	tokenString, err := token.SignedString(key)
 	if err != nil {
 		return nil, err
@@ -98,7 +115,7 @@ func (c *cRegister) VerifyVerificationCode(ctx context.Context, req *v1.VerifyVe
 }
 
 func (c *cRegister) Register(ctx context.Context, req *v1.RegisterReq) (res *v1.RegisterRes, err error) {
-	key := utility.JwtKey
+	key := sjwt.GetKey()
 	tokenClaims, _ := jwt.ParseWithClaims(req.Token, &VerifyClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return key, nil
 	})

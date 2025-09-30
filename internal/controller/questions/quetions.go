@@ -7,8 +7,8 @@ import (
 	"suask/internal/consts"
 	"suask/internal/model"
 	"suask/internal/service"
-	"suask/utility/send_email"
-	"suask/utility/validation"
+	"suask/module/send_email"
+	"suask/module/validation"
 
 	"github.com/gogf/gf/v2/util/gconv"
 )
