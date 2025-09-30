@@ -148,7 +148,6 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 	}
 	AvatarMap := make(map[int][]int) // 头像ID对应的回答ID列表
 	for _, info := range userInfo {
-		AvatarMap[info.AvatarFileId] = UserIdMap[info.UserId]
 		for _, v := range UserIdMap[info.UserId] {
 			answerList[IdMap[v]].NickName = info.NickName
 		}
@@ -157,6 +156,13 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 				answerList[IdMap[v]].TeacherName = info.Name
 			}
 		}
+		if info.AvatarFileId == 0 && info.Role == consts.TEACHER {
+			// 老师没有头像，显示信息头像
+			AvatarMap[-info.UserId] = UserIdMap[info.UserId]
+		} else {
+			AvatarMap[info.AvatarFileId] = UserIdMap[info.UserId]
+		}
+
 	}
 	// 获取回答的图片
 	md = dao.Attachments.Ctx(ctx).WhereIn(dao.Attachments.Columns().AnswerId, IdList)

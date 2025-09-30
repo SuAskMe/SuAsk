@@ -9,6 +9,8 @@ import (
 	"suask/internal/service"
 	"suask/module/send_email"
 
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/util/gconv"
 )
 
@@ -60,9 +62,12 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 
 	// 获取回答头像
 	AvatarList := make([]int, 0, len(AvatarsMap))
+	TeacherAvatarList := make([]int, 0)
 	for k := range AvatarsMap {
-		if k != 0 {
+		if k > 0 {
 			AvatarList = append(AvatarList, k)
+		} else if k < 0 {
+			TeacherAvatarList = append(TeacherAvatarList, k)
 		}
 	}
 	avatarUrls, err := service.File().GetList(ctx, model.FileListGetInput{IdList: AvatarList})
@@ -73,6 +78,17 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 		IdList := AvatarsMap[avatarUrls.FileId[i]]
 		for _, id := range IdList {
 			answerList[IdMap[id]].UserAvatar = url
+		}
+	}
+	for _, tid := range TeacherAvatarList {
+		out, err := service.Teacher().GetTeacherAvatar(ctx, &model.TeacherGetAvatarInput{TeacherId: -tid})
+		if err != nil {
+			g.Log().Error(ctx, err)
+			return nil, gerror.New("获取老师头像失败")
+		}
+		IdList := AvatarsMap[tid]
+		for _, id := range IdList {
+			answerList[IdMap[id]].UserAvatar = out.AvatarUrl
 		}
 	}
 	// 获取回答图片
