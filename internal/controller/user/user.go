@@ -174,7 +174,13 @@ func (c *cUser) GetUserInfoById(ctx context.Context, req *v1.UserInfoByIdReq) (r
 			return nil, err
 		}
 		avatarURL := file.URL
-		res.UserInfoBase.AvatarURL = avatarURL
+		res.AvatarURL = avatarURL
+	} else if res.Role == consts.TEACHER {
+		avatarURL, err := service.Teacher().GetTeacherAvatar(ctx, &model.TeacherGetAvatarInput{TeacherId: out.Id})
+		if err != nil {
+			return nil, err
+		}
+		res.AvatarURL = avatarURL.AvatarUrl
 	} else {
 		res.AvatarURL = consts.DefaultAvatarURL
 	}
@@ -202,6 +208,12 @@ func (c *cUser) Info(ctx context.Context, req *v1.UserInfoReq) (res *v1.UserInfo
 			return nil, err1
 		}
 		res.AvatarURL = file.URL
+	} else if res.Role == consts.TEACHER {
+		avatarURL, err := service.Teacher().GetTeacherAvatar(ctx, &model.TeacherGetAvatarInput{TeacherId: user.Id})
+		if err != nil {
+			return nil, err
+		}
+		res.AvatarURL = avatarURL.AvatarUrl
 	}
 	res.Email = user.Email
 

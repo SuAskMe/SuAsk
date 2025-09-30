@@ -12,9 +12,10 @@ import (
 
 type (
 	ITeacher interface {
-		GetTeacherList(ctx context.Context, _ model.TeacherGetInput) (out model.TeacherGetOutput, err error)
+		GetTeacherList(ctx context.Context, _ model.TeacherGetInput) (out *model.TeacherGetOutput, err error)
+		GetTeacherAvatar(ctx context.Context, in *model.TeacherGetAvatarInput) (out *model.TeacherGetAvatarOutput, err error)
 		TeacherExist(ctx context.Context, TeacherId int) (name string, err error)
-		UpdatePerm(ctx context.Context, in model.TeacherUpdatePermInput) (out model.TeacherUpdatePermOutput, err error)
+		UpdatePerm(ctx context.Context, in model.TeacherUpdatePermInput) (out *model.TeacherUpdatePermOutput, err error)
 	}
 )
 
