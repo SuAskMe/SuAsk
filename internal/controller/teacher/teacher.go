@@ -18,13 +18,11 @@ type cTeacher struct {
 var Teacher cTeacher
 
 func (c *cTeacher) GetTeacher(ctx context.Context, req *v1.TeacherReq) (res *v1.TeacherRes, err error) {
-	out := model.TeacherGetOutput{}
-	out, err = service.Teacher().GetTeacherList(ctx, model.TeacherGetInput{})
+	out, err := service.Teacher().GetTeacherList(ctx, model.TeacherGetInput{})
 	if err != nil {
 		return nil, err
 	}
-	res = &v1.TeacherRes{}
-	res.TeacherList = out.TeacherList
+	res = &v1.TeacherRes{TeacherList: out.TeacherList}
 	return res, nil
 }
 
