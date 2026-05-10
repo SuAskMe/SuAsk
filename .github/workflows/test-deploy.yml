@@ -4,7 +4,7 @@ on:
     push:
         branches:
             - dev-v2 # 只有推送到 dev 分支时触发
-    workflow_dispatch
+    workflow_dispatch:
 
 jobs:
     build-and-deploy:
