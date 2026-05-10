@@ -24,6 +24,21 @@ func checkDatabase(ctx context.Context) error {
 	dbType := g.Cfg().MustGet(ctx, "database.default.type").String()
 	g.Log().Infof(ctx, "[db-check] database.default.type=%s link=%q", dbType, link)
 
+	// 配置为空：几乎可以确定是配置文件没被加载（路径错、--gf.gcfg.file 指错等）
+	if dbType == "" && link == "" {
+		return gerror.Newf(
+			"[db-check] database 配置为空！config.yaml 很可能根本没被加载。\n"+
+				"当前工作目录：%s\n"+
+				"可能原因：\n"+
+				"  1) systemd ExecStart 里指定了 --gf.gcfg.file 但指向了不存在的文件\n"+
+				"  2) manifest/config/config.yaml 部署路径不对\n"+
+				"排查：\n"+
+				"  ls -la %s/manifest/config/config.yaml\n"+
+				"  find %s -maxdepth 3 -name config.yaml\n"+
+				"  systemctl cat <服务名> | grep -E 'ExecStart|WorkingDirectory'",
+			cwd, cwd, cwd)
+	}
+
 	// 对 sqlite 进行额外的路径检查
 	if dbType == "sqlite" || strings.HasPrefix(strings.ToLower(link), "sqlite") {
 		if path := extractSqlitePath(link); path != "" {
