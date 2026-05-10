@@ -64,14 +64,19 @@ func (s sLogin) Login(ctx context.Context, in *model.UserLoginInput) (res *model
 	return &model.UserLoginOutput{Type: consts.TokenType, Id: userInfo.Id, Role: userInfo.Role, Token: token}, nil
 }
 
+// Logout 仅作为 service.ILogin 接口契约存在；真正的登出逻辑在
+// internal/controller/login/login.go 里直接操作 Redis 完成。
+// 这里以前写的是 panic("implement me")，若被误调会直接 500 + goroutine crash，
+// 现在改为 no-op 并记录一条 debug 日志，方便定位谁在错误调用。
 func (s sLogin) Logout(ctx context.Context) error {
-	//TODO implement me
-	panic("implement me")
+	g.Log().Debug(ctx, "sLogin.Logout called; logout is handled in controller layer")
+	return nil
 }
 
+// HeartBeats 同 Logout：占位实现，真逻辑在 controller 层。
 func (s sLogin) HeartBeats(ctx context.Context) error {
-	//TODO implement me
-	panic("implement me")
+	g.Log().Debug(ctx, "sLogin.HeartBeats called; heartbeat is handled in controller layer")
+	return nil
 }
 
 func init() {
