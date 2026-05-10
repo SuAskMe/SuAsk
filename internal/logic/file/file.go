@@ -27,16 +27,25 @@ type File struct {
 	URL  string
 }
 
-func uploadFile(upLoadFile *ghttp.UploadFile, upLoaderId int) (fileInfo *File, err error) {
+func uploadFile(ctx context.Context, upLoadFile *ghttp.UploadFile, upLoaderId int) (fileInfo *File, err error) {
+	// 先做大小 + MIME 白名单校验，拒掉不合规文件就不再进哈希/落盘/入库。
+	policy := files.LoadUploadPolicy(ctx)
+	if err := files.ValidateUpload(upLoadFile, policy); err != nil {
+		return nil, err
+	}
+
 	file, err := upLoadFile.Open()
 	if err != nil {
 		return nil, gerror.New("文件未上传")
 	}
-	uploadPath := g.Cfg().MustGet(context.TODO(), "upload.path").String()
+	uploadPath := g.Cfg().MustGet(ctx, "upload.path").String()
 	if uploadPath == "" {
 		return nil, gerror.New("配置不存在，请配置文件地址")
 	}
-	fileHash := files.HashFile(file)
+	fileHash, err := files.HashFile(file)
+	if err != nil {
+		return nil, err
+	}
 	filePath := gfile.Join(uploadPath,
 		files.HashToString(fileHash)[0:2],
 		files.HashToString(fileHash)[2:4],
@@ -62,7 +71,7 @@ func uploadFile(upLoadFile *ghttp.UploadFile, upLoaderId int) (fileInfo *File, e
 	if err != nil {
 		return nil, err
 	}
-	id, err := dao.Files.Ctx(context.TODO()).Data(data).OmitEmpty().InsertAndGetId()
+	id, err := dao.Files.Ctx(ctx).Data(data).OmitEmpty().InsertAndGetId()
 	if err != nil {
 		return nil, err
 	}
@@ -87,11 +96,11 @@ func (s *sFile) UploadFile(ctx context.Context, in model.FileUploadInput) (out *
 	if err != nil {
 		return nil, err
 	}
-	var fileUploadMaxMinutes = g.Cfg().MustGet(context.TODO(), "upload.max_minutes").Int()
+	var fileUploadMaxMinutes = g.Cfg().MustGet(ctx, "upload.max_minutes").Int()
 	if count > fileUploadMaxMinutes {
 		return nil, gerror.New("上传频繁，一分钟只能传" + strconv.Itoa(fileUploadMaxMinutes) + "次")
 	}
-	fileInfo, err := uploadFile(in.File, upLoaderId)
+	fileInfo, err := uploadFile(ctx, in.File, upLoaderId)
 	if err != nil {
 		return nil, err
 	}
@@ -104,13 +113,13 @@ func (s *sFile) UploadFile(ctx context.Context, in model.FileUploadInput) (out *
 	return out, nil
 }
 
-func (s *sFile) UploadFileList(_ context.Context, in model.FileListAddInput) (out model.FileListAddOutput, err error) {
+func (s *sFile) UploadFileList(ctx context.Context, in model.FileListAddInput) (out model.FileListAddOutput, err error) {
 	fileCount := len(in.FileList)
 	out = model.FileListAddOutput{
 		IdList: make([]int, fileCount),
 	}
 	for fileIndex, file := range in.FileList {
-		fileInfo, err := uploadFile(file, in.UploaderId)
+		fileInfo, err := uploadFile(ctx, file, in.UploaderId)
 		if err != nil {
 			return model.FileListAddOutput{}, err
 		}

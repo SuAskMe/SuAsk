@@ -1,7 +1,0 @@
-2026-05-10T22:32:52 [ERRO] open /home/jacko/FILES/SuAsk/auth_code.tmpl: The system cannot find the path specified. 
-Stack:
-1.  suask/module/send_email.loadTmplFileWithDefault
-    D:/Project/SuAsk/SuAsk/module/send_email/email.go:46
-2.  suask/module/send_email.TestFormatTmpl
-    D:/Project/SuAsk/SuAsk/module/send_email/parser_test.go:12
-

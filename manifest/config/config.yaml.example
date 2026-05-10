@@ -13,6 +13,8 @@
 
 server:
     address: ":8080"
+    # 单次请求体大小上限（字节），必须 >= upload.max_bytes，否则大文件会在 HTTP 层就被截掉
+    clientMaxBodySize: 33554432            # 32 MiB
 
 logger:
     path: "./logs"                         # 生产环境建议改为 /var/log/suask
@@ -34,6 +36,13 @@ upload:
     path: "upload"                         # 上传文件落盘相对路径
     prefix: "https://your.domain"          # 对外访问图片 URL 的前缀
     max_minutes: 10                        # 每分钟每用户最大上传次数
+    max_bytes: 33554432                    # 单次上传大小上限（字节），默认 32 MiB
+                                           # 调大此项时记得同步调整 server.clientMaxBodySize
+    allowed_mimes:                         # 允许的 MIME 白名单（魔术字节嗅探），留空用默认值
+        - image/jpeg
+        - image/png
+        - image/gif
+        - image/webp
 
 jwt:
     signKey: "CHANGE_ME_使用_openssl_rand_-hex_32_生成"

@@ -25,6 +25,20 @@ var (
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
 			s := g.Server()
 
+			// 显式把请求体上限设到 32 MiB。
+			// 之前只改 config.yaml 的 server.clientMaxBodySize 会出现"1KB 上传也触发 413"，
+			// 推测是配置反序列化路径或部署时配置没生效；这里用代码兜底一遍，任何配置状态都能保证上限正确。
+			// 同时把 upload.max_bytes 也读出来做 sanity check。
+			const minBodySize int64 = 32 * 1024 * 1024
+			bodyLimit := minBodySize
+			if v, err := g.Cfg().Get(ctx, "upload.max_bytes"); err == nil && !v.IsNil() {
+				if n := v.Int64(); n > bodyLimit {
+					bodyLimit = n
+				}
+			}
+			s.SetClientMaxBodySize(bodyLimit)
+			g.Log().Infof(ctx, "HTTP body size limit set to %d bytes", bodyLimit)
+
 			jToken := JwtToken()
 			if err != nil {
 				return err

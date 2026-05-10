@@ -26,8 +26,14 @@ func newFake(data []byte) fakeMultipartFile {
 
 func TestHashFile_SameInputSameHash(t *testing.T) {
 	payload := []byte("the quick brown fox jumps over the lazy dog")
-	a := HashFile(newFake(payload))
-	b := HashFile(newFake(payload))
+	a, err := HashFile(newFake(payload))
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
+	b, err := HashFile(newFake(payload))
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
 	if !bytes.Equal(a, b) {
 		t.Fatalf("hash should be deterministic for same input, got %x vs %x", a, b)
 	}
@@ -37,8 +43,14 @@ func TestHashFile_SameInputSameHash(t *testing.T) {
 }
 
 func TestHashFile_DifferentInputDifferentHash(t *testing.T) {
-	a := HashFile(newFake([]byte("abc")))
-	b := HashFile(newFake([]byte("abd")))
+	a, err := HashFile(newFake([]byte("abc")))
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
+	b, err := HashFile(newFake([]byte("abd")))
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
 	if bytes.Equal(a, b) {
 		t.Fatalf("different inputs must produce different hashes")
 	}
@@ -47,7 +59,24 @@ func TestHashFile_DifferentInputDifferentHash(t *testing.T) {
 func TestHashFile_ConsumesReaderFully(t *testing.T) {
 	// 构造 1MB payload 确保没有半途停止
 	payload := bytes.Repeat([]byte{0xAB}, 1024*1024)
-	_ = HashFile(newFake(payload)) // 不 panic 即可
+	if _, err := HashFile(newFake(payload)); err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
+}
+
+// errReader 让 io.Copy 失败，验证 HashFile 返回 error 而不是 log.Fatal。
+type errReader struct{}
+
+func (errReader) Read(_ []byte) (int, error)                     { return 0, io.ErrUnexpectedEOF }
+func (errReader) Close() error                                   { return nil }
+func (errReader) Seek(_ int64, _ int) (int64, error)             { return 0, io.ErrUnexpectedEOF }
+func (errReader) ReadAt(_ []byte, _ int64) (int, error)          { return 0, io.ErrUnexpectedEOF }
+
+func TestHashFile_PropagatesReadError(t *testing.T) {
+	_, err := HashFile(errReader{})
+	if err == nil {
+		t.Fatal("HashFile 应把 io 错误返回而不是 log.Fatal")
+	}
 }
 
 // ------------------------------------------------------------------
