@@ -1,7 +1,5 @@
 package model
 
-import "github.com/gogf/gf/v2/encoding/gbinary"
-
 type PublicQuestion struct {
 	ID            int      `json:"id"`
 	Title         string   `json:"title"`
@@ -18,7 +16,7 @@ type AddQuestionInput struct {
 	DstUserID interface{} `json:"dst_user_id" orm:"dst_user_id"`
 	Title     string      `json:"title" orm:"title"`
 	Content   string      `json:"content" orm:"content"`
-	IsPrivate gbinary.Bit `json:"is_private" orm:"is_private"`
+	IsPrivate bool        `json:"is_private" orm:"is_private"`
 }
 
 type AddQuestionOutput struct {

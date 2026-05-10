@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"github.com/gogf/gf/v2/encoding/gbinary"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 )
@@ -12,7 +11,7 @@ type AddQuestionReq struct {
 	DstUserId int                 `json:"dst_user_id"`
 	Title     string              `json:"title" v:"required"`
 	Content   string              `json:"content" v:"required"`
-	IsPrivate gbinary.Bit         `json:"is_private" v:"required"`
+	IsPrivate bool                `json:"is_private"`
 	Files     []*ghttp.UploadFile `json:"files"`
 }
 

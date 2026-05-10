@@ -23,7 +23,7 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 		md = md.WhereGT(dao.Questions.Columns().ReplyCnt, 0)
 	}
 	if input.Keyword != "" {
-		md = md.Where("match(title) against (? in boolean mode)", input.Keyword)
+		md = md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%")
 	} else {
 		err := utility.SortByType(&md, input.SortType)
 		if err != nil {
@@ -128,7 +128,7 @@ func (sTeacherQuestionSelf) GetQFMPinned(ctx context.Context, input *model.GetQF
 
 func (sTeacherQuestionSelf) GetKeyword(ctx context.Context, input *model.GetQFMKeywordsInput) (*model.GetKeywordsOutput, error) {
 	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherId)
-	md = md.Where("match(title) against (? in boolean mode)", input.Keyword).Limit(8)
+	md = md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%").Limit(8)
 	words := make([]model.Keyword, consts.MaxKeywordsPerReq)
 	err := md.Scan(&words)
 	if err != nil {
