@@ -67,10 +67,17 @@ var (
 					)
 				})
 			})
-			// 设置静态文件服务
-			s.SetIndexFolder(true)
-			s.SetFileServerEnabled(true)
-			s.SetServerRoot(".")
+			// 静态文件服务：只暴露上传目录（从配置读取 upload.path），
+			// 明确拒绝把项目根目录当作静态根 —— 否则 database/*.db、
+			// manifest/config/*.yaml、logs/*、main.exe 都会通过 HTTP 被下载。
+			uploadPath := g.Cfg().MustGet(ctx, "upload.path").String()
+			if uploadPath == "" {
+				uploadPath = "upload"
+			}
+			// AddStaticPath 会自动开启 fileServer，不需要再调 SetServerRoot。
+			s.AddStaticPath("/"+uploadPath, "./"+uploadPath)
+			// 显式禁止目录列表，避免 /upload/ 被直接翻目录。
+			s.SetIndexFolder(false)
 
 			// 启动服务器
 			s.Run()
