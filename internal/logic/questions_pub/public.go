@@ -33,7 +33,7 @@ type sPublicQuestion struct{}
 func (sPublicQuestion) GetBase(ctx context.Context, input *model.GetBaseInput) (*model.GetBaseOutput, error) {
 	md := dao.Questions.Ctx(ctx).WhereNull("dst_user_id")
 	if input.Keyword != "" {
-		md = md.Where("match(title) against (? in boolean mode)", input.Keyword)
+		md = md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%")
 	} else {
 		err := utility.SortByType(&md, input.SortType)
 		if err != nil {
@@ -95,7 +95,7 @@ func (sPublicQuestion) GetKeyword(ctx context.Context, input *model.GetKeywordsI
 	// fmt.Println(input.Keyword)
 
 	words := make([]model.Keyword, consts.MaxKeywordsPerReq)
-	err := md.Where("match(title) against (? in boolean mode)", input.Keyword).Limit(8).Scan(&words)
+	err := md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%").Limit(8).Scan(&words)
 	if err != nil {
 		return nil, err
 	}

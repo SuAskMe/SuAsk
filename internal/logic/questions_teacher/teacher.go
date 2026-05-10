@@ -17,7 +17,7 @@ func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeach
 	md = md.WhereGT(dao.Questions.Columns().ReplyCnt, 0)
 
 	if input.Keyword != "" {
-		md = md.Where("match(title) against (? in boolean mode)", input.Keyword)
+		md = md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%")
 	} else {
 		err := utility.SortByType(&md, input.SortType)
 		if err != nil {
@@ -79,7 +79,7 @@ func (sTeacherQuestion) GetKeyword(ctx context.Context, input *model.GetKeywords
 	md = md.WhereGT(dao.Questions.Columns().ReplyCnt, 0)
 	// fmt.Println(input.Keyword)
 	words := make([]model.Keyword, consts.MaxKeywordsPerReq)
-	err := md.Where("match(title) against (? in boolean mode)", input.Keyword).Limit(8).Scan(&words)
+	err := md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%").Limit(8).Scan(&words)
 	if err != nil {
 		return nil, err
 	}

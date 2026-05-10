@@ -25,7 +25,7 @@ const (
 const (
 	Answered   = "已回答"
 	Unanswered = "未回答"
-	OnTop      = "置顶"
+	OnTop      = "top" // 置顶标记，存到 favorites.package 中；原为中文 "置顶"，已统一英文化
 )
 
 // for User Role
