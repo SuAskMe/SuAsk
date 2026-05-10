@@ -23,6 +23,9 @@ python tests/smoke/run_smoke.py snapshot
 
 # 改完后验证结构没有变
 python tests/smoke/run_smoke.py verify
+
+# 静态文件暴露面回归检查（独立运行，不依赖 snapshot）
+python tests/smoke/security_check.py
 ```
 
 ## 注意：仓库已有两个坏掉的测试

@@ -140,9 +140,27 @@ func IsTeacher(ctx context.Context, teacherId int) (string, error) {
 	return t.(*entity.Teachers).Perm, nil
 }
 
+// UpdateTeacherPerm 同步更新缓存中的老师权限信息。
+// 旧实现只 Store 了 Perm，会把已经缓存的 Name / Email 等字段清空，
+// 导致后续 GetTeacherName / TeacherPerm 报"该用户不是老师"。
+// 这里改为：若缓存已有对象则复制并覆盖 Perm；否则用调用方传入的 name 新建一条。
 func UpdateTeacherPerm(teacherId int, name, perm string) {
-	teacher := &entity.Teachers{Perm: perm}
-	teacherCache.Store(teacherId, teacher)
+	if v, ok := teacherCache.Load(teacherId); ok {
+		if cached, ok := v.(*entity.Teachers); ok && cached != nil {
+			updated := *cached // 浅拷贝，避免与其他 reader 共享同一指针
+			updated.Perm = perm
+			if name != "" {
+				updated.Name = name
+			}
+			teacherCache.Store(teacherId, &updated)
+			return
+		}
+	}
+	teacherCache.Store(teacherId, &entity.Teachers{
+		Id:   teacherId,
+		Name: name,
+		Perm: perm,
+	})
 }
 
 func GetTeacherName(ctx context.Context, teacherId int) (string, error) {

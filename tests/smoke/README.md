@@ -70,6 +70,18 @@ python tests/smoke/run_smoke.py verify `
 - `POST /answer/upvote` → 点赞/取消点赞
 - `POST /questions/add` → 新发一条公开问题（之后不删，但可识别）
 
+## 静态文件暴露面检查
+
+独立于 snapshot 机制，单独一个脚本：
+
+```powershell
+python tests/smoke/security_check.py
+```
+
+会验证 `/database/suask.db`、`/manifest/config/config.yaml`、`/main.exe`、`/` 等路径
+都返回 4xx，同时确认 `/upload/...` 下的已有文件仍可正常访问。一旦有人不小心又把
+`SetServerRoot(".")` 改回来，这里会立刻红。
+
 ## 不测的东西
 
 - 邮件验证码注册 / 改密码（依赖外部 SMTP）

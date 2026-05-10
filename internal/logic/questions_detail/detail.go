@@ -58,10 +58,7 @@ func (sQuestionDetail) GetQuestionBase(ctx context.Context, in *model.GetQuestio
 	if err != nil {
 		return nil, err
 	}
-	imgIdList := make([]int, len(imgList))
-	for _, img := range imgList {
-		imgIdList = append(imgIdList, img.FileID)
-	}
+	imgIdList := extractFileIDs(imgList)
 	isFavorite := false
 	if in.UserId != consts.DefaultUserId {
 		one, err := dao.Favorites.Ctx(ctx).Where(dao.Favorites.Columns().QuestionId, in.QuestionId).Where(dao.Favorites.Columns().UserId, in.UserId).One()
