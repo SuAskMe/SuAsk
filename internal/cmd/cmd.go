@@ -25,6 +25,13 @@ var (
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
 			s := g.Server()
 
+			// 启动期数据库自检：发现 sqlite 路径或内容异常时，直接 panic 退出，
+			// 避免在空库上静默运行（这是迁移后最常见的坑）。
+			if err = checkDatabase(ctx); err != nil {
+				g.Log().Fatal(ctx, err)
+				return err
+			}
+
 			jToken := JwtToken()
 			if err != nil {
 				return err
@@ -78,3 +85,10 @@ var (
 		},
 	}
 )
+
+func init() {
+	// 注册 `./main dbinfo` 诊断子命令
+	if err := Main.AddCommand(&DBInfo); err != nil {
+		panic(err)
+	}
+}

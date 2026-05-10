@@ -32,6 +32,9 @@ func (s sLogin) Login(ctx context.Context, in *model.UserLoginInput) (res *model
 	err = md.Scan(&userInfo)
 	// 查不到用户
 	if err != nil {
+		// 把真实错误记录到日志，便于排查（no such table / database locked / path wrong 等）
+		g.Log().Errorf(ctx, "login scan user failed: name=%q email=%q err=%v",
+			in.Name, in.Email, err)
 		return nil, gerror.New("登录失败，用户名或密码错误")
 	}
 	// 密码校验失败
