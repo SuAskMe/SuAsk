@@ -25,11 +25,13 @@ var (
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
 			s := g.Server()
 
-			// 启动期数据库自检：发现 sqlite 路径或内容异常时，直接 panic 退出，
-			// 避免在空库上静默运行（这是迁移后最常见的坑）。
-			if err = checkDatabase(ctx); err != nil {
-				g.Log().Fatal(ctx, err)
-				return err
+			// 启动期数据库自检：发现配置缺失 / sqlite 路径异常时打印警告，
+			// 但不阻断启动，方便用 dbinfo 子命令进一步排查。
+			if checkErr := checkDatabase(ctx); checkErr != nil {
+				g.Log().Warningf(ctx,
+					"database startup check failed, server will keep running for "+
+						"diagnostics but most APIs will be broken until fixed:\n%v",
+					checkErr)
 			}
 
 			jToken := JwtToken()

@@ -30,8 +30,11 @@ func checkDatabase(ctx context.Context) error {
 			"[db-check] database 配置为空！config.yaml 很可能根本没被加载。\n"+
 				"当前工作目录：%s\n"+
 				"可能原因：\n"+
-				"  1) systemd ExecStart 里指定了 --gf.gcfg.file 但指向了不存在的文件\n"+
-				"  2) manifest/config/config.yaml 部署路径不对\n"+
+				"  1) config.yaml 被 .gitignore 忽略了，CI 没上传（最常见！）\n"+
+				"  2) systemd ExecStart 的 --gf.gcfg.file 指向了不存在的文件\n"+
+				"  3) manifest/config/config.yaml 部署路径不对\n"+
+				"后续若报 'unable to open database file: out of memory (14)'，\n"+
+				"通常是 sqlite 被传了空路径，同样是本问题的衍生表现。\n"+
 				"排查：\n"+
 				"  ls -la %s/manifest/config/config.yaml\n"+
 				"  find %s -maxdepth 3 -name config.yaml\n"+
