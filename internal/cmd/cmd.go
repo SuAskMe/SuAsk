@@ -63,6 +63,7 @@ var (
 					user.User.GetUserInfoById,
 					teacher.Teacher.GetTeacher,
 					teacher.Teacher.GetTeacherPin,
+					questions.HotQuestion,
 					// 公告列表和详情无需登录
 					announcement.Announcement.List,
 					announcement.Announcement.Detail,
