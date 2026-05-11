@@ -86,9 +86,8 @@ func TestCountRemainPage(t *testing.T) {
 		want  int
 		name  string
 	}{
-		// 注意：total=0, page=1 时当前实现返回 -1（小 bug，回退到 0 更合理）。
-		// 这里锁定"现状"，等单独修 bug 时再把期望值改成 0。
-		{total: 0, page: 1, want: -1, name: "empty (current quirk)"},
+		// 注意：total=0, page=1 时之前返回 -1（已修复为 0）。
+		{total: 0, page: 1, want: 0, name: "empty"},
 		{total: ps, page: 1, want: 0, name: "exact one page"},
 		{total: ps + 1, page: 1, want: 1, name: "one page plus one item"},
 		{total: ps * 3, page: 1, want: 2, name: "three pages, first page read"},
@@ -155,7 +154,9 @@ func TestEncryptPassword_DifferentPasswordsDiffer(t *testing.T) {
 }
 
 // 现网测试数据里的 root 账户：
-//   salt='iqjbenzvfz', hash='6917ef8afa3ffeb3cb02643b9feb2a46'
+//
+//	salt='iqjbenzvfz', hash='6917ef8afa3ffeb3cb02643b9feb2a46'
+//
 // 我们不知道原始明文，只能用当前算法在已知 (明文, 盐) 上回归一个 Golden。
 // 防止有人"顺手"把 MD5 换成 SHA256 却忘了升级数据迁移脚本。
 func TestEncryptPassword_KnownVector(t *testing.T) {

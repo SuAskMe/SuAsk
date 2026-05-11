@@ -13,9 +13,10 @@ type sAttachment struct{}
 func (s *sAttachment) AddAttachments(ctx context.Context, in model.AddAttachmentInput) (out model.AddAttachmentOutput, err error) {
 	fileCount := len(in.FileId)
 	attachment := do.Attachments{
-		QuestionId: in.QuestionId,
-		AnswerId:   in.AnswerId,
-		Type:       in.Type,
+		QuestionId:     in.QuestionId,
+		AnswerId:       in.AnswerId,
+		AnnouncementId: in.AnnouncementId,
+		Type:           in.Type,
 	}
 	out = model.AddAttachmentOutput{
 		Id: make([]int, fileCount),

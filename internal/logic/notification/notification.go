@@ -6,13 +6,12 @@ import (
 	"suask/internal/dao"
 	"suask/internal/model"
 	"suask/internal/model/do"
-	"suask/internal/model/entity"
 	"suask/internal/service"
+
+	"github.com/gogf/gf/v2/frame/g"
 )
 
 type sNotification struct{}
-
-type pad struct{}
 
 func (s *sNotification) Add(ctx context.Context, in model.AddNotificationInput) (out model.AddNotificationOutput, err error) {
 	notification := do.Notifications{
@@ -32,202 +31,97 @@ func (s *sNotification) Add(ctx context.Context, in model.AddNotificationInput) 
 	return out, nil
 }
 
-// 效率极差，必须从数据库层面开始优化
+// Get 一次 JOIN 拉取所有通知 + 关联的问题/回答/用户信息。
+// 原实现 6+ 次 SQL，现在合并为 1 条 JOIN + 1 轮 Go 组装。
 func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput) (out model.GetNotificationsOutput, err error) {
-	md := dao.Notifications.Ctx(ctx).Where(dao.Notifications.Columns().UserId, in.UserId).OrderAsc(dao.Notifications.Columns().IsRead).OrderDesc(dao.Notifications.Columns().CreatedAt)
-	var newQuestion []*entity.Notifications
-	var newAnswer []*entity.Notifications
-	var newReply []*entity.Notifications
-	var nqc int
-	var nac int
-	var nrc int
-	// 分别获取new_question,new_answer,new_reply
-	err = md.Where(dao.Notifications.Columns().Type, "new_question").ScanAndCount(&newQuestion, &nqc, false)
+	// 单条 SQL 拿全部需要的字段
+	const query = `
+	SELECT
+		n.id              AS nid,
+		n.type            AS ntype,
+		n.is_read         AS is_read,
+		n.created_at      AS n_created_at,
+		n.question_id     AS qid,
+		n.answer_id       AS aid,
+		n.reply_to_id     AS rid,
+		q.title           AS q_title,
+		q.contents        AS q_contents,
+		q.dst_user_id     AS q_dst_user_id,
+		a.contents        AS a_contents,
+		a.user_id         AS a_user_id,
+		r.contents        AS r_contents,
+		r.user_id         AS r_user_id,
+		ua.nickname       AS a_nickname,
+		ur.nickname       AS r_nickname
+	FROM notifications n
+	LEFT JOIN questions q ON q.id = n.question_id
+	LEFT JOIN answers   a ON a.id = n.answer_id
+	LEFT JOIN answers   r ON r.id = n.reply_to_id
+	LEFT JOIN users    ua ON ua.id = a.user_id
+	LEFT JOIN users    ur ON ur.id = r.user_id
+	WHERE n.user_id = ?
+	ORDER BY n.is_read ASC, n.created_at DESC
+	`
+
+	rows, err := g.DB().Ctx(ctx).Query(ctx, query, in.UserId)
 	if err != nil {
 		return model.GetNotificationsOutput{}, err
 	}
-	err = md.Where(dao.Notifications.Columns().Type, "new_answer").ScanAndCount(&newAnswer, &nac, false)
-	if err != nil {
-		return model.GetNotificationsOutput{}, err
-	}
-	err = md.Where(dao.Notifications.Columns().Type, "new_reply").ScanAndCount(&newReply, &nrc, false)
-	if err != nil {
-		return model.GetNotificationsOutput{}, err
-	}
-	//fmt.Println("newQuestion:", newQuestion, nqc)
-	//fmt.Println("newAnswer:", newAnswer, nac)
-	//fmt.Println("newReply:", newReply[0], nrc)
 
-	// 塞入 Set 里面
-	qIDSet := make(map[int]pad)
-	aIDSet := make(map[int]pad)
-	for _, n := range newQuestion {
-		if _, ok := qIDSet[n.QuestionId]; !ok {
-			qIDSet[n.QuestionId] = pad{}
-		}
-	}
-	for _, n := range newAnswer {
-		if _, ok := qIDSet[n.QuestionId]; !ok {
-			qIDSet[n.QuestionId] = pad{}
-		}
-		if _, ok := aIDSet[n.AnswerId]; !ok {
-			aIDSet[n.AnswerId] = pad{}
-		}
-	}
-	for _, n := range newReply {
-		if _, ok := qIDSet[n.QuestionId]; !ok {
-			qIDSet[n.QuestionId] = pad{}
-		}
-		if _, ok := aIDSet[n.AnswerId]; !ok {
-			aIDSet[n.AnswerId] = pad{}
-		}
-		if _, ok := aIDSet[n.ReplyToId]; !ok {
-			aIDSet[n.ReplyToId] = pad{}
-		}
-	}
-
-	// 转换成 List
-	qIDList := make([]int, 0, len(qIDSet))
-	aIDList := make([]int, 0, len(aIDSet))
-	for k := range qIDSet {
-		qIDList = append(qIDList, k)
-	}
-	for k := range aIDSet {
-		aIDList = append(aIDList, k)
-	}
-	//fmt.Println("qIDSet:", qIDList)
-	//fmt.Println("aIDSet:", aIDList)
-	var q []*model.NotificationQuestion
-	var a []*model.NotificationAnswer
-
-	// 根据 Set 查询
-	err = dao.Questions.Ctx(ctx).WhereIn(dao.Questions.Columns().Id, qIDList).
-		Fields(dao.Questions.Columns().Id).
-		Fields(dao.Questions.Columns().Title).
-		Fields(dao.Questions.Columns().Contents).
-		Fields(dao.Questions.Columns().DstUserId).
-		Scan(&q)
-	if err != nil {
-		return model.GetNotificationsOutput{}, err
-	}
-	err = dao.Answers.Ctx(ctx).WhereIn(dao.Answers.Columns().Id, aIDList).
-		Fields(dao.Answers.Columns().Id).
-		Fields(dao.Answers.Columns().UserId).
-		Fields(dao.Answers.Columns().Contents).
-		Scan(&a)
-	if err != nil {
-		return model.GetNotificationsOutput{}, err
-	}
-	// 查出的结果存入 Map
-	qMap := make(map[int]*model.NotificationQuestion)
-	aMap := make(map[int]*model.NotificationAnswer)
-
-	for _, q := range q {
-		qMap[q.Id] = q
-	}
-
-	for _, a := range a {
-		aMap[a.Id] = a
-	}
-
-	// 获取用户信息
-	userIDs := make([]int, 0, len(qIDSet)+len(aIDSet))
-	userIDSet := make(map[int]pad)
-	var u []*model.NotificationUser
-	userMap := make(map[int]*model.NotificationUser)
-	for _, n := range qMap {
-		if _, ok := qMap[n.DstUserId]; !ok {
-			userIDSet[n.DstUserId] = pad{}
-		}
-	}
-	for _, n := range aMap {
-		if _, ok := userIDSet[n.UserId]; !ok {
-			userIDSet[n.UserId] = pad{}
-		}
-	}
-	for k := range userIDSet {
-		userIDs = append(userIDs, k)
-	}
-	err = dao.Users.Ctx(ctx).WhereIn(dao.Users.Columns().Id, userIDs).
-		Fields(dao.Users.Columns().Id).
-		Fields(dao.Users.Columns().Nickname).
-		Fields(dao.Users.Columns().AvatarFileId).
-		Scan(&u)
-	if err != nil {
-		return model.GetNotificationsOutput{}, err
-	}
-	for _, u := range u {
-		userMap[u.Id] = u
-	}
-
-	// 开辟 out 的内存
 	out = model.GetNotificationsOutput{
-		NewQuestion: make([]model.NotificationNewQuestion, nqc),
-		NewAnswer:   make([]model.NotificationNewAnswer, nac),
-		NewReply:    make([]model.NotificationNewReply, nrc),
+		NewQuestion: make([]model.NotificationNewQuestion, 0),
+		NewAnswer:   make([]model.NotificationNewAnswer, 0),
+		NewReply:    make([]model.NotificationNewReply, 0),
 	}
-	// 塞入内容
-	for i, n := range newQuestion {
-		qid := n.QuestionId
-		out.NewQuestion[i] = model.NotificationNewQuestion{
-			NotificationBase: model.NotificationBase{
-				Id:              n.Id,
-				QuestionId:      qid,
-				QuestionTitle:   qMap[qid].Title,
-				QuestionContent: qMap[qid].Contents,
-				IsRead:          n.IsRead,
-				CreatedAt:       n.CreatedAt.TimestampMilli(),
-			},
-			// 只有老师会有这个提醒，统一设置成匿名用户
-			UserName: consts.DefaultUserName,
-			UserId:   consts.DefaultUserId,
-		}
-	}
-	for i, n := range newAnswer {
-		qid := n.QuestionId
-		out.NewAnswer[i] = model.NotificationNewAnswer{
-			NotificationBase: model.NotificationBase{
-				Id:              n.Id,
-				QuestionId:      qid,
-				QuestionTitle:   qMap[qid].Title,
-				QuestionContent: qMap[qid].Contents,
-				IsRead:          n.IsRead,
-				CreatedAt:       n.CreatedAt.TimestampMilli(),
-			},
-			AnswerId:      n.AnswerId,
-			AnswerContent: aMap[n.AnswerId].Contents,
-			// 自己问题的回复，可以看到所有回复者信息
-			RespondentName: userMap[aMap[n.AnswerId].UserId].Nickname,
-			RespondentId:   userMap[aMap[n.AnswerId].UserId].Id,
-		}
-	}
-	for i, n := range newReply {
-		qid := n.QuestionId
-		respdName := userMap[aMap[n.ReplyToId].UserId].Nickname
-		respdId := userMap[aMap[n.ReplyToId].UserId].Id
-		// 在问老师的问题里，如果问题的目标是自己，回复者是匿名用户
-		// 依赖其他的逻辑保证，只有回答拥有者才能获得该通知
 
-		if qMap[qid].DstUserId == in.UserId {
-			respdName = consts.DefaultUserName
-			respdId = consts.DefaultUserId
+	for _, row := range rows {
+		ntype := row["ntype"].String()
+		qid := row["qid"].Int()
+		base := model.NotificationBase{
+			Id:              int64(row["nid"].Int()),
+			QuestionId:      qid,
+			QuestionTitle:   row["q_title"].String(),
+			QuestionContent: row["q_contents"].String(),
+			IsRead:          row["is_read"].Int() == 1,
+			CreatedAt:       row["n_created_at"].GTime().TimestampMilli(),
 		}
 
-		out.NewReply[i] = model.NotificationNewReply{
-			NotificationBase: model.NotificationBase{
-				Id:              n.Id,
-				QuestionId:      qid,
-				QuestionTitle:   qMap[qid].Title,
-				QuestionContent: qMap[qid].Contents,
-				IsRead:          n.IsRead,
-				CreatedAt:       n.CreatedAt.TimestampMilli(),
-			},
-			AnswerId:       n.AnswerId,
-			AnswerContent:  aMap[n.AnswerId].Contents,
-			ReplyToId:      n.ReplyToId,
-			ReplyToContent: aMap[n.ReplyToId].Contents,
-			RespondentName: respdName,
-			RespondentId:   respdId,
+		switch ntype {
+		case consts.NewQuestion:
+			out.NewQuestion = append(out.NewQuestion, model.NotificationNewQuestion{
+				NotificationBase: base,
+				UserName:         consts.DefaultUserName,
+				UserId:           consts.DefaultUserId,
+			})
+
+		case consts.NewAnswer:
+			respdName := row["a_nickname"].String()
+			respdId := row["a_user_id"].Int()
+			out.NewAnswer = append(out.NewAnswer, model.NotificationNewAnswer{
+				NotificationBase: base,
+				AnswerId:         row["aid"].Int(),
+				AnswerContent:    row["a_contents"].String(),
+				RespondentName:   respdName,
+				RespondentId:     respdId,
+			})
+
+		case consts.NewReply:
+			respdName := row["r_nickname"].String()
+			respdId := row["r_user_id"].Int()
+			// 如果问题的目标老师就是当前用户，回复者匿名化
+			if row["q_dst_user_id"].Int() == in.UserId {
+				respdName = consts.DefaultUserName
+				respdId = consts.DefaultUserId
+			}
+			out.NewReply = append(out.NewReply, model.NotificationNewReply{
+				NotificationBase: base,
+				AnswerId:         row["aid"].Int(),
+				AnswerContent:    row["a_contents"].String(),
+				ReplyToId:        row["rid"].Int(),
+				ReplyToContent:   row["r_contents"].String(),
+				RespondentName:   respdName,
+				RespondentId:     respdId,
+			})
 		}
 	}
 	return out, nil
@@ -264,23 +158,29 @@ func (s *sNotification) Delete(ctx context.Context, in model.DeleteNotificationI
 }
 
 func (s *sNotification) NewNotificationCount(ctx context.Context, in model.NewNotificationCountInput) (out model.NewNotificationCountOutput, err error) {
-	md := dao.Notifications.Ctx(ctx).Where(dao.Notifications.Columns().UserId, in.UserId).Where(dao.Notifications.Columns().IsRead, false)
-	newQuestionCount, err := md.Where(dao.Notifications.Columns().Type, consts.NewQuestion).Count()
+	// 优化：原来 3 次 COUNT 查询合并为 1 次 GROUP BY
+	type typeCount struct {
+		Type string `json:"type"`
+		Cnt  int    `json:"cnt"`
+	}
+	var counts []typeCount
+	err = g.DB().Ctx(ctx).Model("notifications").
+		Fields("type, COUNT(*) AS cnt").
+		Where("user_id = ? AND is_read = 0", in.UserId).
+		Group("type").
+		Scan(&counts)
 	if err != nil {
 		return model.NewNotificationCountOutput{}, err
 	}
-	newAnswerCount, err := md.Where(dao.Notifications.Columns().Type, consts.NewAnswer).Count()
-	if err != nil {
-		return model.NewNotificationCountOutput{}, err
-	}
-	newReplyCount, err := md.Where(dao.Notifications.Columns().Type, consts.NewReply).Count()
-	if err != nil {
-		return model.NewNotificationCountOutput{}, err
-	}
-	out = model.NewNotificationCountOutput{
-		NewQuestionCount: newQuestionCount,
-		NewAnswerCount:   newAnswerCount,
-		NewReplyCount:    newReplyCount,
+	for _, c := range counts {
+		switch c.Type {
+		case consts.NewQuestion:
+			out.NewQuestionCount = c.Cnt
+		case consts.NewAnswer:
+			out.NewAnswerCount = c.Cnt
+		case consts.NewReply:
+			out.NewReplyCount = c.Cnt
+		}
 	}
 	return out, nil
 }

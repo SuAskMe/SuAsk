@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"suask/internal/controller/announcement"
 	"suask/internal/controller/favorite"
 	"suask/internal/controller/history"
 	"suask/internal/controller/login"
@@ -55,6 +56,9 @@ var (
 					user.User.GetUserInfoById,
 					teacher.Teacher.GetTeacher,
 					teacher.Teacher.GetTeacherPin,
+					// 公告列表和详情无需登录
+					announcement.Announcement.List,
+					announcement.Announcement.Detail,
 				)
 				// 这里是登录和非登录共有接口
 				group.Group("/", func(group *ghttp.RouterGroup) {
@@ -77,6 +81,12 @@ var (
 						questions.TeacherSelf,
 						questions.TeacherQuestion,
 						notification.Notification,
+						// 公告：发布/编辑/删除需要 admin 权限（controller 内部校验）
+						// 评论需要登录
+						announcement.Announcement.Create,
+						announcement.Announcement.Update,
+						announcement.Announcement.Delete,
+						announcement.Announcement.AddComment,
 					)
 				})
 			})
