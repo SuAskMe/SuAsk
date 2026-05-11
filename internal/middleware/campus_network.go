@@ -80,11 +80,17 @@ func GetClientIP(r *ghttp.Request) string {
 // 仅用于需要校园网限制的路由组。
 func CampusNetworkCheck(r *ghttp.Request) {
 	clientIP := GetClientIP(r)
+	g.Log().Infof(r.Context(), "校园网校验: clientIP=%s, X-Forwarded-For=%s, X-Real-IP=%s, RemoteAddr=%s",
+		clientIP,
+		r.Header.Get("X-Forwarded-For"),
+		r.Header.Get("X-Real-IP"),
+		r.RemoteAddr,
+	)
 	if !IsCampusNetwork(clientIP) {
 		g.Log().Infof(r.Context(), "非校园网访问被拒绝, IP: %s", clientIP)
 		r.Response.WriteJsonExit(g.Map{
 			"code":    403,
-			"message": "请在校园网环境下访问",
+			"message": "请在校园网环境下访问，当前IP: " + clientIP,
 		})
 		return
 	}
