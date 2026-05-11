@@ -4,6 +4,7 @@ import (
 	"context"
 	v1 "suask/api/teacher/v1"
 	"suask/internal/consts"
+	qutil "suask/internal/logic/questions_util"
 	"suask/internal/model"
 	"suask/internal/service"
 	"suask/module/validation"
@@ -33,17 +34,21 @@ func (c *cTeacher) GetTeacherPin(ctx context.Context, req *v1.TeacherPinReq) (re
 	}
 	qfm := out.Questions
 	idMap := out.IdMap
-	// 获取图片
+	// 获取图片（批量查）
 	imagesOutput, err := service.QuestionUtil().GetImages(ctx, &model.GetImagesInput{QuestionIDs: out.QuestionIDs})
 	if err != nil {
 		return
 	}
-	for k, v := range imagesOutput.ImageMap {
-		urls, err_ := service.File().GetList(ctx, model.FileListGetInput{IdList: v})
+	if imagesOutput != nil && len(imagesOutput.ImageMap) > 0 {
+		allFileIDs := qutil.CollectFileIDs(imagesOutput.ImageMap, nil)
+		urlMap, err_ := qutil.BatchGetFileURLs(ctx, allFileIDs)
 		if err_ != nil {
 			return nil, err_
 		}
-		qfm[idMap[k]].ImageURLs = urls.URL
+		imageURLs := qutil.ResolveImageURLs(urlMap, imagesOutput.ImageMap)
+		for qid, urls := range imageURLs {
+			qfm[idMap[qid]].ImageURLs = urls
+		}
 	}
 	res = &v1.TeacherPinRes{}
 	err = gconv.Scan(qfm, &res.QuestionList)

@@ -4,6 +4,7 @@ import (
 	"context"
 	v1 "suask/api/favorite/v1"
 	"suask/internal/consts"
+	qutil "suask/internal/logic/questions_util"
 	"suask/internal/model"
 	"suask/internal/service"
 
@@ -31,44 +32,34 @@ func GetFavoriteImpl(ctx context.Context, req interface{}) (res interface{}, err
 	if err != nil {
 		return
 	}
-	for k, v := range imagesOutput.ImageMap {
-		urls, err_ := service.File().GetList(ctx, model.FileListGetInput{IdList: v})
-		if err_ != nil {
-			return nil, err_
-		}
-		QuestionList[idMap[k]].ImageURLs = urls.URL
-	}
-	// 获取回答数
+	// 获取回答者头像
 	answersOutput, err := service.QuestionUtil().GetAnswers(ctx, &model.GetAnswersInput{QuestionIDs: baseOutput.QuestionIDs})
 	if err != nil {
 		return
 	}
+	avatarsMap := map[int][]int{}
 	if answersOutput != nil {
-		for k, v := range answersOutput.AvatarsMap {
-			dstId := QuestionList[idMap[k]].DstUserID
-			if dstId != 0 {
-				QuestionList[idMap[k]].AnswerAvatars = []string{consts.DefaultAvatarURL}
-				continue
-			}
-			idList := make([]int, 0, len(v))
-			URLs := make([]string, 0, len(v))
-			for _, u := range v {
-				if u != 0 {
-					idList = append(idList, u)
-				} else {
-					URLs = append(URLs, consts.DefaultAvatarURL)
-				}
-			}
-			urls, err_ := service.File().GetList(ctx, model.FileListGetInput{IdList: idList})
-			if err_ != nil {
-				return nil, err_
-			}
-			if len(URLs) == 0 {
-				URLs = urls.URL
-			} else {
-				URLs = append(urls.URL, URLs[0])
-			}
-			QuestionList[idMap[k]].AnswerAvatars = URLs
+		avatarsMap = answersOutput.AvatarsMap
+	}
+	// 一次性批量查所有 file_id -> URL (#2 优化)
+	allFileIDs := qutil.CollectFileIDs(imagesOutput.ImageMap, avatarsMap)
+	urlMap, err := qutil.BatchGetFileURLs(ctx, allFileIDs)
+	if err != nil {
+		return nil, err
+	}
+	// 按原始顺序分发图片 URL
+	imageURLs := qutil.ResolveImageURLs(urlMap, imagesOutput.ImageMap)
+	for qid, urls := range imageURLs {
+		QuestionList[idMap[qid]].ImageURLs = urls
+	}
+	// 按原始顺序分发头像 URL
+	avatarURLs := qutil.ResolveAvatarURLs(urlMap, avatarsMap)
+	for qid, urls := range avatarURLs {
+		dstId := QuestionList[idMap[qid]].DstUserID
+		if dstId != 0 {
+			QuestionList[idMap[qid]].AnswerAvatars = []string{consts.DefaultAvatarURL}
+		} else {
+			QuestionList[idMap[qid]].AnswerAvatars = urls
 		}
 	}
 	// 返回结果
@@ -101,32 +92,3 @@ func (c *cFavorite) Favorite(ctx context.Context, req *v1.FavoriteReq) (res *v1.
 	}
 	return
 }
-
-// func (c *cFavorite) GetKeyWords(ctx context.Context, req *v1.GetFavoriteSearchKeywordsReq) (res *v1.GetFavoriteSearchKeywordsRes, err error) {
-// 	input := model.GetFavoriteKeywordsInput{}
-// 	err = gconv.Scan(req, &input)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	out, err := service.Favorite().GetKeyWord(ctx, &input)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	err = gconv.Scan(out, &res)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return res, nil
-// }
-
-// func (c *cFavorite) GetByKeyWord(ctx context.Context, req *v1.GetFavoritePageByKeywordReq) (res *v1.GetFavoritePageByKeywordRes, err error) {
-// 	data, err := GetFavoriteImpl(ctx, req)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	err = gconv.Scan(data, &res)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return res, err
-// }

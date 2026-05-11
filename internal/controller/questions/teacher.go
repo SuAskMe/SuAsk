@@ -4,6 +4,7 @@ import (
 	"context"
 	v1 "suask/api/questions/v1"
 	"suask/internal/consts"
+	qutil "suask/internal/logic/questions_util"
 	"suask/internal/model"
 	"suask/internal/service"
 	"suask/module/validation"
@@ -33,18 +34,20 @@ func GetQuestionOfTeacherImpl(ctx context.Context, req interface{}) (res interfa
 	}
 	QuestionList := baseOutput.Questions
 	idMap := baseOutput.IdMap
-	// 获取图片
+	// 获取图片 (#2 优化：批量查)
 	imagesOutput, err := service.QuestionUtil().GetImages(ctx, &model.GetImagesInput{QuestionIDs: baseOutput.QuestionIDs})
 	if err != nil {
 		return
 	}
-	if imagesOutput != nil {
-		for k, v := range imagesOutput.ImageMap {
-			urls, err_ := service.File().GetList(ctx, model.FileListGetInput{IdList: v})
-			if err_ != nil {
-				return nil, err_
-			}
-			QuestionList[idMap[k]].ImageURLs = urls.URL
+	if imagesOutput != nil && len(imagesOutput.ImageMap) > 0 {
+		allFileIDs := qutil.CollectFileIDs(imagesOutput.ImageMap, nil)
+		urlMap, err_ := qutil.BatchGetFileURLs(ctx, allFileIDs)
+		if err_ != nil {
+			return nil, err_
+		}
+		imageURLs := qutil.ResolveImageURLs(urlMap, imagesOutput.ImageMap)
+		for qid, urls := range imageURLs {
+			QuestionList[idMap[qid]].ImageURLs = urls
 		}
 	}
 	// 返回结果
@@ -80,11 +83,3 @@ func (cTeacherQuestion) GetByKeyword(ctx context.Context, req *v1.GetPageByKeywo
 	gconv.Scan(res_, &res)
 	return
 }
-
-//func (cTeacherQuestion) Favorite(ctx context.Context, req *v1.FavoriteOfTeacherReq) (res *v1.FavoriteOfTeacherRes, err error) {
-//	input := model.FavoriteInput{}
-//	gconv.Scan(req, &input)
-//	output, err := service.QuestionUtil().Favorite(ctx, &input)
-//	gconv.Scan(output, &res)
-//	return
-//}

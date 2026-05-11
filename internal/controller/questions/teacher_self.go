@@ -4,6 +4,7 @@ import (
 	"context"
 	v1 "suask/api/questions/v1"
 	"suask/internal/consts"
+	qutil "suask/internal/logic/questions_util"
 	"suask/internal/model"
 	"suask/internal/service"
 	"suask/module/validation"
@@ -32,12 +33,16 @@ func GetQFMImpl(ctx context.Context, in *model.GetQFMInput) (res *v1.QFMBase, er
 		return
 	}
 	if imagesOutput != nil {
-		for k, v := range imagesOutput.ImageMap {
-			urls, err_ := service.File().GetList(ctx, model.FileListGetInput{IdList: v})
+		if len(imagesOutput.ImageMap) > 0 {
+			allFileIDs := qutil.CollectFileIDs(imagesOutput.ImageMap, nil)
+			urlMap, err_ := qutil.BatchGetFileURLs(ctx, allFileIDs)
 			if err_ != nil {
 				return nil, err_
 			}
-			qfm[idMap[k]].ImageURLs = urls.URL
+			imageURLs := qutil.ResolveImageURLs(urlMap, imagesOutput.ImageMap)
+			for qid, urls := range imageURLs {
+				qfm[idMap[qid]].ImageURLs = urls
+			}
 		}
 	}
 	res = &v1.QFMBase{
@@ -127,12 +132,16 @@ func (cTeacherSelf) GetQFMTop(ctx context.Context, _ *v1.GetQFMTopReq) (res *v1.
 	if err != nil {
 		return
 	}
-	for k, v := range imagesOutput.ImageMap {
-		urls, err_ := service.File().GetList(ctx, model.FileListGetInput{IdList: v})
+	if len(imagesOutput.ImageMap) > 0 {
+		allIDs := qutil.CollectFileIDs(imagesOutput.ImageMap, nil)
+		urlMap, err_ := qutil.BatchGetFileURLs(ctx, allIDs)
 		if err_ != nil {
 			return nil, err_
 		}
-		qfm[idMap[k]].ImageURLs = urls.URL
+		imageURLs := qutil.ResolveImageURLs(urlMap, imagesOutput.ImageMap)
+		for qid, urls := range imageURLs {
+			qfm[idMap[qid]].ImageURLs = urls
+		}
 	}
 	res = &v1.GetQFMTopRes{}
 	res.QFMList = qfm
