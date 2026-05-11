@@ -62,7 +62,6 @@ var (
 					group.Bind(login.Login.Login,
 						login.Login.Logout,
 						login.Login.HeartBeats,
-						questions.PublicQuestions,
 						questions.QuestionDetail.GetDetail,
 						user.User.Info,
 						user.User.UpdateUserInfo,

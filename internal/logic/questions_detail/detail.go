@@ -36,9 +36,9 @@ func (sQuestionDetail) GetQuestionBase(ctx context.Context, in *model.GetQuestio
 	}
 	// 权限验证
 	UserId := gconv.Int(ctx.Value(consts.CtxId))
-	if question.DstUserId != 0 && question.DstUserId != UserId { // 问老师的问题, 且不是老师
-		err = validation.TeacherPerm(ctx, question.DstUserId)
-		if err != nil {
+	// 不是老师本人时，要先过老师提问箱权限（私有/受保护/公开）
+	if question.DstUserId != UserId {
+		if err = validation.TeacherPerm(ctx, question.DstUserId); err != nil {
 			return nil, err
 		}
 	}
@@ -102,8 +102,10 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 		IdMap[ans.Id] = i
 		UserId := ans.UserId
 
-		if in.DstUserId != 0 && in.DstUserId != UserId { // 问老师的问题且不是老师的回答
-			UserId = consts.DefaultUserId // 显示默认用户的头像
+		// "问大家"已下线，每条问题都必定有 DstUserId；这里只判断"不是老师本人的回答"，
+		// 若是学生回答一律匿名化（显示默认用户头像）。
+		if in.DstUserId != UserId {
+			UserId = consts.DefaultUserId
 		}
 
 		if _, ok := UserIdMap[ans.UserId]; !ok {
@@ -256,9 +258,9 @@ func (sQuestionDetail) ReplyQuestion(ctx context.Context, in *model.AddAnswerInp
 		return nil, err
 	}
 	// 权限验证
-	if question.DstUserId != 0 && question.DstUserId != in.UserId { // 问老师的问题且不是老师的回答
-		err = validation.TeacherPerm(ctx, question.DstUserId)
-		if err != nil {
+	// "问大家"已下线：所有问题都指向某个老师。非老师本人时要过提问箱权限。
+	if question.DstUserId != in.UserId {
+		if err = validation.TeacherPerm(ctx, question.DstUserId); err != nil {
 			return nil, err
 		}
 	}
@@ -278,9 +280,8 @@ func (sQuestionDetail) ReplyQuestion(ctx context.Context, in *model.AddAnswerInp
 		return nil, err
 	}
 
-	if question.DstUserId != 0 && question.ReplyCnt == 0 { // 问老师的问题，且第一次回复，增加回复数
-		err = AddResponseCnt(ctx, question.DstUserId)
-		if err != nil {
+	if question.ReplyCnt == 0 { // 第一次回复 → 给老师的 responses 计数 +1
+		if err = AddResponseCnt(ctx, question.DstUserId); err != nil {
 			return nil, err
 		}
 	}

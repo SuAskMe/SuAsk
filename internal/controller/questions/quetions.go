@@ -19,19 +19,13 @@ var Question = cQuestion{}
 
 func (cQuestion) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v1.AddQuestionRes, err error) {
 	UserId := gconv.Int(ctx.Value(consts.CtxId))
-	//UserId := 2
-	//if UserId == consts.DefaultUserId {
-	//	return nil, fmt.Errorf("user not login")
-	//}
-	if req.DstUserId == 0 && UserId == consts.DefaultUserId {
-		return nil, fmt.Errorf("未登录用户不能提问大家")
+	// "问大家"已下线：dst_user_id 必填
+	if req.DstUserId == 0 {
+		return nil, fmt.Errorf("必须指定目标老师")
 	}
-	if req.DstUserId != 0 {
-		// 防止非法提问
-		err = validation.TeacherPerm(ctx, req.DstUserId)
-		if err != nil {
-			return
-		}
+	// 防止非法提问（不存在的老师 / 权限不足）
+	if err = validation.TeacherPerm(ctx, req.DstUserId); err != nil {
+		return nil, err
 	}
 	questionInput := model.AddQuestionInput{}
 	err = gconv.Struct(req, &questionInput)
@@ -39,7 +33,7 @@ func (cQuestion) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v1.AddQu
 		return nil, err
 	}
 	questionInput.SrcUserID = UserId
-	questionOut, err := service.PublicQuestion().AddQuestion(ctx, &questionInput)
+	questionOut, err := service.QuestionUtil().AddQuestion(ctx, &questionInput)
 	if err != nil {
 		return nil, err
 	}
@@ -63,27 +57,26 @@ func (cQuestion) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v1.AddQu
 	}
 	res = &v1.AddQuestionRes{Id: questionOut.ID}
 
-	// 添加通知
-	if req.DstUserId != 0 {
-		_, err := service.Notification().Add(ctx, model.AddNotificationInput{
-			UserId:     req.DstUserId,
-			QuestionId: questionOut.ID,
-			Type:       consts.NewQuestion,
-		})
-		if err != nil {
-			return nil, err
-		}
-		err = service.Notification().SendNoticeEmail(ctx, &model.SendNoticeEmailInput{
-			To: req.DstUserId,
-			Notice: &send_email.Notice{
-				User:    "SuAsk用户",
-				Type:    "新的提问",
-				Content: req.Content,
-				URL:     "https://suask.me/question-detail/" + gconv.String(questionOut.ID)},
-		})
-		if err != nil {
-			return nil, err
-		}
+	// 添加通知（因为 dst_user_id 已经必填，这里固定要发）
+	_, err = service.Notification().Add(ctx, model.AddNotificationInput{
+		UserId:     req.DstUserId,
+		QuestionId: questionOut.ID,
+		Type:       consts.NewQuestion,
+	})
+	if err != nil {
+		return nil, err
+	}
+	err = service.Notification().SendNoticeEmail(ctx, &model.SendNoticeEmailInput{
+		To: req.DstUserId,
+		Notice: &send_email.Notice{
+			User:    "SuAsk用户",
+			Type:    "新的提问",
+			Content: req.Content,
+			URL:     "https://suask.me/question-detail/" + gconv.String(questionOut.ID),
+		},
+	})
+	if err != nil {
+		return nil, err
 	}
 	return res, nil
 }

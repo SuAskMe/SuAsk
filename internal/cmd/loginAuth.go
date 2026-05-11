@@ -32,7 +32,7 @@ func JwtToken() (jm *middleware.JWTMiddleware) {
 		"/favorite",
 		"/history",
 		"/notification",
-		"/questions/public",
+		"/questions",
 		"/teacher",
 		"/user",
 	}

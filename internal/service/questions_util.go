@@ -15,6 +15,8 @@ type (
 		GetImages(ctx context.Context, input *model.GetImagesInput) (*model.GetImagesOutput, error)
 		Favorite(ctx context.Context, in *model.FavoriteInput) (out *model.FavoriteOutput, err error)
 		GetQuestionSrcUserId(ctx context.Context, questionID int) (out int, err error)
+		AddQuestion(ctx context.Context, in *model.AddQuestionInput) (out *model.AddQuestionOutput, err error)
+		GetAnswers(ctx context.Context, input *model.GetAnswersInput) (*model.GetAnswersOutput, error)
 	}
 )
 

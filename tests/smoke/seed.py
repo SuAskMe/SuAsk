@@ -100,3 +100,32 @@ def ensure_user(
         return int(user_id)
     finally:
         conn.close()
+
+
+def ensure_teacher(
+    db_path: Path,
+    name: str,
+    email: str,
+    password: str,
+) -> int:
+    """幂等地创建一个 teacher 用户 + teachers 行，返回其 id。"""
+    uid = ensure_user(db_path, name, email, password, role="teacher")
+
+    conn = sqlite3.connect(str(db_path))
+    try:
+        conn.execute("PRAGMA foreign_keys = ON")
+        exists = conn.execute(
+            "SELECT 1 FROM teachers WHERE id = ?", (uid,)
+        ).fetchone()
+        if not exists:
+            conn.execute(
+                """
+                INSERT INTO teachers (id, responses, name, perm)
+                VALUES (?, 0, ?, 'public')
+                """,
+                (uid, name),
+            )
+        conn.commit()
+        return uid
+    finally:
+        conn.close()

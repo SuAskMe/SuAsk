@@ -14,7 +14,6 @@ import (
 	_ "suask/internal/logic/notification"
 	_ "suask/internal/logic/question_teacher_self"
 	_ "suask/internal/logic/questions_detail"
-	_ "suask/internal/logic/questions_pub"
 	_ "suask/internal/logic/questions_teacher"
 	_ "suask/internal/logic/questions_util"
 	_ "suask/internal/logic/register"

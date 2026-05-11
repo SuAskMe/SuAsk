@@ -39,7 +39,7 @@ func GetHistoryImpl(ctx context.Context, req interface{}) (res interface{}, err 
 		QuestionList[idMap[k]].ImageURLs = urls.URL
 	}
 	// 获取回答数
-	answersOutput, err := service.PublicQuestion().GetAnswers(ctx, &model.GetAnswersInput{QuestionIDs: baseOutput.QuestionIDs})
+	answersOutput, err := service.QuestionUtil().GetAnswers(ctx, &model.GetAnswersInput{QuestionIDs: baseOutput.QuestionIDs})
 	if err != nil {
 		return
 	}

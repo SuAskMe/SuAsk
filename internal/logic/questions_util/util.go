@@ -11,6 +11,8 @@ import (
 	"suask/internal/service"
 
 	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 )
 
@@ -86,6 +88,55 @@ func (sQuestionUtil) GetQuestionSrcUserId(ctx context.Context, questionID int) (
 		return 0, err
 	}
 	return res.SrcUserId, nil
+}
+
+// AddQuestion 创建一个问题。
+// "问大家"模块已下线，dst_user_id 必填；controller 层会在调用前做校验。
+func (sQuestionUtil) AddQuestion(ctx context.Context, in *model.AddQuestionInput) (out *model.AddQuestionOutput, err error) {
+	question := do.Questions{
+		SrcUserId: in.SrcUserID,
+		DstUserId: in.DstUserID,
+		Title:     in.Title,
+		Contents:  in.Content,
+		IsPrivate: in.IsPrivate,
+	}
+	out = &model.AddQuestionOutput{}
+	id, err := dao.Questions.Ctx(ctx).InsertAndGetId(question)
+	if err != nil {
+		if gstr.Contains(err.Error(), "FOREIGN KEY (`src_user_id`)") {
+			return nil, gerror.New("找不到发送者")
+		} else if gstr.Contains(err.Error(), "FOREIGN KEY (`dst_user_id`)") {
+			return nil, gerror.New("找不到老师")
+		}
+		return nil, err
+	}
+	out.ID = int(id)
+	return out, nil
+}
+
+// GetAnswers 批量拿"问题 → 回答者头像"的映射。之前在 sPublicQuestion 里实现，
+// 供列表页拼接回答者小头像使用；和是否"公开提问"无关，因此挪到 util。
+func (sQuestionUtil) GetAnswers(ctx context.Context, input *model.GetAnswersInput) (*model.GetAnswersOutput, error) {
+	if len(input.QuestionIDs) == 0 {
+		return &model.GetAnswersOutput{AvatarsMap: map[int][]int{}}, nil
+	}
+	db := g.DB()
+	sqlStr := `
+	SELECT ur.question_id, u.avatar_file_id FROM user_relation ur, users u
+	WHERE ur.question_id IN (?) AND u.id = ur.user_id;`
+	res, err := db.Query(ctx, sqlStr, input.QuestionIDs)
+	if err != nil {
+		return nil, err
+	}
+	avatarsMap := make(map[int][]int)
+	for _, row := range res {
+		id := row["question_id"].Int()
+		if _, ok := avatarsMap[id]; !ok {
+			avatarsMap[id] = make([]int, 0, 5)
+		}
+		avatarsMap[id] = append(avatarsMap[id], row["avatar_file_id"].Int())
+	}
+	return &model.GetAnswersOutput{AvatarsMap: avatarsMap}, nil
 }
 
 func init() {

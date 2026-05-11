@@ -70,19 +70,28 @@ func TeacherPerm(ctx context.Context, teacherId int) error {
 	}
 }
 
+/*
+	问题权限（"问大家"模块已下线后的简化版）：
+	1. 查看：
+		问老师的问题 + 老师已回复 → 任何（含匿名）可看
+		问老师的问题 + 老师未回复 → 只有提问者本人和该老师可看
+		私有问题                  → 只有提问者本人可看
+	2. 回答：
+		未登录用户不能回答
+		只有提问者本人在老师已回复后才能回答
+		老师自己随时能回答
+	3. 所有问题的 DstUserId 必定 > 0（DB 有 NOT NULL 约束）
+*/
+
 // 所有问题细节查看权限（不检查老师提问箱权限）
 func QuestionPerm(ctx context.Context, question *entity.Questions) error {
 	UserId := gconv.Int(ctx.Value(consts.CtxId))
 	if question.IsPrivate && question.SrcUserId != UserId { // 私有问题，且不是自己提问
 		return errors.New("你不能查看别人的私有问题")
 	}
-	if question.DstUserId == 0 && UserId == consts.DefaultUserId { // 问大家的问题
-		return errors.New("请登录后再查看问大家的问题")
-	}
-	if question.DstUserId != 0 && question.ReplyCnt <= 0 { // 问教师的问题,且还没有回复
+	// 问老师的问题，还没有回复
+	if question.ReplyCnt <= 0 {
 		switch UserId {
-		case consts.DefaultUserId:
-			return errors.New("该问题还没有回复，请耐心等待")
 		case question.SrcUserId:
 			return nil
 		case question.DstUserId:
@@ -100,23 +109,18 @@ func AnswerPerm(ctx context.Context, question *entity.Questions) error {
 	if UserId == consts.DefaultUserId {
 		return errors.New("请登录后再回答问题")
 	}
-	if question.DstUserId == 0 { // 问大家的问题
-		return nil
-	}
-	if question.DstUserId != 0 { // 问教师的问题,且还没有回复
-		switch UserId {
-		case question.SrcUserId:
-			if question.ReplyCnt <= 0 { // 还没有回复
-				return errors.New("该问题还没有回复，请耐心等待")
-			}
-			return nil
-		case question.DstUserId:
-			return nil
-		default:
-			return errors.New("你不能回答这个问题")
+	// 所有问题都是问老师的问题
+	switch UserId {
+	case question.SrcUserId:
+		if question.ReplyCnt <= 0 { // 提问者必须等到老师先回复
+			return errors.New("该问题还没有回复，请耐心等待")
 		}
+		return nil
+	case question.DstUserId:
+		return nil
+	default:
+		return errors.New("你不能回答这个问题")
 	}
-	return nil
 }
 
 // 判断是否为老师

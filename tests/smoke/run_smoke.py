@@ -24,7 +24,7 @@ import requests
 _HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(_HERE))
 
-from seed import ensure_user  # noqa: E402
+from seed import ensure_teacher, ensure_user  # noqa: E402
 from shape import diff_shapes, shape_of  # noqa: E402
 
 
@@ -33,6 +33,12 @@ DEFAULT_DB = Path("database/suask.db")
 DEFAULT_USER = "smoke_student"
 DEFAULT_EMAIL = "smoke_student@mail.sysu.edu.cn"
 DEFAULT_PASSWORD = "Smoke-Pass-123!"
+
+# 测试老师（smoke 里"发问"需要指定一个老师作为 dst_user_id；
+# 这个账号也会被 seed 写进库，老师的提问箱权限置为 public 以方便跑 case）
+DEFAULT_TEACHER = "smoke_teacher"
+DEFAULT_TEACHER_EMAIL = "smoke_teacher@mail.sysu.edu.cn"
+DEFAULT_TEACHER_PASSWORD = "Smoke-Teacher-123!"
 
 SNAPSHOT_DIR = _HERE / "snapshots"
 
@@ -125,9 +131,21 @@ def case_teacher_list(client: Client) -> dict[str, Any]:
     return client.request("GET", "/info/teacher")
 
 
-def case_public_questions(client: Client) -> dict[str, Any]:
+def _get_teacher_id(client: Client) -> int:
+    """从 /info/teacher 拿第一个老师的 id，供发问等 case 使用。"""
+    body = client.request("GET", "/info/teacher")
+    teachers = (body.get("data") or {}).get("teachers") or []
+    if not teachers:
+        raise AssertionError("没有老师数据，无法跑发问 case")
+    return int(teachers[0]["id"])
+
+
+def case_teacher_questions(client: Client) -> dict[str, Any]:
+    """替代原来的 case_public_questions：现在所有问题都是问老师的。"""
+    tid = _get_teacher_id(client)
     return client.request(
-        "GET", "/questions/public", params={"sort_type": 0, "page": 1}
+        "GET", "/questions/teacher",
+        params={"sort_type": 0, "page": 1, "teacher_id": tid},
     )
 
 
@@ -156,8 +174,11 @@ def case_notification_count(client: Client) -> dict[str, Any]:
 
 
 def _pick_question_id(client: Client) -> int | None:
+    """从老师问题列表里取第一条 id。"""
+    tid = _get_teacher_id(client)
     body = client.request(
-        "GET", "/questions/public", params={"sort_type": 0, "page": 1}
+        "GET", "/questions/teacher",
+        params={"sort_type": 0, "page": 1, "teacher_id": tid},
     )
     lst = (body.get("data") or {}).get("question_list") or []
     if not lst:
@@ -168,11 +189,13 @@ def _pick_question_id(client: Client) -> int | None:
 def case_question_detail(client: Client) -> dict[str, Any]:
     qid = _pick_question_id(client)
     if qid is None:
-        # 列表空，造一条自己的问题作为兜底
+        # 列表空，造一条问老师的问题作为兜底
+        tid = _get_teacher_id(client)
         r = client.request(
             "POST",
             "/questions/add",
             json={
+                "dst_user_id": tid,
                 "title": f"[smoke] detail-bootstrap {int(time.time())}",
                 "content": "smoke bootstrap content",
                 "is_private": False,
@@ -195,12 +218,14 @@ def case_favorite_toggle(client: Client) -> dict[str, Any]:
 
 
 def case_add_question(client: Client) -> dict[str, Any]:
-    """发一条公开问题（会留在库里，打上 [smoke] 标签方便识别）。"""
+    """发一条问老师的问题（会留在库里，打上 [smoke] 标签方便识别）。"""
+    tid = _get_teacher_id(client)
     title = f"[smoke] add-question {int(time.time())}"
     return client.request(
         "POST",
         "/questions/add",
         json={
+            "dst_user_id": tid,
             "title": title,
             "content": "smoke regression test question, safe to delete",
             "is_private": False,
@@ -213,7 +238,7 @@ CASES: list[tuple[str, Case]] = [
     ("user_self", case_user_self),
     ("user_by_id", case_user_by_id),
     ("teacher_list", case_teacher_list),
-    ("public_questions", case_public_questions),
+    ("teacher_questions", case_teacher_questions),
     ("question_detail", case_question_detail),
     ("favorites_list", case_favorites_list),
     ("history_list", case_history_list),
@@ -311,12 +336,15 @@ def main() -> None:
             print(f"[seed] 数据库文件不存在: {args.db}", file=sys.stderr)
             sys.exit(2)
         uid = ensure_user(args.db, args.user, args.email, args.password)
-        print(f"[seed] 测试账户就绪: id={uid}, name={args.user}")
+        tid = ensure_teacher(args.db, DEFAULT_TEACHER, DEFAULT_TEACHER_EMAIL, DEFAULT_TEACHER_PASSWORD)
+        print(f"[seed] 测试学生就绪: id={uid}, name={args.user}")
+        print(f"[seed] 测试老师就绪: id={tid}, name={DEFAULT_TEACHER}")
         return
 
     # snapshot / verify 都需要先登录；登录前同样保证账户存在
     if args.db.exists():
         ensure_user(args.db, args.user, args.email, args.password)
+        ensure_teacher(args.db, DEFAULT_TEACHER, DEFAULT_TEACHER_EMAIL, DEFAULT_TEACHER_PASSWORD)
     else:
         print(
             f"[warn] 未找到数据库 {args.db}，假设账户已经由其他方式创建",
