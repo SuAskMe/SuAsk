@@ -19,6 +19,8 @@ type (
 		ReplyQuestion(ctx context.Context, in *model.AddAnswerInput) (*model.AddAnswerOutput, error)
 		AddReplyCnt(ctx context.Context, in *model.AddReplyCntInput) (*model.AddReplyCntOutput, error)
 		BuildRelation(ctx context.Context, in *model.BuildRelationInput) (*model.BuildRelationOutput, error)
+		DeleteQuestion(ctx context.Context, questionId, userId int) error
+		DeleteAnswer(ctx context.Context, answerId, userId int) error
 	}
 )
 

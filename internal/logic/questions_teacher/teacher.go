@@ -13,7 +13,7 @@ import (
 type sTeacherQuestion struct{}
 
 func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeacherInput) (*model.GetBaseOfTeacherOutput, error) {
-	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherID)
+	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherID).Where("deleted_at IS NULL")
 	md = md.WhereGT(dao.Questions.Columns().ReplyCnt, 0)
 
 	if input.Keyword != "" {

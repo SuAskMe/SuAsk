@@ -19,7 +19,7 @@ func (s *sHistory) GetBase(ctx context.Context, in *model.GetHistoryBaseInput) (
 	userId := gconv.Int(ctx.Value(consts.CtxId))
 
 	md := dao.Questions.Ctx(ctx)
-	md = md.Where(dao.Questions.Columns().SrcUserId, userId)
+	md = md.Where(dao.Questions.Columns().SrcUserId, userId).Where("deleted_at IS NULL")
 	if in.Keyword != "" {
 		md = md.WhereLike(dao.Questions.Columns().Title, "%"+in.Keyword+"%")
 	} else {

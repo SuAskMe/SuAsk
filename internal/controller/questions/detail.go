@@ -276,3 +276,14 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 	}
 	return
 }
+
+func (cQuestionDetail) DeleteAnswer(ctx context.Context, req *v1.DeleteAnswerReq) (res *v1.DeleteAnswerRes, err error) {
+	userId := gconv.Int(ctx.Value(consts.CtxId))
+	if userId == consts.DefaultUserId {
+		return nil, fmt.Errorf("请登录后操作")
+	}
+	if err := service.QuestionDetail().DeleteAnswer(ctx, req.ID, userId); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteAnswerRes{}, nil
+}

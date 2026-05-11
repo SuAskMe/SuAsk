@@ -9,6 +9,7 @@ import (
 	"suask/internal/service"
 	"suask/module/send_email"
 	"suask/module/validation"
+	"suask/utility"
 
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
@@ -177,16 +178,26 @@ func (c *cUser) GetUserInfoById(ctx context.Context, req *v1.UserInfoByIdReq) (r
 		if err != nil {
 			return nil, err
 		}
-		avatarURL := file.URL
-		res.AvatarURL = avatarURL
+		res.AvatarURL = file.URL
 	} else if res.Role == consts.TEACHER {
 		avatarURL, err := service.Teacher().GetTeacherAvatar(ctx, &model.TeacherGetAvatarInput{TeacherId: out.Id})
-		if err != nil {
-			return nil, err
+		if err == nil && avatarURL != nil {
+			res.AvatarURL = avatarURL.AvatarUrl
 		}
-		res.AvatarURL = avatarURL.AvatarUrl
 	} else {
 		res.AvatarURL = consts.DefaultAvatarURL
+	}
+	// 如果是老师，附加 perm 和 responses
+	if res.Role == consts.TEACHER {
+		perm, _ := validation.IsTeacher(ctx, out.Id)
+		res.Perm = perm
+		// responses 从 teachers 表读
+		type teacherInfo struct {
+			Responses int `json:"responses"`
+		}
+		var ti teacherInfo
+		dao.Teachers.Ctx(ctx).Where("id", out.Id).Fields("responses").Scan(&ti)
+		res.Responses = ti.Responses
 	}
 	return res, nil
 }
@@ -235,4 +246,56 @@ func (c *cUser) Info(ctx context.Context, req *v1.UserInfoReq) (res *v1.UserInfo
 	res.QuestionBoxPerm = perm
 
 	return res, nil
+}
+
+func (c *cUser) Deactivate(ctx context.Context, req *v1.DeactivateReq) (res *v1.DeactivateRes, err error) {
+	userId := gconv.Int(ctx.Value(consts.CtxId))
+	if userId == consts.DefaultUserId {
+		return nil, gerror.New("请登录后操作")
+	}
+	// 验证密码
+	user, err := service.User().GetUser(ctx, model.UserInfoInput{Id: userId})
+	if err != nil {
+		return nil, err
+	}
+	// 从 DB 拿完整的 salt + hash
+	var userEntity struct {
+		Salt         string `json:"salt" orm:"salt"`
+		PasswordHash string `json:"password_hash" orm:"password_hash"`
+	}
+	err = dao.Users.Ctx(ctx).Where(dao.Users.Columns().Id, userId).
+		Fields("salt, password_hash").Scan(&userEntity)
+	if err != nil {
+		return nil, gerror.New(consts.ErrInternal)
+	}
+	match, _, verifyErr := utility.VerifyPassword(userEntity.PasswordHash, userEntity.Salt, req.Password)
+	if verifyErr != nil || !match {
+		return nil, gerror.New("密码错误，无法注销")
+	}
+	_ = user // 确认用户存在
+
+	// 执行注销：匿名化 + 软删
+	_, err = g.DB().Exec(ctx, `
+		UPDATE users SET
+			name         = 'deleted_' || CAST(id AS TEXT),
+			email        = 'deleted_' || CAST(id AS TEXT) || '@deleted',
+			password_hash = '',
+			salt         = '',
+			nickname     = '已注销用户',
+			introduction = '',
+			avatar_file_id = NULL,
+			deleted_at   = CURRENT_TIMESTAMP
+		WHERE id = ?
+	`, userId)
+	if err != nil {
+		return nil, gerror.New(consts.ErrInternal)
+	}
+
+	// 清除 settings 的通知邮箱
+	g.DB().Exec(ctx, "UPDATE settings SET notify_email = NULL, notify_switch = 0 WHERE id = ?", userId)
+
+	// 清除 Redis 登录态
+	g.Redis().Del(ctx, consts.RedisJWTPrefix+gconv.String(userId))
+
+	return &v1.DeactivateRes{}, nil
 }

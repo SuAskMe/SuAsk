@@ -1,9 +1,10 @@
 package v1
 
 import (
+	"suask/internal/model"
+
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
-	"suask/internal/model"
 )
 
 type GetDetailReq struct {
@@ -39,3 +40,12 @@ type AddAnswerReq struct {
 type AddAnswerRes struct {
 	Id int `json:"id"`
 }
+
+// --- 删除回答 ---
+
+type DeleteAnswerReq struct {
+	g.Meta `path:"/answer" method:"DELETE" tags:"Answer" summary:"删除回答（本人/管理员）"`
+	ID     int `json:"id" v:"required|min:1"`
+}
+
+type DeleteAnswerRes struct{}

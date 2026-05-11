@@ -80,3 +80,14 @@ func (cQuestion) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v1.AddQu
 	}
 	return res, nil
 }
+
+func (cQuestion) Delete(ctx context.Context, req *v1.DeleteQuestionReq) (res *v1.DeleteQuestionRes, err error) {
+	userId := gconv.Int(ctx.Value(consts.CtxId))
+	if userId == consts.DefaultUserId {
+		return nil, fmt.Errorf("请登录后操作")
+	}
+	if err := service.QuestionDetail().DeleteQuestion(ctx, req.ID, userId); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteQuestionRes{}, nil
+}

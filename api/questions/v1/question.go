@@ -24,3 +24,12 @@ type AddQuestionReq struct {
 type AddQuestionRes struct {
 	Id int `json:"id"`
 }
+
+// --- 删除问题 ---
+
+type DeleteQuestionReq struct {
+	g.Meta `path:"/questions" method:"DELETE" tags:"Question" summary:"删除问题（本人/目标老师/管理员）"`
+	ID     int `json:"id" v:"required|min:1"`
+}
+
+type DeleteQuestionRes struct{}

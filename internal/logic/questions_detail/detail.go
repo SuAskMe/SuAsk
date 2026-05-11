@@ -29,7 +29,7 @@ func AddResponseCnt(ctx context.Context, teacherId int) error {
 }
 
 func (sQuestionDetail) GetQuestionBase(ctx context.Context, in *model.GetQuestionBaseInput) (*model.GetQuestionBaseOutput, error) {
-	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().Id, in.QuestionId)
+	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().Id, in.QuestionId).Where("deleted_at IS NULL")
 	var question entity.Questions
 	err := md.Scan(&question)
 	if err != nil {
@@ -85,7 +85,7 @@ func (sQuestionDetail) GetQuestionBase(ctx context.Context, in *model.GetQuestio
 }
 
 func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetailInput) (*model.GetAnswerDetailOutput, error) {
-	md := dao.Answers.Ctx(ctx).Where(dao.Answers.Columns().QuestionId, in.QuestionId)
+	md := dao.Answers.Ctx(ctx).Where(dao.Answers.Columns().QuestionId, in.QuestionId).Where("deleted_at IS NULL")
 	var answers []entity.Answers
 	err := md.Scan(&answers)
 	if err != nil {
@@ -322,6 +322,54 @@ func (sQuestionDetail) BuildRelation(ctx context.Context, in *model.BuildRelatio
 		return nil, err
 	}
 	return &model.BuildRelationOutput{}, nil
+}
+
+// DeleteQuestion 软删问题。允许：提问者本人 / 目标老师 / admin。
+func (sQuestionDetail) DeleteQuestion(ctx context.Context, questionId, userId int) error {
+	var question entity.Questions
+	err := dao.Questions.Ctx(ctx).
+		Where(dao.Questions.Columns().Id, questionId).
+		Where("deleted_at IS NULL").
+		Scan(&question)
+	if err != nil {
+		return fmt.Errorf("问题不存在")
+	}
+	// 权限：本人 / 目标老师 / admin
+	if question.SrcUserId != userId && question.DstUserId != userId {
+		// 检查是否 admin
+		var user entity.Users
+		if err := dao.Users.Ctx(ctx).Where(dao.Users.Columns().Id, userId).Fields("role").Scan(&user); err != nil {
+			return fmt.Errorf("无权删除")
+		}
+		if user.Role != consts.ADMIN {
+			return fmt.Errorf("无权删除该问题")
+		}
+	}
+	_, err = g.DB().Exec(ctx, "UPDATE questions SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?", questionId)
+	return err
+}
+
+// DeleteAnswer 软删回答。允许：回答者本人 / admin。
+func (sQuestionDetail) DeleteAnswer(ctx context.Context, answerId, userId int) error {
+	var answer entity.Answers
+	err := dao.Answers.Ctx(ctx).
+		Where(dao.Answers.Columns().Id, answerId).
+		Where("deleted_at IS NULL").
+		Scan(&answer)
+	if err != nil {
+		return fmt.Errorf("回答不存在")
+	}
+	if answer.UserId != userId {
+		var user entity.Users
+		if err := dao.Users.Ctx(ctx).Where(dao.Users.Columns().Id, userId).Fields("role").Scan(&user); err != nil {
+			return fmt.Errorf("无权删除")
+		}
+		if user.Role != consts.ADMIN {
+			return fmt.Errorf("无权删除该回答")
+		}
+	}
+	_, err = g.DB().Exec(ctx, "UPDATE answers SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?", answerId)
+	return err
 }
 
 func init() {

@@ -15,7 +15,7 @@ type sTeacherQuestionSelf struct{}
 
 func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMInput) (*model.GetQFMOutput, error) {
 	// fmt.Println(input)
-	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherId)
+	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherId).Where("deleted_at IS NULL")
 	switch input.Tag {
 	case consts.Unanswered:
 		md = md.Where(dao.Questions.Columns().ReplyCnt, 0)
