@@ -11,8 +11,6 @@ import (
 
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/text/gstr"
-
-	"github.com/gogf/gf/v2/util/grand"
 )
 
 type sRegister struct{}
@@ -26,10 +24,13 @@ func New() *sRegister {
 }
 
 func (s *sRegister) Register(ctx context.Context, in model.RegisterInput) (out model.RegisterOutput, err error) {
-	UserSalt := grand.S(10)
-	in.Password = utility.EncryptPassword(in.Password, UserSalt)
-	in.UserSalt = UserSalt
-	// in.Role = consts.STUDENT
+	// 新注册直接用 bcrypt：Salt 留空，hash 自带盐。
+	hash, err := utility.HashPassword(in.Password)
+	if err != nil {
+		return out, err
+	}
+	in.Password = hash
+	in.UserSalt = ""
 
 	registerUser := do.Users{
 		Name:         in.Name,

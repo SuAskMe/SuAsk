@@ -3,9 +3,12 @@
 
 用户名/密码默认是 smoke_student / Smoke-Pass-123! ，可用 CLI 参数覆盖。
 
-密码哈希算法必须和 utility.EncryptPassword 保持一致：
-  md5(md5(password) + md5(salt))
-一旦后端改成 bcrypt，这里也要同步更新，否则登录会失败 —— 这就是我们要的"提醒"。
+密码哈希策略：
+  - 新账号直接写 bcrypt，和 utility.HashPassword 保持一致
+  - 如果机器上没装 `bcrypt` python 包，回退到老的 md5(md5(pw)+md5(salt))，后端登录
+    时会透明升级到 bcrypt，所以 smoke 仍然能过
+
+一旦后端改了算法（比如上 argon2id），这里也要同步；这就是我们要的"提醒"。
 """
 
 from __future__ import annotations
@@ -14,14 +17,30 @@ import hashlib
 import sqlite3
 from pathlib import Path
 
+try:
+    import bcrypt  # pip install bcrypt
+    _HAS_BCRYPT = True
+except ImportError:
+    _HAS_BCRYPT = False
+
 
 def md5_hex(s: str) -> str:
     return hashlib.md5(s.encode("utf-8")).hexdigest()
 
 
-def encrypt_password(password: str, salt: str) -> str:
-    """必须与 utility/utils.go 的 EncryptPassword 完全一致"""
+def legacy_encrypt_password(password: str, salt: str) -> str:
+    """与 utility.EncryptPassword（老算法）保持一致，仅用于无 bcrypt 环境兜底。"""
     return md5_hex(md5_hex(password) + md5_hex(salt))
+
+
+def hash_password(password: str) -> tuple[str, str]:
+    """返回 (salt, hash)；bcrypt 走 salt=空。"""
+    if _HAS_BCRYPT:
+        h = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt(rounds=10))
+        return "", h.decode("utf-8")
+    # 兜底：用老算法写进去，登录后后端会透明升级
+    salt = "smokesalt1"
+    return salt, legacy_encrypt_password(password, salt)
 
 
 def ensure_user(
@@ -33,8 +52,7 @@ def ensure_user(
     nickname: str | None = None,
 ) -> int:
     """幂等地插入/更新用户，返回其 id。"""
-    salt = "smokesalt1"  # 固定 10 位（和 grand.S(10) 保持长度一致）
-    pw_hash = encrypt_password(password, salt)
+    salt, pw_hash = hash_password(password)
     nickname = nickname or name
 
     conn = sqlite3.connect(str(db_path))

@@ -6,6 +6,7 @@ import (
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
+	"suask/internal/model/do"
 	"suask/internal/model/entity"
 	"suask/internal/service"
 	"suask/module/sjwt"
@@ -34,9 +35,28 @@ func (s sLogin) Login(ctx context.Context, in *model.UserLoginInput) (res *model
 	if err != nil {
 		return nil, gerror.New("登录失败，用户名或密码错误")
 	}
-	// 密码校验失败
-	if utility.EncryptPassword(in.Password, userInfo.Salt) != userInfo.PasswordHash {
+	// 密码校验：兼容老 MD5 + 新 bcrypt 两种存储
+	match, needUpgrade, verifyErr := utility.VerifyPassword(userInfo.PasswordHash, userInfo.Salt, in.Password)
+	if verifyErr != nil {
+		g.Log().Error(ctx, verifyErr)
+		return nil, gerror.New(consts.ErrInternal)
+	}
+	if !match {
 		return nil, gerror.New("登录失败，用户名或密码错误")
+	}
+	// 旧哈希透明升级到 bcrypt：下次登录就完全走 bcrypt 路径
+	if needUpgrade {
+		if newHash, hashErr := utility.HashPassword(in.Password); hashErr == nil {
+			_, updErr := dao.Users.Ctx(ctx).
+				Where(dao.Users.Columns().Id, userInfo.Id).
+				Update(do.Users{PasswordHash: newHash, Salt: ""})
+			if updErr != nil {
+				// 升级失败不影响登录，仅记录，下次登录再试
+				g.Log().Warningf(ctx, "bcrypt upgrade failed for user %d: %v", userInfo.Id, updErr)
+			}
+		} else {
+			g.Log().Warningf(ctx, "bcrypt hash gen failed for user %d: %v", userInfo.Id, hashErr)
+		}
 	}
 	// 查看是否已登录
 	vtoken, err := g.Redis().Get(ctx, consts.RedisJWTPrefix+strconv.Itoa(userInfo.Id))
