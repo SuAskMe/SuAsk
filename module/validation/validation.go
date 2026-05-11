@@ -9,6 +9,7 @@ import (
 	"suask/internal/model/entity"
 	"sync"
 
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/util/gconv"
 )
 
@@ -41,7 +42,7 @@ func TeacherPerm(ctx context.Context, teacherId int) error {
 	}
 	t, ok := teacherCache.Load(teacherId)
 	if !ok {
-		md := dao.Teachers.Ctx(ctx).Where("id = ?", teacherId).Fields(dao.Teachers.Columns().Name, dao.Teachers.Columns().Perm)
+		md := dao.Teachers.Ctx(ctx).Where("id = ?", teacherId).Fields(dao.Teachers.Columns().Perm)
 		var teacher *entity.Teachers
 		err := md.Scan(&teacher)
 		if err != nil {
@@ -145,43 +146,33 @@ func IsTeacher(ctx context.Context, teacherId int) (string, error) {
 }
 
 // UpdateTeacherPerm 同步更新缓存中的老师权限信息。
-// 旧实现只 Store 了 Perm，会把已经缓存的 Name / Email 等字段清空，
-// 导致后续 GetTeacherName / TeacherPerm 报"该用户不是老师"。
-// 这里改为：若缓存已有对象则复制并覆盖 Perm；否则用调用方传入的 name 新建一条。
 func UpdateTeacherPerm(teacherId int, name, perm string) {
 	if v, ok := teacherCache.Load(teacherId); ok {
 		if cached, ok := v.(*entity.Teachers); ok && cached != nil {
-			updated := *cached // 浅拷贝，避免与其他 reader 共享同一指针
+			updated := *cached
 			updated.Perm = perm
-			if name != "" {
-				updated.Name = name
-			}
 			teacherCache.Store(teacherId, &updated)
 			return
 		}
 	}
 	teacherCache.Store(teacherId, &entity.Teachers{
 		Id:   teacherId,
-		Name: name,
 		Perm: perm,
 	})
 }
 
 func GetTeacherName(ctx context.Context, teacherId int) (string, error) {
-	t, ok := teacherCache.Load(teacherId)
-	if !ok {
-		// fmt.Println("not in cache", teacherId)
-		md := dao.Teachers.Ctx(ctx).Where("id = ?", teacherId).Fields(dao.Teachers.Columns().Name)
-		var teacher *entity.Teachers
-		err := md.Scan(&teacher)
-		if err != nil {
-			return "", err
-		}
-		if teacher == nil || teacher.Name == "" {
-			return "", fmt.Errorf("该用户不是老师")
-		}
-		teacherCache.Store(teacherId, teacher)
-		t = teacher
+	// name 现在在 users 表里
+	type row struct {
+		Name string `json:"name"`
 	}
-	return t.(*entity.Teachers).Name, nil
+	var r row
+	err := g.DB().Ctx(ctx).Model("users").Where("id = ?", teacherId).Fields("name").Scan(&r)
+	if err != nil {
+		return "", err
+	}
+	if r.Name == "" {
+		return "", fmt.Errorf("该用户不是老师")
+	}
+	return r.Name, nil
 }

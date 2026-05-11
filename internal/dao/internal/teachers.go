@@ -21,24 +21,18 @@ type TeachersDao struct {
 
 // TeachersColumns defines and stores column names for the table teachers.
 type TeachersColumns struct {
-	Id           string //
-	Responses    string // 回复数
-	Name         string // 老师名字
-	AvatarUrl    string // 老师头像链接
-	Introduction string // 老师简介
-	Email        string // 老师邮箱
-	Perm         string // 提问箱权限
+	Id        string //
+	Perm      string // 提问箱权限
+	Responses string // 回复数
+	AvatarUrl string // 老师头像链接（deprecated，兼容期保留）
 }
 
 // teachersColumns holds the columns for the table teachers.
 var teachersColumns = TeachersColumns{
-	Id:           "id",
-	Responses:    "responses",
-	Name:         "name",
-	AvatarUrl:    "avatar_url",
-	Introduction: "introduction",
-	Email:        "email",
-	Perm:         "perm",
+	Id:        "id",
+	Perm:      "perm",
+	Responses: "responses",
+	AvatarUrl: "avatar_url",
 }
 
 // NewTeachersDao creates and returns a new DAO object for table data access.

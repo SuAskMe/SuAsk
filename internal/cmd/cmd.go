@@ -81,7 +81,6 @@ var (
 						questions.Question,
 						questions.Inbox,
 						teacher.Teacher.UpdatePerm,
-						questions.TeacherSelf,
 						questions.TeacherQuestion,
 						notification.Notification,
 						// 公告：发布/编辑/删除需要 admin 权限（controller 内部校验）

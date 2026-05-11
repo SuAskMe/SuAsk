@@ -1,4 +1,4 @@
-package questions_teacher_self
+package questions
 
 import (
 	"context"
@@ -11,10 +11,12 @@ import (
 	"suask/utility"
 )
 
+// sTeacherQuestionSelf 实现老师收件箱的核心逻辑。
+// 原来在 internal/logic/question_teacher_self/ 包里，
+// 旧路由删除后挪到这里，由新的 /questions/inbox 接口复用。
 type sTeacherQuestionSelf struct{}
 
 func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMInput) (*model.GetQFMOutput, error) {
-	// fmt.Println(input)
 	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherId).Where("deleted_at IS NULL")
 	switch input.Tag {
 	case consts.Unanswered:
@@ -34,16 +36,15 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 
 	var q []*custom.Questions
 	var remain int
-	err := md.ScanAndCount(&q, &remain, false) // 先查不包含favorites的结果
+	err := md.ScanAndCount(&q, &remain, false)
 	if err != nil {
 		return nil, err
 	}
-	// 计算剩余页数
 	remain = utility.CountRemainPage(remain, input.Page)
 
-	qIDs := make([]int, len(q))      // 获取问题ID列表 （官方的静态联表也是这么做的）
-	pqs := make([]model.QFM, len(q)) // 用于存放最终结果
-	idMap := make(map[int]int)       // 用于快速查找问题ID对应的索引
+	qIDs := make([]int, len(q))
+	pqs := make([]model.QFM, len(q))
+	idMap := make(map[int]int)
 	for i, pq := range q {
 		idMap[pq.Id] = i
 		qIDs[i] = pq.Id
@@ -60,17 +61,19 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 	}
 
 	var fav []*custom.MyFavorites
-	md = dao.Favorites.Ctx(ctx).WhereIn(dao.Favorites.Columns().QuestionId, qIDs)
-	md = md.Where(dao.Favorites.Columns().UserId, input.TeacherId)
-	md = md.Where(dao.Favorites.Columns().Package, consts.OnTop)
-	err = md.Scan(&fav) // 再查favorites
-	if err != nil {
-		return nil, err
+	if len(qIDs) > 0 {
+		md = dao.Favorites.Ctx(ctx).WhereIn(dao.Favorites.Columns().QuestionId, qIDs)
+		md = md.Where(dao.Favorites.Columns().UserId, input.TeacherId)
+		md = md.Where(dao.Favorites.Columns().Package, consts.OnTop)
+		err = md.Scan(&fav)
+		if err != nil {
+			return nil, err
+		}
+		for _, f := range fav {
+			pqs[idMap[f.QuestionId]].IsPinned = true
+		}
 	}
-	for _, f := range fav { // 填充IsFavorited字段
-		// pqs[idMap[f.QuestionId]].Tag = consts.OnTop
-		pqs[idMap[f.QuestionId]].IsPinned = true
-	}
+
 	output := model.GetQFMOutput{
 		QuestionIDs: qIDs,
 		IdMap:       idMap,
@@ -81,7 +84,6 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 }
 
 func (sTeacherQuestionSelf) GetQFMPinned(ctx context.Context, input *model.GetQFMInput) (*model.GetQFMOutput, error) {
-	// 置顶问题，不分页，直接返回全部
 	md := dao.Favorites.Ctx(ctx).Where(dao.Favorites.Columns().UserId, input.TeacherId)
 	md = md.Where(dao.Favorites.Columns().Package, consts.OnTop)
 	var fav []custom.MyFavorites
@@ -93,19 +95,20 @@ func (sTeacherQuestionSelf) GetQFMPinned(ctx context.Context, input *model.GetQF
 	for i, f := range fav {
 		qIDs[i] = f.QuestionId
 	}
+	if len(qIDs) == 0 {
+		return &model.GetQFMOutput{Questions: []model.QFM{}}, nil
+	}
 
-	md = dao.Questions.Ctx(ctx).WhereIn(dao.Questions.Columns().Id, qIDs)
-
+	md = dao.Questions.Ctx(ctx).WhereIn(dao.Questions.Columns().Id, qIDs).Where("deleted_at IS NULL")
 	var q []*custom.Questions
-	err = md.Scan(&q) // 先查不包含favorites的结果
+	err = md.Scan(&q)
 	if err != nil {
 		return nil, err
 	}
-	pqs := make([]model.QFM, len(q)) // 用于存放最终结果
-	idMap := make(map[int]int)       // 用于快速查找问题ID对应的索引
+	pqs := make([]model.QFM, len(q))
+	idMap := make(map[int]int)
 	for i, pq := range q {
 		idMap[pq.Id] = i
-		qIDs[i] = pq.Id
 		pqs[i].ID = pq.Id
 		pqs[i].Title = pq.Title
 		pqs[i].Content = utility.TruncateString(pq.Contents)
@@ -118,21 +121,23 @@ func (sTeacherQuestionSelf) GetQFMPinned(ctx context.Context, input *model.GetQF
 			pqs[i].Tag = consts.Unanswered
 		}
 	}
-	output := model.GetQFMOutput{
-		QuestionIDs: qIDs,
+	newQIDs := make([]int, len(pqs))
+	for i, pq := range pqs {
+		newQIDs[i] = pq.ID
+	}
+	return &model.GetQFMOutput{
+		QuestionIDs: newQIDs,
 		IdMap:       idMap,
 		Questions:   pqs,
-	}
-	return &output, nil
+	}, nil
 }
 
 func (sTeacherQuestionSelf) GetKeyword(ctx context.Context, input *model.GetQFMKeywordsInput) (*model.GetKeywordsOutput, error) {
-	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherId)
+	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherId).Where("deleted_at IS NULL")
 	md = md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%").Limit(8)
 	words := make([]model.Keyword, consts.MaxKeywordsPerReq)
 	err := md.Scan(&words)
 	if err != nil {
-		// fmt.Println(err)
 		return nil, nil
 	}
 	output := &model.GetKeywordsOutput{}
@@ -153,9 +158,7 @@ func (sTeacherQuestionSelf) PinQFM(ctx context.Context, input *model.PinQFMInput
 		if err != nil {
 			return nil, err
 		}
-		return &model.PinQFMOutput{
-			IsPinned: false,
-		}, nil
+		return &model.PinQFMOutput{IsPinned: false}, nil
 	} else {
 		md = dao.Favorites.Ctx(ctx)
 		_, err = md.Insert(do.Favorites{
@@ -166,16 +169,10 @@ func (sTeacherQuestionSelf) PinQFM(ctx context.Context, input *model.PinQFMInput
 		if err != nil {
 			return nil, err
 		}
-		return &model.PinQFMOutput{
-			IsPinned: true,
-		}, nil
+		return &model.PinQFMOutput{IsPinned: true}, nil
 	}
 }
 
 func init() {
-	service.RegisterTeacherQuestionSelf(New())
-}
-
-func New() *sTeacherQuestionSelf {
-	return &sTeacherQuestionSelf{}
+	service.RegisterTeacherQuestionSelf(&sTeacherQuestionSelf{})
 }
