@@ -39,6 +39,16 @@ func (s *sFavorite) GetBase(ctx context.Context, in *model.GetFavoriteBaseInput)
 		qIDs[i] = favorite.QuestionId
 	}
 
+	if len(qIDs) == 0 {
+		output := &model.GetFavoriteBaseOutput{
+			QuestionIDs: qIDs,
+			Questions:   []*model.FavoriteQuestion{},
+			IdMap:       map[int]int{},
+			RemainPage:  remain,
+		}
+		return output, nil
+	}
+
 	var q []custom.Questions
 	md = dao.Questions.Ctx(ctx).WhereIn(dao.Questions.Columns().Id, qIDs)
 	err = md.Scan(&q)

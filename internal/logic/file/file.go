@@ -2,12 +2,6 @@ package file
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/net/ghttp"
-	"github.com/gogf/gf/v2/os/gfile"
-	"github.com/gogf/gf/v2/os/gtime"
-	"github.com/gogf/gf/v2/util/gconv"
 	"strconv"
 	"suask/internal/consts"
 	"suask/internal/dao"
@@ -17,6 +11,13 @@ import (
 	"suask/internal/service"
 	files "suask/utility/files"
 	"time"
+
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type sFile struct{}
@@ -147,6 +148,10 @@ func (s *sFile) Get(ctx context.Context, in model.FileGetInput) (out model.FileG
 }
 
 func (s *sFile) GetList(ctx context.Context, in model.FileListGetInput) (out model.FileListGetOutput, err error) {
+	// 空列表直接返回，避免 WhereIn([]) 在 SQLite 下查全表
+	if len(in.IdList) == 0 {
+		return model.FileListGetOutput{}, nil
+	}
 	var fileList []entity.Files
 	var count int
 	err = dao.Files.Ctx(ctx).WhereIn(dao.Files.Columns().Id, in.IdList).Order(dao.Files.Columns().Id).ScanAndCount(&fileList, &count, false)

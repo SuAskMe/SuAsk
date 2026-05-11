@@ -5,11 +5,11 @@ import (
 	"fmt"
 	v1 "suask/api/answer/v1"
 	"suask/internal/consts"
+	qutil "suask/internal/logic/questions_util"
 	"suask/internal/model"
 	"suask/internal/service"
 	"suask/module/send_email"
 
-	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/util/gconv"
 )
@@ -70,34 +70,70 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 			TeacherAvatarList = append(TeacherAvatarList, k)
 		}
 	}
-	avatarUrls, err := service.File().GetList(ctx, model.FileListGetInput{IdList: AvatarList})
+
+	// 收集所有需要查的 file_id：用户头像 + 回答图片，一次批查
+	allFileIDs := make([]int, 0, len(AvatarList)+len(ImageMap)*4)
+	allFileIDs = append(allFileIDs, AvatarList...)
+	for _, fids := range ImageMap {
+		allFileIDs = append(allFileIDs, fids...)
+	}
+	// 问题本身的图片已经在上面单独查过了（QBOutput.ImageList），这里只处理回答相关的
+	urlMap, err := qutil.BatchGetFileURLs(ctx, allFileIDs)
 	if err != nil {
 		return nil, err
 	}
-	for i, url := range avatarUrls.URL {
-		IdList := AvatarsMap[avatarUrls.FileId[i]]
-		for _, id := range IdList {
-			answerList[IdMap[id]].UserAvatar = url
+
+	// 分发用户头像（file_id > 0 的）
+	for fileId, ansIds := range AvatarsMap {
+		if fileId > 0 {
+			if url, ok := urlMap[fileId]; ok {
+				for _, aid := range ansIds {
+					answerList[IdMap[aid]].UserAvatar = url
+				}
+			}
 		}
 	}
-	for _, tid := range TeacherAvatarList {
-		out, err := service.Teacher().GetTeacherAvatar(ctx, &model.TeacherGetAvatarInput{TeacherId: -tid})
-		if err != nil {
-			g.Log().Error(ctx, err)
-			return nil, gerror.New("获取老师头像失败")
+	// 老师头像（file_id < 0 表示 -teacherId，走 teachers.avatar_url）
+	// 批量收集所有需要查的 teacherId，一次查 teachers 表
+	if len(TeacherAvatarList) > 0 {
+		teacherIDs := make([]int, len(TeacherAvatarList))
+		for i, tid := range TeacherAvatarList {
+			teacherIDs[i] = -tid // 还原成正数 teacherId
 		}
-		IdList := AvatarsMap[tid]
-		for _, id := range IdList {
-			answerList[IdMap[id]].UserAvatar = out.AvatarUrl
+		type teacherAvatar struct {
+			Id        int    `json:"id"`
+			AvatarUrl string `json:"avatar_url"`
 		}
-	}
-	// 获取回答图片
-	for k, v := range ImageMap {
-		url, err := service.File().GetList(ctx, model.FileListGetInput{IdList: v})
+		var avatars []teacherAvatar
+		err = g.DB().Ctx(ctx).Model("teachers").
+			WhereIn("id", teacherIDs).
+			Fields("id, avatar_url").
+			Scan(&avatars)
 		if err != nil {
 			return nil, err
 		}
-		answerList[IdMap[k]].ImageURLs = url.URL
+		teacherUrlMap := make(map[int]string, len(avatars))
+		for _, a := range avatars {
+			teacherUrlMap[a.Id] = a.AvatarUrl
+		}
+		for _, tid := range TeacherAvatarList {
+			realId := -tid
+			url := teacherUrlMap[realId]
+			for _, aid := range AvatarsMap[tid] {
+				answerList[IdMap[aid]].UserAvatar = url
+			}
+		}
+	}
+
+	// 分发回答图片（按原始顺序）
+	for answerId, fids := range ImageMap {
+		urls := make([]string, 0, len(fids))
+		for _, fid := range fids {
+			if url, ok := urlMap[fid]; ok {
+				urls = append(urls, url)
+			}
+		}
+		answerList[IdMap[answerId]].ImageURLs = urls
 	}
 	res.Answers = answerList
 
@@ -170,23 +206,24 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 		}
 	}
 
-	// 添加通知
+	// 添加通知（失败只记日志，不阻断回答已入库的事实）
 	srcUserId, err := service.QuestionUtil().GetQuestionSrcUserId(ctx, req.QuestionId)
 	if err != nil {
-		return nil, err
+		g.Log().Warningf(ctx, "获取问题发起者失败: %v", err)
+		return &v1.AddAnswerRes{Id: output.Id}, nil
 	}
 	// 给发帖的人通知有回答
 	if srcUserId != consts.DefaultUserId && srcUserId != UserId {
-		_, err = service.Notification().Add(ctx, model.AddNotificationInput{
+		_, notifErr := service.Notification().Add(ctx, model.AddNotificationInput{
 			UserId:     srcUserId,
 			QuestionId: req.QuestionId,
 			AnswerId:   output.Id,
 			Type:       consts.NewAnswer,
 		})
-		if err != nil {
-			return nil, err
+		if notifErr != nil {
+			g.Log().Warningf(ctx, "添加回答通知失败: %v", notifErr)
 		}
-		err = service.Notification().SendNoticeEmail(ctx, &model.SendNoticeEmailInput{
+		emailErr := service.Notification().SendNoticeEmail(ctx, &model.SendNoticeEmailInput{
 			To: srcUserId,
 			Notice: &send_email.Notice{
 				User:    "SuAsk用户",
@@ -195,30 +232,31 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 				URL:     "https://suask.me/question-detail/" + gconv.String(req.QuestionId) + "#" + gconv.String(output.Id),
 			},
 		})
-		if err != nil {
-			return nil, err
+		if emailErr != nil {
+			g.Log().Warningf(ctx, "发送回答邮件通知失败: %v", emailErr)
 		}
 	}
 
 	// 如果是回复别人的回答
 	if req.InReplyTo != nil {
-		answer, err := service.Answer().GetAnswerIDs(ctx, gconv.Int(req.InReplyTo))
-		if err != nil {
-			return nil, err
+		answer, ansErr := service.Answer().GetAnswerIDs(ctx, gconv.Int(req.InReplyTo))
+		if ansErr != nil {
+			g.Log().Warningf(ctx, "获取被回复的回答失败: %v", ansErr)
+			return &v1.AddAnswerRes{Id: output.Id}, nil
 		}
 		// 回复不是默认用户或自己发的
 		if answer.UserId != consts.DefaultUserId && answer.UserId != UserId {
-			_, err := service.Notification().Add(ctx, model.AddNotificationInput{
+			_, notifErr := service.Notification().Add(ctx, model.AddNotificationInput{
 				UserId:     answer.UserId,
 				AnswerId:   answer.Id,
 				ReplyToId:  output.Id,
 				QuestionId: answer.QuestionId,
 				Type:       consts.NewReply,
 			})
-			if err != nil {
-				return nil, err
+			if notifErr != nil {
+				g.Log().Warningf(ctx, "添加回复通知失败: %v", notifErr)
 			}
-			err = service.Notification().SendNoticeEmail(ctx, &model.SendNoticeEmailInput{
+			emailErr := service.Notification().SendNoticeEmail(ctx, &model.SendNoticeEmailInput{
 				To: answer.UserId,
 				Notice: &send_email.Notice{
 					User:    "SuAsk用户",
@@ -227,15 +265,12 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 					URL:     "https://suask.me/question-detail/" + gconv.String(req.QuestionId) + "#" + gconv.String(output.Id),
 				},
 			})
-			if err != nil {
-				return nil, err
+			if emailErr != nil {
+				g.Log().Warningf(ctx, "发送回复邮件通知失败: %v", emailErr)
 			}
 		}
 	}
 
-	if err != nil {
-		return nil, err
-	}
 	res = &v1.AddAnswerRes{
 		Id: output.Id,
 	}

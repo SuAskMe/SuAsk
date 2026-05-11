@@ -122,8 +122,11 @@ func (c *cRegister) Register(ctx context.Context, req *v1.RegisterReq) (res *v1.
 	if tokenClaims == nil {
 		return nil, gerror.New("Token 错误")
 	}
+	if !tokenClaims.Valid {
+		return nil, gerror.New("Token 已过期或无效")
+	}
 	var tokenEmail string
-	if claims, ok := tokenClaims.Claims.(*VerifyClaims); ok && tokenClaims.Valid {
+	if claims, ok := tokenClaims.Claims.(*VerifyClaims); ok {
 		tokenEmail = claims.Email
 	}
 	if tokenEmail != req.Email {

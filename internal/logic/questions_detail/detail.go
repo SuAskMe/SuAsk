@@ -12,6 +12,7 @@ import (
 	"suask/internal/service"
 	"suask/module/validation"
 
+	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/util/gconv"
 )
@@ -108,7 +109,7 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 			UserId = consts.DefaultUserId
 		}
 
-		if _, ok := UserIdMap[ans.UserId]; !ok {
+		if _, ok := UserIdMap[UserId]; !ok {
 			UserIdMap[UserId] = []int{ans.Id}
 		} else {
 			UserIdMap[UserId] = append(UserIdMap[UserId], ans.Id)
@@ -197,57 +198,61 @@ func (sQuestionDetail) AddQuestionView(ctx context.Context, in *model.AddViewInp
 }
 
 func (sQuestionDetail) AddAnswerUpvote(ctx context.Context, in *model.UpvoteInput) (*model.UpvoteOutput, error) {
-	//UserId := 2
-	db := g.DB()
 	UserId := gconv.Int(ctx.Value(consts.CtxId))
 	if UserId == consts.DefaultUserId {
 		return nil, fmt.Errorf("you are not allowed to upvote")
 	}
-	md := dao.Upvotes.Ctx(ctx).Where(do.Upvotes{AnswerId: in.AnswerId, UserId: UserId})
-	cnt, err := md.Count()
+	db := g.DB()
+	// 事务包裹：保证 upvotes 表和 answers.upvotes 计数一致
+	var result *model.UpvoteOutput
+	err := db.Transaction(ctx, func(ctx context.Context, tx gdb.TX) error {
+		cnt, err := tx.Model("upvotes").
+			Where("answer_id = ? AND user_id = ?", in.AnswerId, UserId).
+			Count()
+		if err != nil {
+			return err
+		}
+		if cnt > 0 {
+			// 取消点赞
+			_, err = tx.Model("upvotes").
+				Where("answer_id = ? AND user_id = ?", in.AnswerId, UserId).
+				Delete()
+			if err != nil {
+				return err
+			}
+			row, err := tx.Query(
+				"UPDATE answers SET upvotes = upvotes - 1 WHERE id = ? RETURNING upvotes", in.AnswerId)
+			if err != nil {
+				return err
+			}
+			newCnt := 0
+			if len(row) > 0 {
+				newCnt = row[0]["upvotes"].Int()
+			}
+			result = &model.UpvoteOutput{IsUpvoted: false, Upvotes: newCnt}
+		} else {
+			// 点赞
+			_, err = tx.Insert("upvotes", g.Map{"answer_id": in.AnswerId, "user_id": UserId})
+			if err != nil {
+				return err
+			}
+			row, err := tx.Query(
+				"UPDATE answers SET upvotes = upvotes + 1 WHERE id = ? RETURNING upvotes", in.AnswerId)
+			if err != nil {
+				return err
+			}
+			newCnt := 0
+			if len(row) > 0 {
+				newCnt = row[0]["upvotes"].Int()
+			}
+			result = &model.UpvoteOutput{IsUpvoted: true, Upvotes: newCnt}
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
-	if cnt > 0 {
-		_, err = md.Delete()
-		if err != nil {
-			return nil, err
-		}
-		md = dao.Answers.Ctx(ctx).Where(dao.Answers.Columns().Id, in.AnswerId)
-		_, err = db.Exec(ctx, "UPDATE answers SET upvotes = upvotes - 1 WHERE id = ?", in.AnswerId)
-		if err != nil {
-			return nil, err
-		}
-		res, err := md.One()
-		if err != nil {
-			return nil, err
-		}
-		cnt = res["upvotes"].Int()
-		return &model.UpvoteOutput{
-			IsUpvoted: false,
-			Upvotes:   cnt,
-		}, nil
-	} else {
-		md = dao.Upvotes.Ctx(ctx)
-		_, err = md.Insert(do.Upvotes{AnswerId: in.AnswerId, UserId: UserId})
-		if err != nil {
-			return nil, err
-		}
-		md = dao.Answers.Ctx(ctx).Where("id=?", in.AnswerId)
-		_, err = db.Exec(ctx, "UPDATE answers SET upvotes = upvotes + 1 WHERE id = ?", in.AnswerId)
-		if err != nil {
-			return nil, err
-		}
-		res, err := md.One()
-		if err != nil {
-			return nil, err
-		}
-		cnt = res["upvotes"].Int()
-		return &model.UpvoteOutput{
-			IsUpvoted: true,
-			Upvotes:   cnt,
-		}, nil
-	}
+	return result, nil
 }
 
 func (sQuestionDetail) ReplyQuestion(ctx context.Context, in *model.AddAnswerInput) (*model.AddAnswerOutput, error) {
@@ -292,17 +297,16 @@ func (sQuestionDetail) ReplyQuestion(ctx context.Context, in *model.AddAnswerInp
 }
 
 func (sQuestionDetail) AddReplyCnt(ctx context.Context, in *model.AddReplyCntInput) (*model.AddReplyCntOutput, error) {
-	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().Id, in.QuestionId)
-	_, err := md.Increment(dao.Questions.Columns().ReplyCnt, 1)
+	row, err := g.DB().Query(ctx,
+		"UPDATE questions SET reply_cnt = reply_cnt + 1 WHERE id = ? RETURNING reply_cnt",
+		in.QuestionId)
 	if err != nil {
 		return nil, err
 	}
-	md = dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().Id, in.QuestionId).Fields(dao.Questions.Columns().ReplyCnt)
-	res, err := md.One()
-	if err != nil {
-		return nil, err
+	cnt := 0
+	if len(row) > 0 {
+		cnt = row[0]["reply_cnt"].Int()
 	}
-	cnt := res[dao.Questions.Columns().ReplyCnt].Int()
 	return &model.AddReplyCntOutput{ReplyCnt: cnt}, nil
 }
 

@@ -28,7 +28,7 @@ func (c *cUser) UpdateUserInfo(ctx context.Context, req *v1.UpdateUserReq) (res 
 		Introduction: req.Introduction,
 	}
 	// 上传头像
-	if req.AvatarFile.FileHeader != nil {
+	if req.AvatarFile != nil && req.AvatarFile.FileHeader != nil {
 		avatarFile := model.FileUploadInput{File: req.AvatarFile}
 		data, err := service.File().UploadFile(ctx, avatarFile)
 		if err != nil {
@@ -82,7 +82,7 @@ func (c *cUser) SendVerificationCode(ctx context.Context, req *v1.SendVerificati
 			return nil, gerror.New("邮箱不存在")
 		}
 	default:
-		return nil, err
+		return nil, gerror.New("不支持的验证码类型")
 	}
 	v, err := g.Redis().Get(ctx, consts.RedisSendCodePrefix+req.Email)
 	if err != nil {
@@ -124,6 +124,8 @@ func (c *cUser) UpdatePassWord(ctx context.Context, req *v1.UpdatePasswordReq) (
 	if verificationCode != req.Code {
 		return nil, gerror.New("验证码错误")
 	}
+	// 验证码一次性使用：校验成功后立即删除
+	g.Redis().Del(ctx, consts.RedisSendCodePrefix+req.Email, consts.RedisCountCodePrefix+req.Email)
 	input := model.UpdatePasswordInput{Type: consts.ResetPassword, Password: req.Password, UserId: userId}
 	out, err := service.User().UpdatePassword(ctx, input)
 	if err != nil {
@@ -146,6 +148,8 @@ func (c *cUser) ForgetPassword(ctx context.Context, req *v1.ForgetPasswordReq) (
 	if verificationCode != req.Code {
 		return nil, gerror.New("验证码错误")
 	}
+	// 验证码一次性使用：校验成功后立即删除
+	g.Redis().Del(ctx, consts.RedisSendCodePrefix+req.Email, consts.RedisCountCodePrefix+req.Email)
 	input := model.UpdatePasswordInput{Type: consts.ForgetPassword, Password: req.Password, Email: req.Email}
 	out, err := service.User().UpdatePassword(ctx, input)
 	if err != nil {

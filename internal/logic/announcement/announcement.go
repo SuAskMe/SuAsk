@@ -8,6 +8,7 @@ import (
 	"suask/internal/model/custom"
 	"suask/internal/service"
 	"suask/utility"
+	"suask/utility/files"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -196,13 +197,34 @@ func (s *sAnnouncement) GetComments(ctx context.Context, announcementID int) ([]
 		return nil, err
 	}
 
+	// 批量查头像 URL（#5 修复：N+1 → 1）
+	avatarIDs := make([]int, 0, len(rows))
+	for _, r := range rows {
+		if r.AvatarId != 0 {
+			avatarIDs = append(avatarIDs, r.AvatarId)
+		}
+	}
+	urlMap := make(map[int]string)
+	if len(avatarIDs) > 0 {
+		var fileList []struct {
+			Id   int    `json:"id"`
+			Name string `json:"name"`
+			Hash []byte `json:"hash"`
+		}
+		dao.Files.Ctx(ctx).WhereIn("id", avatarIDs).Scan(&fileList)
+		for _, f := range fileList {
+			if url, err := files.GetURL(f.Hash, f.Name); err == nil {
+				urlMap[f.Id] = url
+			}
+		}
+	}
+
 	comments := make([]model.AnnouncementComment, len(rows))
 	for i, r := range rows {
 		avatar := consts.DefaultAvatarURL
 		if r.AvatarId != 0 {
-			fileOut, err := service.File().Get(ctx, model.FileGetInput{Id: r.AvatarId})
-			if err == nil {
-				avatar = fileOut.URL
+			if url, ok := urlMap[r.AvatarId]; ok {
+				avatar = url
 			}
 		}
 		comments[i] = model.AnnouncementComment{

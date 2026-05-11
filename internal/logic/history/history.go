@@ -44,10 +44,12 @@ func (s *sHistory) GetBase(ctx context.Context, in *model.GetHistoryBaseInput) (
 		qIDs[i] = question.Id
 	}
 	var fav []*custom.MyFavorites
-	md = dao.Favorites.Ctx(ctx).WhereIn(dao.Favorites.Columns().QuestionId, qIDs).Where(dao.Favorites.Columns().UserId, userId)
-	err = md.Scan(&fav)
-	if err != nil {
-		return nil, err
+	if len(qIDs) > 0 {
+		md = dao.Favorites.Ctx(ctx).WhereIn(dao.Favorites.Columns().QuestionId, qIDs).Where(dao.Favorites.Columns().UserId, userId)
+		err = md.Scan(&fav)
+		if err != nil {
+			return nil, err
+		}
 	}
 	pqs := make([]model.HistoryQuestion, len(q))
 	idMap := make(map[int]int)

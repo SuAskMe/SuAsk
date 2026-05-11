@@ -54,13 +54,6 @@ func GetQFMImpl(ctx context.Context, in *model.GetQFMInput) (res *v1.QFMBase, er
 
 func (cTeacherSelf) GetQFMAll(ctx context.Context, req *v1.GetQFMReq) (res *v1.GetQFMRes, err error) {
 	Tid := gconv.Int(ctx.Value(consts.CtxId))
-	// fmt.Println("GetQFMAll Tid:", Tid)
-	_, err = validation.IsTeacher(ctx, Tid)
-	if err != nil {
-		return nil, err
-	}
-
-	// Tid := 2
 
 	var in model.GetQFMInput
 	gconv.Scan(req, &in)

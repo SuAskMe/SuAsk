@@ -77,13 +77,17 @@ func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput)
 	for _, row := range rows {
 		ntype := row["ntype"].String()
 		qid := row["qid"].Int()
+		var createdAt int64
+		if t := row["n_created_at"].GTime(); t != nil {
+			createdAt = t.TimestampMilli()
+		}
 		base := model.NotificationBase{
 			Id:              int64(row["nid"].Int()),
 			QuestionId:      qid,
 			QuestionTitle:   row["q_title"].String(),
 			QuestionContent: row["q_contents"].String(),
 			IsRead:          row["is_read"].Int() == 1,
-			CreatedAt:       row["n_created_at"].GTime().TimestampMilli(),
+			CreatedAt:       createdAt,
 		}
 
 		switch ntype {

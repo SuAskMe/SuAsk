@@ -46,7 +46,7 @@ func (j *JWTMiddleware) JwtAuth(r *ghttp.Request) {
 	authHeader := r.Header.Get("Authorization")
 	claims, err := j.auth(r.Context(), authHeader)
 	if err != nil {
-		if j.isMustLoginPath(r.URL.String()) {
+		if j.isMustLoginPath(r.URL.Path) {
 			g.Log().Error(r.Context(), errors.Join(err, errors.New("is must login path")))
 			resp.Do(r, 401, "请登录", nil)
 			return
@@ -55,7 +55,7 @@ func (j *JWTMiddleware) JwtAuth(r *ghttp.Request) {
 	} else {
 		r.SetCtxVar(consts.CtxId, claims.UserID)
 	}
-	g.Log().Debug(r.Context(), "URL", r.URL.String(), "Claims", claims)
+	g.Log().Debug(r.Context(), "URL", r.URL.Path, "Claims", claims)
 	r.Middleware.Next()
 }
 
