@@ -26,6 +26,9 @@ var (
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
 			s := g.Server()
 
+			// 初始化校园网网段配置
+			middleware.InitCampusSubnets(ctx)
+
 			// 显式把请求体上限设到 32 MiB。
 			// 之前只改 config.yaml 的 server.clientMaxBodySize 会出现"1KB 上传也触发 413"，
 			// 推测是配置反序列化路径或部署时配置没生效；这里用代码兜底一遍，任何配置状态都能保证上限正确。
@@ -50,9 +53,13 @@ var (
 					ghttp.MiddlewareHandlerResponse,
 					middleware.CORS,
 				)
+				// 注册接口需要校园网 IP 校验
+				group.Group("/", func(group *ghttp.RouterGroup) {
+					group.Middleware(middleware.CampusNetworkCheck)
+					group.Bind(register.Register)
+				})
 				// 这里无需登录，不需要请求用户数据
 				group.Bind(
-					register.Register,
 					user.User.GetUserInfoById,
 					teacher.Teacher.GetTeacher,
 					teacher.Teacher.GetTeacherPin,
