@@ -18,8 +18,7 @@ const pageSize = 20
 
 // ListUsers 分页查询用户列表，支持角色筛选和关键词搜索，排除软删除用户
 func ListUsers(ctx context.Context, page int, role string, keyword string) (res *v1.ListUsersRes, err error) {
-	m := dao.Users.Ctx(ctx).
-		WhereNull(dao.Users.Columns().DeletedAt)
+	m := dao.Users.Ctx(ctx)
 
 	// 角色筛选
 	if role != "" {
@@ -95,7 +94,7 @@ func ListUsers(ctx context.Context, page int, role string, keyword string) (res 
 // CreateUser 创建用户，处理唯一性检查、密码哈希、教师表联动
 func CreateUser(ctx context.Context, req *v1.CreateUserReq) (res *v1.CreateUserRes, err error) {
 	// 检查用户名唯一性（包含软删除用户）
-	nameCount, err := dao.Users.Ctx(ctx).
+	nameCount, err := dao.Users.Ctx(ctx).Unscoped().
 		Where(dao.Users.Columns().Name, req.Name).
 		Count()
 	if err != nil {
@@ -106,7 +105,7 @@ func CreateUser(ctx context.Context, req *v1.CreateUserReq) (res *v1.CreateUserR
 	}
 
 	// 检查邮箱唯一性（包含软删除用户）
-	emailCount, err := dao.Users.Ctx(ctx).
+	emailCount, err := dao.Users.Ctx(ctx).Unscoped().
 		Where(dao.Users.Columns().Email, req.Email).
 		Count()
 	if err != nil {
@@ -163,7 +162,6 @@ func UpdateUser(ctx context.Context, req *v1.UpdateUserReq, currentUserId int) (
 	var targetUser entity.Users
 	err = dao.Users.Ctx(ctx).
 		Where(dao.Users.Columns().Id, req.Id).
-		WhereNull(dao.Users.Columns().DeletedAt).
 		Scan(&targetUser)
 	if err != nil || targetUser.Id == 0 {
 		return nil, gerror.New("用户不存在")
@@ -174,9 +172,9 @@ func UpdateUser(ctx context.Context, req *v1.UpdateUserReq, currentUserId int) (
 		return nil, gerror.New("不允许降级自己的角色")
 	}
 
-	// 邮箱唯一性检查（如果修改了邮箱）
+	// 邮箱唯一性检查（如果修改了邮箱，包含软删除用户）
 	if req.Email != "" && req.Email != targetUser.Email {
-		emailCount, err := dao.Users.Ctx(ctx).
+		emailCount, err := dao.Users.Ctx(ctx).Unscoped().
 			Where(dao.Users.Columns().Email, req.Email).
 			WhereNot(dao.Users.Columns().Id, req.Id).
 			Count()
@@ -189,22 +187,27 @@ func UpdateUser(ctx context.Context, req *v1.UpdateUserReq, currentUserId int) (
 	}
 
 	// 构造更新数据
-	updateData := g.Map{}
+	updateData := do.Users{}
+	hasUpdate := false
 	if req.Nickname != "" {
-		updateData[dao.Users.Columns().Nickname] = req.Nickname
+		updateData.Nickname = req.Nickname
+		hasUpdate = true
 	}
 	if req.Email != "" {
-		updateData[dao.Users.Columns().Email] = req.Email
+		updateData.Email = req.Email
+		hasUpdate = true
 	}
 	if req.Role != "" {
-		updateData[dao.Users.Columns().Role] = req.Role
+		updateData.Role = req.Role
+		hasUpdate = true
 	}
 	if req.Introduction != "" {
-		updateData[dao.Users.Columns().Introduction] = req.Introduction
+		updateData.Introduction = req.Introduction
+		hasUpdate = true
 	}
 
 	// 更新用户表
-	if len(updateData) > 0 {
+	if hasUpdate {
 		_, err = dao.Users.Ctx(ctx).
 			Where(dao.Users.Columns().Id, req.Id).
 			Data(updateData).
@@ -245,14 +248,17 @@ func UpdateUser(ctx context.Context, req *v1.UpdateUserReq, currentUserId int) (
 
 	// 如果用户已经是 teacher 且没有角色变更，更新 teacher 相关字段
 	if (req.Role == "" || req.Role == consts.TEACHER) && targetUser.Role == consts.TEACHER {
-		teacherUpdate := g.Map{}
+		teacherUpdate := do.Teachers{}
+		hasTeacherUpdate := false
 		if req.Introduction != "" {
-			teacherUpdate["introduction"] = req.Introduction
+			teacherUpdate.Introduction = req.Introduction
+			hasTeacherUpdate = true
 		}
 		if req.Perm != "" {
-			teacherUpdate["perm"] = req.Perm
+			teacherUpdate.Perm = req.Perm
+			hasTeacherUpdate = true
 		}
-		if len(teacherUpdate) > 0 {
+		if hasTeacherUpdate {
 			_, err = dao.Teachers.Ctx(ctx).
 				Where(dao.Teachers.Columns().Id, req.Id).
 				Data(teacherUpdate).
@@ -272,7 +278,6 @@ func ResetPassword(ctx context.Context, userId int, newPassword string) (res *v1
 	// 检查用户是否存在且未软删除
 	count, err := dao.Users.Ctx(ctx).
 		Where(dao.Users.Columns().Id, userId).
-		WhereNull(dao.Users.Columns().DeletedAt).
 		Count()
 	if err != nil {
 		return nil, gerror.New(consts.ErrInternal)
@@ -290,9 +295,9 @@ func ResetPassword(ctx context.Context, userId int, newPassword string) (res *v1
 	// 更新密码
 	_, err = dao.Users.Ctx(ctx).
 		Where(dao.Users.Columns().Id, userId).
-		Data(g.Map{
-			dao.Users.Columns().Salt:         "",
-			dao.Users.Columns().PasswordHash: hash,
+		Data(do.Users{
+			Salt:         "",
+			PasswordHash: hash,
 		}).
 		Update()
 	if err != nil {
@@ -319,7 +324,6 @@ func DeleteUser(ctx context.Context, userId int, currentUserId int) (res *v1.Del
 	// 检查用户是否存在且未软删除
 	count, err := dao.Users.Ctx(ctx).
 		Where(dao.Users.Columns().Id, userId).
-		WhereNull(dao.Users.Columns().DeletedAt).
 		Count()
 	if err != nil {
 		return nil, gerror.New(consts.ErrInternal)
@@ -328,9 +332,10 @@ func DeleteUser(ctx context.Context, userId int, currentUserId int) (res *v1.Del
 		return nil, gerror.New("用户不存在")
 	}
 
-	// 软删除：设置 deleted_at
-	_, err = g.DB().Exec(ctx,
-		"UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?", userId)
+	// 软删除：GoFrame 自动设置 deleted_at
+	_, err = dao.Users.Ctx(ctx).
+		Where(dao.Users.Columns().Id, userId).
+		Delete()
 	if err != nil {
 		return nil, gerror.New(consts.ErrInternal)
 	}
