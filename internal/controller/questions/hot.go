@@ -51,6 +51,27 @@ func (c *cHotQuestion) Get(ctx context.Context, req *v1.GetHotQuestionsReq) (res
 		return nil, err
 	}
 
+	// 热点问题最多展示 MaxHotQuestions 条
+	if total > consts.MaxHotQuestions {
+		total = consts.MaxHotQuestions
+	}
+
+	// 如果当前页超出限制范围，返回空列表
+	offset := (req.Page - 1) * consts.MaxQuestionsPerPage
+	if offset >= consts.MaxHotQuestions {
+		res = &v1.GetHotQuestionsRes{
+			QuestionList: []model.TeacherQuestion{},
+			RemainPage:   0,
+		}
+		return
+	}
+
+	// 截断超出 MaxHotQuestions 的多余结果
+	maxRemain := consts.MaxHotQuestions - offset
+	if len(q) > maxRemain {
+		q = q[:maxRemain]
+	}
+
 	remain := utility.CountRemainPage(total, req.Page)
 
 	qIDs := make([]int, len(q))
