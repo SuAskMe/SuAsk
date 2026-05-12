@@ -109,6 +109,7 @@ var (
 						admin.Admin.UpdateUser,
 						admin.Admin.ResetPassword,
 						admin.Admin.DeleteUser,
+						admin.Admin.UpdateAvatar,
 					)
 				})
 			})

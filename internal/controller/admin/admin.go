@@ -39,3 +39,8 @@ func (c *cAdmin) DeleteUser(ctx context.Context, req *v1.DeleteUserReq) (res *v1
 	currentUserId := gconv.Int(ctx.Value(consts.CtxId))
 	return admin.DeleteUser(ctx, req.Id, currentUserId)
 }
+
+// UpdateAvatar 管理员-修改用户头像
+func (c *cAdmin) UpdateAvatar(ctx context.Context, req *v1.UpdateAvatarReq) (res *v1.UpdateAvatarRes, err error) {
+	return admin.UpdateAvatar(ctx, req.Id)
+}

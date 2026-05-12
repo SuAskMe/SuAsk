@@ -6,8 +6,11 @@ import (
 	v1 "suask/api/admin/v1"
 	"suask/internal/consts"
 	"suask/internal/dao"
+	qutil "suask/internal/logic/questions_util"
+	"suask/internal/model"
 	"suask/internal/model/do"
 	"suask/internal/model/entity"
+	"suask/internal/service"
 	"suask/utility"
 
 	"github.com/gogf/gf/v2/errors/gerror"
@@ -57,6 +60,7 @@ func ListUsers(ctx context.Context, page int, role string, keyword string) (res 
 		dao.Users.Columns().Email,
 		dao.Users.Columns().Role,
 		dao.Users.Columns().Introduction,
+		dao.Users.Columns().AvatarFileId,
 		dao.Users.Columns().CreatedAt,
 	).
 		OrderDesc(dao.Users.Columns().CreatedAt).
@@ -65,6 +69,15 @@ func ListUsers(ctx context.Context, page int, role string, keyword string) (res 
 	if err != nil {
 		return nil, gerror.New(consts.ErrInternal)
 	}
+
+	// 批量解析头像 URL
+	var avatarFileIDs []int
+	for _, u := range users {
+		if u.AvatarFileId != 0 {
+			avatarFileIDs = append(avatarFileIDs, u.AvatarFileId)
+		}
+	}
+	avatarURLMap, _ := qutil.BatchGetFileURLs(ctx, avatarFileIDs)
 
 	// 构造返回列表
 	list := make([]v1.AdminUserItem, 0, len(users))
@@ -76,6 +89,14 @@ func ListUsers(ctx context.Context, page int, role string, keyword string) (res 
 			Email:        u.Email,
 			Role:         u.Role,
 			Introduction: u.Introduction,
+		}
+		if u.AvatarFileId != 0 {
+			if url, ok := avatarURLMap[u.AvatarFileId]; ok {
+				item.AvatarURL = url
+			}
+		}
+		if item.AvatarURL == "" {
+			item.AvatarURL = consts.DefaultAvatarURL
 		}
 		if u.CreatedAt != nil {
 			item.CreatedAt = u.CreatedAt.String()
@@ -347,5 +368,52 @@ func DeleteUser(ctx context.Context, userId int, currentUserId int) (res *v1.Del
 	}
 
 	res = &v1.DeleteUserRes{Id: userId}
+	return
+}
+
+// UpdateAvatar 管理员修改用户头像
+func UpdateAvatar(ctx context.Context, userId int) (res *v1.UpdateAvatarRes, err error) {
+	// 检查用户是否存在
+	count, err := dao.Users.Ctx(ctx).
+		Where(dao.Users.Columns().Id, userId).
+		Count()
+	if err != nil {
+		return nil, gerror.New(consts.ErrInternal)
+	}
+	if count == 0 {
+		return nil, gerror.New("用户不存在")
+	}
+
+	// 从请求中获取上传的文件
+	r := g.RequestFromCtx(ctx)
+	file := r.GetUploadFile("avatar")
+	if file == nil {
+		return nil, gerror.New("请上传头像文件")
+	}
+
+	// 上传文件
+	avatarFile := model.FileUploadInput{File: file}
+	fileData, err := service.File().UploadFile(ctx, avatarFile)
+	if err != nil {
+		return nil, gerror.New("头像上传失败")
+	}
+
+	// 更新用户头像 ID
+	_, err = dao.Users.Ctx(ctx).
+		Where(dao.Users.Columns().Id, userId).
+		Data(do.Users{AvatarFileId: fileData.Id}).
+		Update()
+	if err != nil {
+		return nil, gerror.New(consts.ErrInternal)
+	}
+
+	// 获取新头像 URL
+	newFile, err := service.File().Get(ctx, model.FileGetInput{Id: fileData.Id})
+	avatarURL := consts.DefaultAvatarURL
+	if err == nil {
+		avatarURL = newFile.URL
+	}
+
+	res = &v1.UpdateAvatarRes{Id: userId, AvatarURL: avatarURL}
 	return
 }

@@ -13,6 +13,7 @@ type AdminUserItem struct {
 	Email        string `json:"email"         dc:"邮箱"`
 	Role         string `json:"role"          dc:"角色"`
 	Introduction string `json:"introduction"  dc:"简介"`
+	AvatarURL    string `json:"avatar"        dc:"头像URL"`
 	CreatedAt    string `json:"created_at"    dc:"创建时间"`
 }
 
@@ -60,6 +61,18 @@ type UpdateUserReq struct {
 
 type UpdateUserRes struct {
 	Id int `json:"id" dc:"用户ID"`
+}
+
+// ==================== 修改头像 ====================
+
+type UpdateAvatarReq struct {
+	g.Meta `path:"/admin/users/{id}/avatar" method:"PUT" mime:"multipart/form-data" tags:"Admin" summary:"管理员-修改用户头像"`
+	Id     int `json:"id" in:"path" v:"required" dc:"用户ID"`
+}
+
+type UpdateAvatarRes struct {
+	Id        int    `json:"id" dc:"用户ID"`
+	AvatarURL string `json:"avatar" dc:"新头像URL"`
 }
 
 // ==================== 重置密码 ====================
