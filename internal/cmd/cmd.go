@@ -12,6 +12,7 @@ import (
 	"suask/internal/controller/register"
 	"suask/internal/controller/teacher"
 	"suask/internal/controller/user"
+	fileCleanup "suask/internal/logic/file"
 	"suask/internal/middleware"
 
 	"github.com/gogf/gf/v2/frame/g"
@@ -121,6 +122,9 @@ var (
 			}
 			s.AddStaticPath("/"+uploadPath, "./"+uploadPath)
 			s.SetIndexFolder(false)
+
+			// 启动文件清理定时任务
+			fileCleanup.StartCleanupTask(ctx)
 
 			s.Run()
 			return nil

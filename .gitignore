@@ -20,7 +20,7 @@ bin
 .lingma
 .kiro
 suask.db.*
-upload
+upload/
 
 # SQLite 运行时文件（WAL/SHM 是临时文件，.db 是数据文件，按需决定是否提交）
 *.db
