@@ -5,6 +5,7 @@ import (
 	v1 "suask/api/user/v1"
 	"suask/internal/consts"
 	"suask/internal/dao"
+	fileLogic "suask/internal/logic/file"
 	"suask/internal/model"
 	"suask/internal/service"
 	"suask/module/send_email"
@@ -28,15 +29,16 @@ func (c *cUser) UpdateUserInfo(ctx context.Context, req *v1.UpdateUserReq) (res 
 		Nickname:     req.Nickname,
 		Introduction: req.Introduction,
 	}
-	// 上传头像
+	// 上传头像（使用共享逻辑）
 	if req.AvatarFile != nil && req.AvatarFile.FileHeader != nil {
-		avatarFile := model.FileUploadInput{File: req.AvatarFile}
-		data, err := service.File().UploadFile(ctx, avatarFile)
+		out, err := fileLogic.UploadAvatar(ctx, fileLogic.UploadAvatarInput{
+			UserId: userId,
+			File:   req.AvatarFile,
+		})
 		if err != nil {
 			return nil, err
 		}
-		avatarId := data.Id
-		userInfo.AvatarFileId = avatarId
+		_ = out // avatar_file_id 已在 UploadAvatar 中更新
 	}
 	// 更新基础数据
 	out, err := service.User().UpdateUser(ctx, userInfo)
