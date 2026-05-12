@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"suask/internal/controller/admin"
 	"suask/internal/controller/announcement"
 	"suask/internal/controller/favorite"
 	"suask/internal/controller/history"
@@ -95,6 +96,19 @@ var (
 						announcement.Announcement.Update,
 						announcement.Announcement.Delete,
 						announcement.Announcement.AddComment,
+					)
+				})
+
+				// ========== 管理员接口（需要登录 + 管理员角色） ==========
+				group.Group("/", func(group *ghttp.RouterGroup) {
+					group.Middleware(middleware.JwtRequired)
+					group.Middleware(middleware.AdminRequired)
+					group.Bind(
+						admin.Admin.ListUsers,
+						admin.Admin.CreateUser,
+						admin.Admin.UpdateUser,
+						admin.Admin.ResetPassword,
+						admin.Admin.DeleteUser,
 					)
 				})
 			})

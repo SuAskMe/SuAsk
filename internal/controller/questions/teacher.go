@@ -5,6 +5,7 @@ import (
 	v1 "suask/api/questions/v1"
 	"suask/internal/consts"
 	qutil "suask/internal/logic/questions_util"
+	"suask/internal/middleware"
 	"suask/internal/model"
 	"suask/internal/service"
 	"suask/module/validation"
@@ -20,9 +21,12 @@ func GetQuestionOfTeacherImpl(ctx context.Context, req interface{}) (res interfa
 	baseInput := model.GetBaseOfTeacherInput{}
 	gconv.Scan(req, &baseInput)
 
-	err = validation.TeacherPerm(ctx, baseInput.TeacherID)
-	if err != nil {
-		return
+	// 管理员模式：跳过提问箱权限检查
+	if !middleware.IsAdminMode(ctx) {
+		err = validation.TeacherPerm(ctx, baseInput.TeacherID)
+		if err != nil {
+			return
+		}
 	}
 
 	userId := gconv.Int(ctx.Value(consts.CtxId))
