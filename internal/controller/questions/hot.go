@@ -40,8 +40,9 @@ func (c *cHotQuestion) Get(ctx context.Context, req *v1.GetHotQuestionsReq) (res
 		md = md.WhereLike(dao.Questions.Columns().Title, "%"+req.Keyword+"%")
 	}
 
-	// 按浏览量降序排序
+	// 按浏览量降序排序，最多只取前 MaxHotQuestions 条
 	md = md.OrderDesc(dao.Questions.Columns().Views)
+	md = md.Limit(consts.MaxHotQuestions)
 	md = md.Page(req.Page, consts.MaxQuestionsPerPage)
 
 	var q []*custom.Questions
@@ -49,6 +50,11 @@ func (c *cHotQuestion) Get(ctx context.Context, req *v1.GetHotQuestionsReq) (res
 	err = md.ScanAndCount(&q, &total, false)
 	if err != nil {
 		return nil, err
+	}
+
+	// 将 total 限制在 MaxHotQuestions 以内
+	if total > consts.MaxHotQuestions {
+		total = consts.MaxHotQuestions
 	}
 
 	remain := utility.CountRemainPage(total, req.Page)

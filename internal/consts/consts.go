@@ -2,6 +2,7 @@ package consts
 
 const (
 	MaxQuestionsPerPage   = 10
+	MaxHotQuestions       = 20 // 热点问题最多展示条数
 	MaxKeywordsPerReq     = 8
 	MaxAvatarsPerQuestion = 3
 	SortByTimeDsc         = 0
