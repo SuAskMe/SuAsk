@@ -181,11 +181,6 @@ func (c *cUser) GetUserInfoById(ctx context.Context, req *v1.UserInfoByIdReq) (r
 			return nil, err
 		}
 		res.AvatarURL = file.URL
-	} else if res.Role == consts.TEACHER {
-		avatarURL, err := service.Teacher().GetTeacherAvatar(ctx, &model.TeacherGetAvatarInput{TeacherId: out.Id})
-		if err == nil && avatarURL != nil {
-			res.AvatarURL = avatarURL.AvatarUrl
-		}
 	} else {
 		res.AvatarURL = consts.DefaultAvatarURL
 	}
