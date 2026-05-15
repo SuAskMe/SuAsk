@@ -229,14 +229,16 @@ func (c *cUser) Info(ctx context.Context, req *v1.UserInfoReq) (res *v1.UserInfo
 	}
 	res.Email = user.Email
 
-	// 获取设置内容
+	// 获取设置内容（guest 用户可能没有 settings 记录，使用默认值）
 	setting, err := service.Setting().GetSetting(ctx, model.GetSettingInput{Id: userId})
-	if err != nil {
-		return nil, err
+	if err == nil {
+		res.ThemeId = setting.ThemeId
+		res.NotifyEmail = setting.NotifyEmail
+		res.NotifySwitch = setting.NotifySwitch
+	} else {
+		res.ThemeId = consts.DefaultThemeId
+		res.NotifySwitch = false
 	}
-	res.ThemeId = setting.ThemeId
-	res.NotifyEmail = setting.NotifyEmail
-	res.NotifySwitch = setting.NotifySwitch
 
 	// 获取提问箱权限（如果是教师）
 	perm, _ := validation.IsTeacher(ctx, userId)

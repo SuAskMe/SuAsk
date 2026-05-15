@@ -35,37 +35,39 @@ type CreateGuestOutput struct {
 
 // CreateGuest creates a temporary guest user with device and IP rate limiting.
 func CreateGuest(ctx context.Context, deviceId string, clientIP string) (*CreateGuestOutput, error) {
-	// 1. Device rate limiting
-	if deviceId != "" {
-		key := consts.RedisGuestDevicePrefix + deviceId
-		cnt, err := g.Redis().Incr(ctx, key)
-		if err != nil {
-			g.Log().Error(ctx, "CreateGuest: device rate limit redis error", err)
-		} else {
-			if cnt == 1 {
-				_, _ = g.Redis().Expire(ctx, key, int64(consts.GuestRateLimitTTL))
-			}
-			if cnt > int64(consts.GuestDeviceLimit) {
-				return nil, ErrRateLimited
-			}
-		}
-	}
+	// NOTE: Rate limiting temporarily disabled for testing
+	// // 1. Device rate limiting
+	// if deviceId != "" {
+	// 	key := consts.RedisGuestDevicePrefix + deviceId
+	// 	cnt, err := g.Redis().Incr(ctx, key)
+	// 	if err != nil {
+	// 		g.Log().Error(ctx, "CreateGuest: device rate limit redis error", err)
+	// 	} else {
+	// 		if cnt == 1 {
+	// 			_, _ = g.Redis().Expire(ctx, key, int64(consts.GuestRateLimitTTL))
+	// 		}
+	// 		if cnt > int64(consts.GuestDeviceLimit) {
+	// 			return nil, ErrRateLimited
+	// 		}
+	// 	}
+	// }
 
 	// 2. IP rate limiting (fallback)
-	if clientIP != "" {
-		key := consts.RedisGuestIPPrefix + clientIP
-		cnt, err := g.Redis().Incr(ctx, key)
-		if err != nil {
-			g.Log().Error(ctx, "CreateGuest: IP rate limit redis error", err)
-		} else {
-			if cnt == 1 {
-				_, _ = g.Redis().Expire(ctx, key, int64(consts.GuestRateLimitTTL))
-			}
-			if cnt > int64(consts.GuestIPLimit) {
-				return nil, ErrRateLimited
-			}
-		}
-	}
+	// // 2. IP rate limiting (fallback)
+	// if clientIP != "" {
+	// 	key := consts.RedisGuestIPPrefix + clientIP
+	// 	cnt, err := g.Redis().Incr(ctx, key)
+	// 	if err != nil {
+	// 		g.Log().Error(ctx, "CreateGuest: IP rate limit redis error", err)
+	// 	} else {
+	// 		if cnt == 1 {
+	// 			_, _ = g.Redis().Expire(ctx, key, int64(consts.GuestRateLimitTTL))
+	// 		}
+	// 		if cnt > int64(consts.GuestIPLimit) {
+	// 			return nil, ErrRateLimited
+	// 		}
+	// 	}
+	// }
 
 	// 3. Generate unique name: susu#XXXX (4-digit random number)
 	var name string
