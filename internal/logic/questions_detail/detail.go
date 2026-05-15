@@ -61,7 +61,7 @@ func (sQuestionDetail) GetQuestionBase(ctx context.Context, in *model.GetQuestio
 	}
 	imgIdList := extractFileIDs(imgList)
 	isFavorite := false
-	if in.UserId != consts.DefaultUserId {
+	if in.UserId != 0 {
 		one, err := dao.Favorites.Ctx(ctx).Where(dao.Favorites.Columns().QuestionId, in.QuestionId).Where(dao.Favorites.Columns().UserId, in.UserId).One()
 		if !one.IsEmpty() {
 			isFavorite = true

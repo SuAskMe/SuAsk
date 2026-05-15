@@ -18,10 +18,10 @@ PRAGMA journal_mode = WAL;
 CREATE TABLE users (
   id             INTEGER PRIMARY KEY AUTOINCREMENT,
   name           TEXT    NOT NULL UNIQUE,
-  email          TEXT    NOT NULL UNIQUE,
-  salt           TEXT    NOT NULL,
-  password_hash  TEXT    NOT NULL,
-  role           TEXT    NOT NULL CHECK (role IN ('admin','teacher','student')),
+  email          TEXT    UNIQUE,
+  salt           TEXT,
+  password_hash  TEXT,
+  role           TEXT    NOT NULL CHECK (role IN ('admin','teacher','student','guest')),
   nickname       TEXT    NOT NULL,
   introduction   TEXT    NOT NULL DEFAULT '',
   avatar_file_id INTEGER,
@@ -30,6 +30,15 @@ CREATE TABLE users (
   deleted_at     DATETIME
 );
 CREATE INDEX idx_users_avatar_file ON users(avatar_file_id);
+
+-- ------------------------- guest_users -------------------------
+-- 记录 guest 用户的过期时间，过期后由定时任务硬删除
+CREATE TABLE guest_users (
+  id          INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  expires_at  DATETIME NOT NULL,
+  created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_guest_users_expires ON guest_users(expires_at);
 
 -- ------------------------- files -------------------------
 CREATE TABLE files (

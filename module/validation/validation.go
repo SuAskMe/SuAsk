@@ -62,13 +62,30 @@ func TeacherPerm(ctx context.Context, teacherId int) error {
 	case consts.PermPrivate:
 		return errors.New("老师并未开启提问箱，请联系老师")
 	case consts.PermProtected:
-		if UserId == consts.DefaultUserId {
+		// Guest 用户不能访问 protected 提问箱
+		if isGuestUser(ctx, UserId) {
 			return errors.New("请登录后再提问")
 		}
 		return nil
 	default: // 未知权限
 		return errors.New("未知权限")
 	}
+}
+
+// isGuestUser 检查指定用户是否为 guest 角色。
+func isGuestUser(ctx context.Context, userId int) bool {
+	if userId == 0 {
+		return false
+	}
+	var user entity.Users
+	err := dao.Users.Ctx(ctx).
+		Where(dao.Users.Columns().Id, userId).
+		Fields(dao.Users.Columns().Role).
+		Scan(&user)
+	if err != nil {
+		return false
+	}
+	return user.Role == consts.GUEST
 }
 
 /*
@@ -107,9 +124,6 @@ func QuestionPerm(ctx context.Context, question *entity.Questions) error {
 // 回答问题权限 (不检查老师提问箱权限)
 func AnswerPerm(ctx context.Context, question *entity.Questions) error {
 	UserId := gconv.Int(ctx.Value(consts.CtxId))
-	if UserId == consts.DefaultUserId {
-		return errors.New("请登录后再回答问题")
-	}
 	// 所有问题都是问老师的问题
 	switch UserId {
 	case question.SrcUserId:

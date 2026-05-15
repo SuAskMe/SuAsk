@@ -46,7 +46,7 @@ upload:
 
 jwt:
     signKey: "CHANGE_ME_使用_openssl_rand_-hex_32_生成"
-    expire: 7                              # token 过期天数
+    expire: 14                             # token 过期天数（Redis TTL），JWT 签发时额外 +1 天作为缓冲
 
 email:
     host: "smtpdm.aliyun.com"

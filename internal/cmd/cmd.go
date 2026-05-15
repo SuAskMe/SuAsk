@@ -5,6 +5,7 @@ import (
 	"suask/internal/controller/admin"
 	"suask/internal/controller/announcement"
 	"suask/internal/controller/favorite"
+	"suask/internal/controller/guest"
 	"suask/internal/controller/history"
 	"suask/internal/controller/login"
 	"suask/internal/controller/notification"
@@ -13,6 +14,7 @@ import (
 	"suask/internal/controller/teacher"
 	"suask/internal/controller/user"
 	fileCleanup "suask/internal/logic/file"
+	guestLogic "suask/internal/logic/guest"
 	"suask/internal/middleware"
 
 	"github.com/gogf/gf/v2/frame/g"
@@ -48,11 +50,13 @@ var (
 					middleware.CORS,
 				)
 
-				// ========== 公开接口（无需任何认证） ==========
+				// ========== 公开接口（需要校园网） ==========
 				group.Group("/", func(group *ghttp.RouterGroup) {
 					group.Middleware(middleware.CampusNetworkCheck)
 					group.Bind(register.Register)
 				})
+
+				// ========== 公开接口（无需认证、无需校园网） ==========
 				group.Bind(
 					user.User.GetUserInfoById,
 					teacher.Teacher.GetTeacher,
@@ -60,43 +64,55 @@ var (
 					questions.HotQuestion,
 					announcement.Announcement.List,
 					announcement.Announcement.Detail,
+					guest.Guest.Login,
+					login.Login.Login,
 				)
 
-				// ========== 可选登录（有 token 解析用户，无 token 用默认用户） ==========
+				// ========== Guest 升级（需要校园网 + 登录） ==========
 				group.Group("/", func(group *ghttp.RouterGroup) {
-					group.Middleware(middleware.JwtOptional)
+					group.Middleware(middleware.CampusNetworkCheck)
+					group.Middleware(middleware.JwtRequired)
 					group.Bind(
-						login.Login.Login,
-						questions.TeacherQuestion,
-						questions.QuestionDetail.GetDetail,
-						questions.Question,
+						guest.Guest.Upgrade,
+						guest.Guest.SendCode,
 					)
 				})
 
-				// ========== 必须登录（无有效 token 返回 401） ==========
+				// ========== 必须登录（Guest 也可以访问） ==========
 				group.Group("/", func(group *ghttp.RouterGroup) {
 					group.Middleware(middleware.JwtRequired)
 					group.Bind(
 						login.Login.Logout,
 						login.Login.HeartBeats,
 						user.User.Info,
+						questions.TeacherQuestion,
+						questions.QuestionDetail.GetDetail,
+						questions.Question,
+						questions.QuestionDetail.DeleteAnswer,
+						questions.QuestionDetail.AddAnswer,
+						questions.QuestionDetail.Upvote,
+						questions.Inbox,
+						history.History,
+						announcement.Announcement.AddComment,
+					)
+				})
+
+				// ========== 必须登录 + 非 Guest（Guest 不可访问） ==========
+				group.Group("/", func(group *ghttp.RouterGroup) {
+					group.Middleware(middleware.JwtRequired)
+					group.Middleware(middleware.NonGuestRequired)
+					group.Bind(
 						user.User.UpdateUserInfo,
 						user.User.UpdatePassWord,
 						user.User.SendVerificationCode,
 						user.User.ForgetPassword,
 						user.User.Deactivate,
-						questions.QuestionDetail.DeleteAnswer,
-						questions.QuestionDetail.AddAnswer,
-						questions.QuestionDetail.Upvote,
-						questions.Inbox,
 						favorite.Favorite,
-						history.History,
 						teacher.Teacher.UpdatePerm,
 						notification.Notification,
 						announcement.Announcement.Create,
 						announcement.Announcement.Update,
 						announcement.Announcement.Delete,
-						announcement.Announcement.AddComment,
 					)
 				})
 
@@ -125,6 +141,9 @@ var (
 
 			// 启动文件清理定时任务
 			fileCleanup.StartCleanupTask(ctx)
+
+			// 启动 Guest 清理定时任务
+			guestLogic.StartGuestCleanupTask(ctx)
 
 			s.Run()
 			return nil

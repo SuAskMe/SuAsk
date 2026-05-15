@@ -51,7 +51,7 @@ func IsAdminMode(ctx context.Context) bool {
 	}
 
 	userId := gconv.Int(ctx.Value(consts.CtxId))
-	if userId == 0 || userId == consts.DefaultUserId {
+	if userId == 0 {
 		return false
 	}
 

@@ -30,18 +30,18 @@ func JwtRequired(r *ghttp.Request) {
 	r.Middleware.Next()
 }
 
-// JwtOptional 中间件：可选登录，有 token 则解析用户 ID，无 token 则设为默认用户。
-func JwtOptional(r *ghttp.Request) {
-	authHeader := r.Header.Get("Authorization")
-	claims, err := jwtAuth(r.Context(), authHeader)
-	if err != nil {
-		r.SetCtxVar(consts.CtxId, consts.DefaultUserId)
-	} else {
-		r.SetCtxVar(consts.CtxId, claims.UserID)
-	}
-	g.Log().Debug(r.Context(), "URL", r.URL.Path, "Claims", claims)
-	r.Middleware.Next()
-}
+// JwtOptional 中间件（已废弃）：不再有"匿名浏览"状态，所有用户必须持有有效 token。
+// func JwtOptional(r *ghttp.Request) {
+// 	authHeader := r.Header.Get("Authorization")
+// 	claims, err := jwtAuth(r.Context(), authHeader)
+// 	if err != nil {
+// 		r.SetCtxVar(consts.CtxId, consts.DefaultUserId)
+// 	} else {
+// 		r.SetCtxVar(consts.CtxId, claims.UserID)
+// 	}
+// 	g.Log().Debug(r.Context(), "URL", r.URL.Path, "Claims", claims)
+// 	r.Middleware.Next()
+// }
 
 // jwtAuth 解析并验证 JWT token。
 func jwtAuth(ctx context.Context, authHeader string) (claims *sjwt.JwtClaims, err error) {

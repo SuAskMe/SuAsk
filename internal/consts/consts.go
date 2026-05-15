@@ -35,6 +35,7 @@ const (
 	TEACHER = "teacher"
 	STUDENT = "student"
 	ADMIN   = "admin"
+	GUEST   = "guest"
 )
 
 // for gToken

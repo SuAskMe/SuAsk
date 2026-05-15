@@ -16,6 +16,10 @@ type JwtClaims struct {
 
 const LogPrefix = "[SUASK-JWT]"
 
+// JwtSignBuffer is the extra days added to JWT ExpiresAt beyond the Redis TTL.
+// This ensures Redis is the controlling factor for session expiry, not the JWT itself.
+const JwtSignBuffer = 1
+
 var jwtKey = g.Cfg().MustGet(context.TODO(), "jwt.signKey").String()
 var jwtExpire = g.Cfg().MustGet(context.TODO(), "jwt.expire").Int64()
 
@@ -36,7 +40,7 @@ func GenerateToken(userID int) (string, error) {
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "SuAsk",
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * time.Duration(jwtExpire))),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * time.Duration(jwtExpire+JwtSignBuffer))),
 		},
 		UserID: userID,
 	}
