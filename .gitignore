@@ -19,6 +19,7 @@ bin
 **/config/config.yaml
 .lingma
 .kiro
+.claude/
 suask.db.*
 upload/
 
@@ -31,3 +32,5 @@ upload/
 
 # 运行期日志
 /logs/
+**/logs/
+module/send_email/logs/

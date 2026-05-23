@@ -22,7 +22,7 @@
 ### 环境依赖
 `go 1.24.1`
 
-`goframe v2.9.3`
+`goframe v2.10.0`
 
 
 ### 启动命令
@@ -33,6 +33,16 @@ gf run main.go
 ```
 
 除此之外，您还需要配置此项目的[前端](https://github.com/DreamingLri/SuAsk-Web)
+
+### 配置文件
+
+仓库内的 `manifest/config/config.yaml.example` 是脱敏模板；本地测试可复制为
+`manifest/config/config.yaml`。服务器上的真实配置文件通常不放在仓库目录内，而是在
+启动命令中显式指定，例如：
+
+```shell
+./main --gf.gcfg.file=/path/to/config.yaml
+```
 
 ---
 

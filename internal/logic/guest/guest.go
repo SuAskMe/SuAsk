@@ -35,39 +35,11 @@ type CreateGuestOutput struct {
 
 // CreateGuest creates a temporary guest user with device and IP rate limiting.
 func CreateGuest(ctx context.Context, deviceId string, clientIP string) (*CreateGuestOutput, error) {
-	// NOTE: Rate limiting temporarily disabled for testing
-	// // 1. Device rate limiting
-	// if deviceId != "" {
-	// 	key := consts.RedisGuestDevicePrefix + deviceId
-	// 	cnt, err := g.Redis().Incr(ctx, key)
-	// 	if err != nil {
-	// 		g.Log().Error(ctx, "CreateGuest: device rate limit redis error", err)
-	// 	} else {
-	// 		if cnt == 1 {
-	// 			_, _ = g.Redis().Expire(ctx, key, int64(consts.GuestRateLimitTTL))
-	// 		}
-	// 		if cnt > int64(consts.GuestDeviceLimit) {
-	// 			return nil, ErrRateLimited
-	// 		}
-	// 	}
-	// }
-
-	// 2. IP rate limiting (fallback)
-	// // 2. IP rate limiting (fallback)
-	// if clientIP != "" {
-	// 	key := consts.RedisGuestIPPrefix + clientIP
-	// 	cnt, err := g.Redis().Incr(ctx, key)
-	// 	if err != nil {
-	// 		g.Log().Error(ctx, "CreateGuest: IP rate limit redis error", err)
-	// 	} else {
-	// 		if cnt == 1 {
-	// 			_, _ = g.Redis().Expire(ctx, key, int64(consts.GuestRateLimitTTL))
-	// 		}
-	// 		if cnt > int64(consts.GuestIPLimit) {
-	// 			return nil, ErrRateLimited
-	// 		}
-	// 	}
-	// }
+	if isGuestRateLimitEnabled(ctx) {
+		if err := checkGuestRateLimit(ctx, deviceId, clientIP); err != nil {
+			return nil, err
+		}
+	}
 
 	// 3. Generate unique name: susu#XXXX (4-digit random number)
 	var name string
@@ -129,6 +101,50 @@ func CreateGuest(ctx context.Context, deviceId string, clientIP string) (*Create
 		Role:  consts.GUEST,
 		Id:    int(userId),
 	}, nil
+}
+
+func isGuestRateLimitEnabled(ctx context.Context) bool {
+	v, err := g.Cfg().Get(ctx, "guest.rate_limit_enabled")
+	if err != nil || v.IsNil() {
+		return true
+	}
+	return v.Bool()
+}
+
+func checkGuestRateLimit(ctx context.Context, deviceId string, clientIP string) error {
+	ttl := int64(g.Cfg().MustGet(ctx, "guest.rate_limit_ttl_seconds", consts.GuestRateLimitTTL).Int())
+	deviceLimit := int64(g.Cfg().MustGet(ctx, "guest.device_limit", consts.GuestDeviceLimit).Int())
+	ipLimit := int64(g.Cfg().MustGet(ctx, "guest.ip_limit", consts.GuestIPLimit).Int())
+
+	if deviceId != "" {
+		limited, err := incrGuestRateLimit(ctx, consts.RedisGuestDevicePrefix+deviceId, ttl, deviceLimit)
+		if err != nil {
+			g.Log().Error(ctx, "CreateGuest: device rate limit redis error", err)
+		} else if limited {
+			return ErrRateLimited
+		}
+	}
+
+	if clientIP != "" {
+		limited, err := incrGuestRateLimit(ctx, consts.RedisGuestIPPrefix+clientIP, ttl, ipLimit)
+		if err != nil {
+			g.Log().Error(ctx, "CreateGuest: IP rate limit redis error", err)
+		} else if limited {
+			return ErrRateLimited
+		}
+	}
+	return nil
+}
+
+func incrGuestRateLimit(ctx context.Context, key string, ttl int64, limit int64) (bool, error) {
+	cnt, err := g.Redis().Incr(ctx, key)
+	if err != nil {
+		return false, err
+	}
+	if cnt == 1 {
+		_, _ = g.Redis().Expire(ctx, key, ttl)
+	}
+	return cnt > limit, nil
 }
 
 // UpgradeInput holds the parameters for upgrading a guest to a student.

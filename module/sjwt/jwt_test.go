@@ -81,8 +81,18 @@ func TestParseToken_TamperedToken(t *testing.T) {
 		[]byte(jwtKey),
 		baseClaims(42, time.Hour),
 	)
-	// 篡改最后一个字符
-	tampered := token[:len(token)-1] + "A"
+	// 篡改签名段的第一个字符；不要改最后一个字符，base64url 末位可能只包含填充位。
+	parts := strings.Split(token, ".")
+	if len(parts) != 3 || parts[2] == "" {
+		t.Fatalf("unexpected token format: %q", token)
+	}
+	signature := []byte(parts[2])
+	if signature[0] == 'A' {
+		signature[0] = 'B'
+	} else {
+		signature[0] = 'A'
+	}
+	tampered := parts[0] + "." + parts[1] + "." + string(signature)
 
 	claims, err := ParseToken(tampered)
 	if err == nil {
@@ -160,9 +170,9 @@ func TestParseToken_Garbage(t *testing.T) {
 	cases := []string{
 		"",
 		"not-a-jwt",
-		"a.b",         // 段数不对
-		"a.b.c.d.e",   // 段数不对
-		"....",        // 全是分隔符
+		"a.b",       // 段数不对
+		"a.b.c.d.e", // 段数不对
+		"....",      // 全是分隔符
 		"header.payload.signature",
 	}
 	for _, in := range cases {

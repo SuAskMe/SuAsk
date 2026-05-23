@@ -39,7 +39,8 @@ func (cQuestion) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v1.AddQu
 	}
 	if req.Files != nil {
 		fileList := model.FileListAddInput{
-			FileList: req.Files,
+			UploaderId: UserId,
+			FileList:   req.Files,
 		}
 		fileIdList, err := service.File().UploadFileList(ctx, fileList)
 		if err != nil {

@@ -28,11 +28,18 @@ python tests/smoke/run_smoke.py verify
 python tests/smoke/security_check.py
 ```
 
-## 注意：仓库已有两个坏掉的测试
+## 注意
 
-- `utility/trie_mux/mux_test.go::TestTrieMux_HasPrefix` —— `HasPrefix("/")`
-  的语义在实现里和用例预期不一致，是实现侧的小 bug（当前没人用到根路径）。
-- `module/send_email/parser_test.go` —— 硬编码了 `/home/jacko/...` 的绝对路径，
-  在其它机器上必然找不到文件。
+完整 Go 测试基线应保持可直接运行：
 
-这两个和本次重构无关，先不处理。后续统一清理注释死代码那一轮一起修。
+```powershell
+go test ./...
+```
+
+如果本地没有 `manifest/config/config.yaml`，可以显式使用脱敏模板：
+
+```powershell
+$env:GF_GCFG_FILE="manifest/config/config.yaml.example"
+go test ./...
+Remove-Item Env:GF_GCFG_FILE
+```

@@ -7,8 +7,7 @@
 #
 # 部署推荐：
 #   - 文件权限收紧到 600，属主为运行进程的用户
-#   - systemd 不要再通过 --gf.gcfg.file 指定其他路径，让 GoFrame
-#     自动从 manifest/config/config.yaml 加载
+#   - 服务器可通过 --gf.gcfg.file=/path/to/config.yaml 显式指定真实配置文件
 # ---------------------------------------------------------------
 
 server:
@@ -48,6 +47,12 @@ jwt:
     signKey: "CHANGE_ME_使用_openssl_rand_-hex_32_生成"
     expire: 14                             # token 过期天数（Redis TTL），JWT 签发时额外 +1 天作为缓冲
 
+guest:
+    rate_limit_enabled: true               # 测试环境可设为 false，生产环境建议开启
+    device_limit: 3                        # 同一设备在 TTL 内最多创建临时用户数
+    ip_limit: 100                          # 同一 IP 在 TTL 内最多创建临时用户数
+    rate_limit_ttl_seconds: 3600           # 限流窗口，默认 1 小时
+
 email:
     host: "smtpdm.aliyun.com"
     port: 465
@@ -68,3 +73,13 @@ redis:
 # https:
 #     cert: "/etc/ssl/private/suask.crt"
 #     key:  "/etc/ssl/private/suask.key"
+
+cleanup:
+    cron: "0 0 3 * * 1"
+    protect_minutes: 60
+
+campus:
+    subnets:
+        - "172.27.0.0/16"
+        - "58.249.112.0/24"
+        - "127.0.0.0/8"                    # 本地测试用，生产环境按实际代理/网段调整

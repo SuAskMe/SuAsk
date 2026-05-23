@@ -189,7 +189,8 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 	// 上传文件
 	if req.Files != nil {
 		fileList := model.FileListAddInput{
-			FileList: req.Files,
+			UploaderId: UserId,
+			FileList:   req.Files,
 		}
 		fileIdList, err := service.File().UploadFileList(ctx, fileList)
 		if err != nil {
