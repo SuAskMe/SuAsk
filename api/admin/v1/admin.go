@@ -20,7 +20,7 @@ type AdminUserItem struct {
 type ListUsersReq struct {
 	g.Meta  `path:"/admin/users" method:"GET" tags:"Admin" summary:"管理员-用户列表"`
 	Page    int    `json:"page"    in:"query" v:"required|min:1" dc:"页码"`
-	Role    string `json:"role"    in:"query" v:"in:admin,teacher,student" dc:"角色筛选"`
+	Role    string `json:"role"    in:"query" v:"in:admin,teacher,student,guest" dc:"角色筛选"`
 	Keyword string `json:"keyword" in:"query" dc:"搜索关键词"`
 }
 
