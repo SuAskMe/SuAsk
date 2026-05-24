@@ -578,7 +578,7 @@ func GetQuestionDetail(ctx context.Context, req *v1.GetQuestionDetailReq) (res *
 	}
 
 	md := g.DB().Ctx(ctx).Model("answers a").
-		LeftJoin("users u", "u.id = a.user_id").
+		LeftJoin("users u", "u.id = a.user_id AND u.deleted_at IS NULL").
 		Fields(`
 			a.id,
 			a.question_id,
@@ -660,8 +660,8 @@ func DeleteQuestionAnswer(ctx context.Context, questionId int, answerId int) (re
 
 func adminQuestionModel(ctx context.Context) *gdb.Model {
 	return g.DB().Ctx(ctx).Model("questions q").
-		LeftJoin("users src", "src.id = q.src_user_id").
-		LeftJoin("users dst", "dst.id = q.dst_user_id").
+		LeftJoin("users src", "src.id = q.src_user_id AND src.deleted_at IS NULL").
+		LeftJoin("users dst", "dst.id = q.dst_user_id AND dst.deleted_at IS NULL").
 		Fields(adminQuestionFields)
 }
 
@@ -670,16 +670,26 @@ func buildAdminQuestionItem(row adminQuestionRow, matchedAnswerCount int) v1.Adm
 	if row.AnswerCount > 0 {
 		status = "answered"
 	}
+	srcName := row.SrcUserName
+	srcNickname := row.SrcUserNickname
+	if srcName == "" && srcNickname == "" {
+		srcNickname = deletedUserLabel(row.SrcUserId)
+	}
+	dstName := row.DstUserName
+	dstNickname := row.DstUserNickname
+	if dstName == "" && dstNickname == "" {
+		dstNickname = deletedTeacherLabel(row.DstUserId)
+	}
 	return v1.AdminQuestionItem{
 		Id:                 row.Id,
 		Title:              row.Title,
 		Contents:           row.Contents,
 		SrcUserId:          row.SrcUserId,
-		SrcUserName:        row.SrcUserName,
-		SrcUserNickname:    row.SrcUserNickname,
+		SrcUserName:        srcName,
+		SrcUserNickname:    srcNickname,
 		DstUserId:          row.DstUserId,
-		DstUserName:        row.DstUserName,
-		DstUserNickname:    row.DstUserNickname,
+		DstUserName:        dstName,
+		DstUserNickname:    dstNickname,
 		IsPrivate:          row.IsPrivate,
 		CreatedAt:          timeMilli(row.CreatedAt),
 		Views:              row.Views,
@@ -693,12 +703,17 @@ func buildAdminQuestionItem(row adminQuestionRow, matchedAnswerCount int) v1.Adm
 }
 
 func buildAdminQuestionAnswerItem(row adminAnswerRow) v1.AdminQuestionAnswerItem {
+	userName := row.UserName
+	userNickname := row.UserNickname
+	if userName == "" && userNickname == "" {
+		userNickname = deletedUserLabel(row.UserId)
+	}
 	return v1.AdminQuestionAnswerItem{
 		Id:           row.Id,
 		QuestionId:   row.QuestionId,
 		UserId:       row.UserId,
-		UserName:     row.UserName,
-		UserNickname: row.UserNickname,
+		UserName:     userName,
+		UserNickname: userNickname,
 		UserRole:     row.UserRole,
 		Contents:     row.Contents,
 		CreatedAt:    timeMilli(row.CreatedAt),
@@ -707,6 +722,14 @@ func buildAdminQuestionAnswerItem(row adminAnswerRow) v1.AdminQuestionAnswerItem
 		IsDeleted:    row.DeletedAt != nil,
 		DeletedAt:    timeMilli(row.DeletedAt),
 	}
+}
+
+func deletedUserLabel(userId int) string {
+	return "未知用户"
+}
+
+func deletedTeacherLabel(userId int) string {
+	return "未知用户"
 }
 
 func timeMilli(t *gtime.Time) int64 {

@@ -147,7 +147,9 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 		return nil, err
 	}
 	AvatarMap := make(map[int][]int) // 头像ID对应的回答ID列表
+	seenUserIDs := make(map[int]struct{}, len(userInfo))
 	for _, info := range userInfo {
+		seenUserIDs[info.UserId] = struct{}{}
 		for _, v := range UserIdMap[info.UserId] {
 			answerList[IdMap[v]].NickName = info.NickName
 		}
@@ -159,10 +161,25 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 		if info.AvatarFileId == 0 && info.Role == consts.TEACHER {
 			// 老师没有头像，显示信息头像
 			AvatarMap[-info.UserId] = UserIdMap[info.UserId]
+		} else if info.AvatarFileId == 0 {
+			for _, v := range UserIdMap[info.UserId] {
+				answerList[IdMap[v]].UserAvatar = consts.DefaultAvatarURL
+			}
 		} else {
 			AvatarMap[info.AvatarFileId] = UserIdMap[info.UserId]
 		}
 
+	}
+	for userId, answerIDs := range UserIdMap {
+		if _, ok := seenUserIDs[userId]; ok {
+			continue
+		}
+		nickname := "未知用户"
+		for _, answerId := range answerIDs {
+			answerList[IdMap[answerId]].NickName = nickname
+			answerList[IdMap[answerId]].UserAvatar = consts.DefaultAvatarURL
+		}
+		AvatarMap[0] = append(AvatarMap[0], answerIDs...)
 	}
 	// 获取回答的图片
 	md = dao.Attachments.Ctx(ctx).WhereIn(dao.Attachments.Columns().AnswerId, IdList)
