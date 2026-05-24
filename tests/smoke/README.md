@@ -68,7 +68,7 @@ python tests/smoke/run_smoke.py verify `
 ### 写（幂等：同一操作执行两次恢复原状）
 - `POST /favorites` → 收藏/取消收藏
 - `POST /answer/upvote` → 点赞/取消点赞
-- `POST /questions/add` → 新发一条公开问题（之后不删，但可识别）
+- `POST /questions/add` → 新发一条问老师的问题（之后不删，但可识别）
 
 ## 静态文件暴露面检查
 

@@ -158,7 +158,6 @@ CREATE TABLE `questions` (
   `dst_user_id` int DEFAULT NULL COMMENT '被提问的用户ID，为空时问大家，不为空时问教师',
   `title` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '问题标题',
   `contents` text CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '问题内容',
-  `is_private` bit(1) NOT NULL COMMENT '是否私密提问，仅在问教师时可为是',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `views` int NOT NULL DEFAULT '0' COMMENT '浏览量',
   `reply_cnt` int NOT NULL DEFAULT '0' COMMENT '回复数',
@@ -167,8 +166,7 @@ CREATE TABLE `questions` (
   KEY `dst_user_id` (`dst_user_id`) USING BTREE,
   FULLTEXT KEY `title` (`title`) COMMENT '内容支持全文搜索，使用ngram parser以支持中文，默认token size为2' /*!50100 WITH PARSER `ngram` */ ,
   CONSTRAINT `questions_ibfk_1` FOREIGN KEY (`src_user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `questions_ibfk_2` FOREIGN KEY (`dst_user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `questions_chk_1` CHECK (((`dst_user_id` is not null) or (`is_private` = 0)))
+  CONSTRAINT `questions_ibfk_2` FOREIGN KEY (`dst_user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB AUTO_INCREMENT=133 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_zh_0900_as_cs ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

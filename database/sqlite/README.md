@@ -77,5 +77,6 @@ database:
 
 ## 已知数据归一
 
+- `questions.is_private`：当前 SQLite schema 已彻底移除该历史字段；从旧 MySQL / dump 导入时会自动忽略。
 - `notifications.reply_to_id / answer_id`：旧数据出现了 `0` 作为"无"的哨兵，迁移时转 `NULL`。
 - `favorites.package`：旧数据里混用中文 `'置顶'` 和英文 `'default'`。迁移脚本把 `'置顶' → 'top'`，并在 schema 里允许两种过渡值。代码侧建议逐步改用 `'top'`。

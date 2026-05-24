@@ -23,8 +23,6 @@ func (c *cHotQuestion) Get(ctx context.Context, req *v1.GetHotQuestionsReq) (res
 	md := dao.Questions.Ctx(ctx).Where("deleted_at IS NULL")
 	// 只展示有回答的问题
 	md = md.WhereGT(dao.Questions.Columns().ReplyCnt, 0)
-	// 只展示非私密问题
-	md = md.Where(dao.Questions.Columns().IsPrivate, 0)
 
 	// 时间范围筛选
 	switch req.TimeRange {

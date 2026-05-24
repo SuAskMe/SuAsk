@@ -198,7 +198,6 @@ def case_question_detail(client: Client) -> dict[str, Any]:
                 "dst_user_id": tid,
                 "title": f"[smoke] detail-bootstrap {int(time.time())}",
                 "content": "smoke bootstrap content",
-                "is_private": False,
             },
         )
         qid = int(r["data"]["id"])
@@ -228,7 +227,6 @@ def case_add_question(client: Client) -> dict[str, Any]:
             "dst_user_id": tid,
             "title": title,
             "content": "smoke regression test question, safe to delete",
-            "is_private": False,
         },
     )
 

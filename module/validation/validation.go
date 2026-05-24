@@ -93,7 +93,6 @@ func isGuestUser(ctx context.Context, userId int) bool {
 	1. 查看：
 		问老师的问题 + 老师已回复 → 任何（含匿名）可看
 		问老师的问题 + 老师未回复 → 只有提问者本人和该老师可看
-		私有问题                  → 只有提问者本人可看
 	2. 回答：
 		未登录用户不能回答
 		只有提问者本人在老师已回复后才能回答
@@ -104,9 +103,6 @@ func isGuestUser(ctx context.Context, userId int) bool {
 // 所有问题细节查看权限（不检查老师提问箱权限）
 func QuestionPerm(ctx context.Context, question *entity.Questions) error {
 	UserId := gconv.Int(ctx.Value(consts.CtxId))
-	if question.IsPrivate && question.SrcUserId != UserId { // 私有问题，且不是自己提问
-		return errors.New("你不能查看别人的私有问题")
-	}
 	// 问老师的问题，还没有回复
 	if question.ReplyCnt <= 0 {
 		switch UserId {

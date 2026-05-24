@@ -1,6 +1,8 @@
 package validation
 
 import (
+	"context"
+	"suask/internal/consts"
 	"suask/internal/model/entity"
 	"sync"
 	"testing"
@@ -85,5 +87,33 @@ func TestUpdateTeacherPerm_ReadPathReturnsFreshPerm(t *testing.T) {
 	}
 	if perm != "private" {
 		t.Fatalf("IsTeacher 应看到 private, got %q", perm)
+	}
+}
+
+func TestQuestionPerm_IgnoresLegacyPrivateFlagAfterReply(t *testing.T) {
+	ctx := context.WithValue(context.Background(), consts.CtxId, 300)
+	question := &entity.Questions{
+		Id:        1,
+		SrcUserId: 100,
+		DstUserId: 200,
+		ReplyCnt:  1,
+	}
+
+	if err := QuestionPerm(ctx, question); err != nil {
+		t.Fatalf("历史私密标记不应再阻止已回复问题被查看: %v", err)
+	}
+}
+
+func TestQuestionPerm_StillBlocksOtherUsersBeforeTeacherReply(t *testing.T) {
+	ctx := context.WithValue(context.Background(), consts.CtxId, 300)
+	question := &entity.Questions{
+		Id:        2,
+		SrcUserId: 100,
+		DstUserId: 200,
+		ReplyCnt:  0,
+	}
+
+	if err := QuestionPerm(ctx, question); err == nil {
+		t.Fatalf("老师未回复前，其他用户仍不应看到问题")
 	}
 }

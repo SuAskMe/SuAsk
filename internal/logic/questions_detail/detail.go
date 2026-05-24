@@ -273,7 +273,7 @@ func (sQuestionDetail) AddAnswerUpvote(ctx context.Context, in *model.UpvoteInpu
 }
 
 func (sQuestionDetail) ReplyQuestion(ctx context.Context, in *model.AddAnswerInput) (*model.AddAnswerOutput, error) {
-	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().Id, in.QuestionId).Fields("id, is_private, src_user_id, dst_user_id, reply_cnt")
+	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().Id, in.QuestionId).Fields("id, src_user_id, dst_user_id, reply_cnt")
 	var question entity.Questions
 	err := md.Scan(&question)
 	if err != nil {

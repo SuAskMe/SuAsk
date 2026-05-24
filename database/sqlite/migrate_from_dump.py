@@ -10,6 +10,7 @@
 - 仅支持 `mysqldump --extended-insert`（默认打开）生成的 `VALUES (...), (...)` 格式。
 - bit(1) 字段会被自动判别为 0 / 1。
 - 旧数据归一化：
+    * questions.is_private 为历史字段，导入当前 SQLite schema 时会被忽略
     * notifications.reply_to_id / answer_id 中的 0 → NULL
     * favorites.package 的 '置顶' → 'top'
 """
@@ -26,10 +27,13 @@ from pathlib import Path
 # ---------------- 字段元信息 ---------------- #
 
 BIT_FIELDS = {
-    ("questions", "is_private"),
     ("notifications", "is_read"),
     ("settings", "notify_switch"),
     ("config", "id"),
+}
+
+LEGACY_SOURCE_ONLY_FIELDS = {
+    "questions": {"is_private"},
 }
 
 ZERO_AS_NULL = {
@@ -263,17 +267,22 @@ def main() -> None:
         if not rows:
             print(f"[.] {table}: 0 行")
             continue
-        cols = columns.get(table)
-        if not cols:
+        raw_cols = columns.get(table)
+        if not raw_cols:
             print(f"[!] {table} 没找到字段顺序，跳过")
             continue
+        kept_indices = [
+            i for i, col in enumerate(raw_cols)
+            if col not in LEGACY_SOURCE_ONLY_FIELDS.get(table, set())
+        ]
+        cols = [raw_cols[i] for i in kept_indices]
         col_list = ",".join(f'"{c}"' for c in cols)
         placeholders = ",".join("?" * len(cols))
         # user_relation 在 MySQL 原表没有主键，可能有重复行；SQLite 加了 PK，这里用 IGNORE 去重
         verb = "INSERT OR IGNORE" if table == "user_relation" else "INSERT"
         sql = f'{verb} INTO "{table}" ({col_list}) VALUES ({placeholders})'
         data = [
-            tuple(normalize(table, cols[i], v) for i, v in enumerate(row))
+            tuple(normalize(table, cols[idx], row[src_idx]) for idx, src_idx in enumerate(kept_indices))
             for row in rows
         ]
         dst.executemany(sql, data)

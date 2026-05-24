@@ -11,6 +11,7 @@
 | 编号 | 说明 | 幂等？ |
 | --- | --- | --- |
 | 003 | 移除"问大家"模块 + 为删除业务和公告模块铺路（FK CASCADE/SET NULL、`deleted_at`、`announcement_id`、索引重整） | ❌ 只能跑一次 |
+| 009 | 删除 `questions.is_private` 历史字段 | ✅ 重复执行会自动跳过 |
 
 `001` 和 `002` 当前不存在，保留给后续变更占位。
 
@@ -37,3 +38,13 @@ sqlite3 ./database/suask.db "PRAGMA foreign_key_check;"   # 必须输出 0 行
 ```
 
 注意纯 SQL 方式**不会把"问大家"数据存成 JSON**，只是硬删。如果要存档请走 Python runner。
+
+## 删除问题级私密字段（009）
+
+如果当前库里还保留 `questions.is_private`，可以直接跑：
+
+```powershell
+python database/sqlite/migrations/009_drop_question_is_private.py --db ./suask.db
+```
+
+脚本会先备份数据库，再原地执行删除，并做行数与外键校验。

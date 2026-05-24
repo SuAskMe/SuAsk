@@ -50,10 +50,14 @@ TABLE_ORDER = [
 
 # bit(1) 字段 —— MySQL 返回 bytes(b'\x00' / b'\x01')，需要转为 0 / 1
 BIT_FIELDS = {
-    "questions":     {"is_private"},
     "notifications": {"is_read"},
     "settings":      {"notify_switch"},
     "config":        {"id"},  # 单行配置 id 在 MySQL 里是 bit(1)
+}
+
+# 源库里仍可能存在、但当前 SQLite schema 已不再保留的历史字段。
+LEGACY_SOURCE_ONLY_FIELDS = {
+    "questions": {"is_private"},
 }
 
 # 这些列在 MySQL 里 DEFAULT NULL，但旧数据里出现了 0 作为 "无" 的哨兵值 → 归一为 NULL
@@ -142,7 +146,10 @@ def migrate(args: argparse.Namespace) -> None:
                     print(f"[.] {table}: 0 行")
                     continue
 
-                cols = list(rows[0].keys())
+                cols = [
+                    c for c in rows[0].keys()
+                    if c not in LEGACY_SOURCE_ONLY_FIELDS.get(table, set())
+                ]
                 col_list = ",".join(f'"{c}"' for c in cols)
                 placeholders = ",".join("?" * len(cols))
                 sql = f'INSERT INTO "{table}" ({col_list}) VALUES ({placeholders})'

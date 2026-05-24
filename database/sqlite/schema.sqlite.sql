@@ -96,7 +96,6 @@ CREATE TABLE questions (
   dst_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE SET NULL,
   title       TEXT    NOT NULL,
   contents    TEXT    NOT NULL,
-  is_private  INTEGER NOT NULL DEFAULT 0 CHECK (is_private IN (0,1)),
   created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   views       INTEGER NOT NULL DEFAULT 0,
   reply_cnt   INTEGER NOT NULL DEFAULT 0,

@@ -31,7 +31,6 @@ const adminQuestionFields = `
 	q.dst_user_id,
 	dst.name AS dst_user_name,
 	dst.nickname AS dst_user_nickname,
-	q.is_private,
 	q.created_at,
 	q.deleted_at,
 	q.views,
@@ -53,7 +52,6 @@ type adminQuestionRow struct {
 	DstUserId       int         `orm:"dst_user_id"`
 	DstUserName     string      `orm:"dst_user_name"`
 	DstUserNickname string      `orm:"dst_user_nickname"`
-	IsPrivate       bool        `orm:"is_private"`
 	CreatedAt       *gtime.Time `orm:"created_at"`
 	DeletedAt       *gtime.Time `orm:"deleted_at"`
 	Views           int         `orm:"views"`
@@ -483,16 +481,6 @@ func ListQuestions(ctx context.Context, req *v1.ListQuestionsReq) (res *v1.ListQ
 		return nil, gerror.New("无效的问题状态")
 	}
 
-	switch req.Visibility {
-	case "", "all":
-	case "public":
-		md = md.Where("q.is_private = 0")
-	case "private":
-		md = md.Where("q.is_private = 1")
-	default:
-		return nil, gerror.New("无效的问题公开性")
-	}
-
 	likePattern := "%" + req.Keyword + "%"
 	if req.Keyword != "" {
 		md = md.Where(`
@@ -690,7 +678,6 @@ func buildAdminQuestionItem(row adminQuestionRow, matchedAnswerCount int) v1.Adm
 		DstUserId:          row.DstUserId,
 		DstUserName:        dstName,
 		DstUserNickname:    dstNickname,
-		IsPrivate:          row.IsPrivate,
 		CreatedAt:          timeMilli(row.CreatedAt),
 		Views:              row.Views,
 		ReplyCnt:           row.ReplyCnt,

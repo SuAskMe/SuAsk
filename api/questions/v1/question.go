@@ -17,7 +17,6 @@ type AddQuestionReq struct {
 	DstUserId int                 `json:"dst_user_id" v:"required|min:1#请指定目标老师"`
 	Title     string              `json:"title" v:"required"`
 	Content   string              `json:"content" v:"required"`
-	IsPrivate bool                `json:"is_private"`
 	Files     []*ghttp.UploadFile `json:"files"`
 }
 

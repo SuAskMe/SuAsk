@@ -98,7 +98,6 @@ func (sQuestionUtil) AddQuestion(ctx context.Context, in *model.AddQuestionInput
 		DstUserId: in.DstUserID,
 		Title:     in.Title,
 		Contents:  in.Content,
-		IsPrivate: in.IsPrivate,
 	}
 	out = &model.AddQuestionOutput{}
 	id, err := dao.Questions.Ctx(ctx).InsertAndGetId(question)

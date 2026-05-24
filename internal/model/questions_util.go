@@ -7,7 +7,6 @@ type AddQuestionInput struct {
 	DstUserID int    `json:"dst_user_id" orm:"dst_user_id"`
 	Title     string `json:"title" orm:"title"`
 	Content   string `json:"content" orm:"content"`
-	IsPrivate bool   `json:"is_private" orm:"is_private"`
 }
 
 type AddQuestionOutput struct {

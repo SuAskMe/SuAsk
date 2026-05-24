@@ -110,7 +110,6 @@ type AdminQuestionItem struct {
 	DstUserId          int    `json:"dst_user_id"          dc:"目标教师ID"`
 	DstUserName        string `json:"dst_user_name"        dc:"目标教师用户名"`
 	DstUserNickname    string `json:"dst_user_nickname"    dc:"目标教师昵称"`
-	IsPrivate          bool   `json:"is_private"           dc:"是否私密"`
 	CreatedAt          int64  `json:"created_at"           dc:"创建时间戳(毫秒)"`
 	Views              int    `json:"views"                dc:"浏览量"`
 	ReplyCnt           int    `json:"reply_cnt"            dc:"历史回复计数"`
@@ -126,7 +125,6 @@ type ListQuestionsReq struct {
 	Page           int    `json:"page"             in:"query" v:"required|min:1" dc:"页码"`
 	Keyword        string `json:"keyword"          in:"query" dc:"搜索关键词"`
 	Status         string `json:"status"           in:"query" dc:"回答状态: all/answered/unanswered"`
-	Visibility     string `json:"visibility"       in:"query" dc:"公开性: all/public/private"`
 	TeacherId      int    `json:"teacher_id"       in:"query" dc:"目标教师ID"`
 	IncludeDeleted bool   `json:"include_deleted" in:"query" dc:"是否包含已删除内容"`
 }
