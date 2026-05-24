@@ -10,13 +10,75 @@ import (
 	qutil "suask/internal/logic/questions_util"
 	"suask/internal/model/do"
 	"suask/internal/model/entity"
+	"suask/internal/service"
 	"suask/utility"
 
+	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gtime"
 )
 
 const pageSize = 20
+
+const adminQuestionFields = `
+	q.id,
+	q.title,
+	q.contents,
+	q.src_user_id,
+	src.name AS src_user_name,
+	src.nickname AS src_user_nickname,
+	q.dst_user_id,
+	dst.name AS dst_user_name,
+	dst.nickname AS dst_user_nickname,
+	q.is_private,
+	q.created_at,
+	q.deleted_at,
+	q.views,
+	q.reply_cnt,
+	(
+		SELECT COUNT(1)
+		FROM answers a
+		WHERE a.question_id = q.id
+		  AND a.deleted_at IS NULL
+	) AS answer_count`
+
+type adminQuestionRow struct {
+	Id              int         `orm:"id"`
+	Title           string      `orm:"title"`
+	Contents        string      `orm:"contents"`
+	SrcUserId       int         `orm:"src_user_id"`
+	SrcUserName     string      `orm:"src_user_name"`
+	SrcUserNickname string      `orm:"src_user_nickname"`
+	DstUserId       int         `orm:"dst_user_id"`
+	DstUserName     string      `orm:"dst_user_name"`
+	DstUserNickname string      `orm:"dst_user_nickname"`
+	IsPrivate       bool        `orm:"is_private"`
+	CreatedAt       *gtime.Time `orm:"created_at"`
+	DeletedAt       *gtime.Time `orm:"deleted_at"`
+	Views           int         `orm:"views"`
+	ReplyCnt        int         `orm:"reply_cnt"`
+	AnswerCount     int         `orm:"answer_count"`
+}
+
+type adminAnswerRow struct {
+	Id           int         `orm:"id"`
+	QuestionId   int         `orm:"question_id"`
+	UserId       int         `orm:"user_id"`
+	UserName     string      `orm:"user_name"`
+	UserNickname string      `orm:"user_nickname"`
+	UserRole     string      `orm:"user_role"`
+	Contents     string      `orm:"contents"`
+	CreatedAt    *gtime.Time `orm:"created_at"`
+	Upvotes      int         `orm:"upvotes"`
+	InReplyTo    int         `orm:"in_reply_to"`
+	DeletedAt    *gtime.Time `orm:"deleted_at"`
+}
+
+type matchedAnswerCountRow struct {
+	QuestionId int `orm:"question_id"`
+	Count      int `orm:"cnt"`
+}
 
 // ListUsers 分页查询用户列表，支持角色筛选和关键词搜索，排除软删除用户
 func ListUsers(ctx context.Context, page int, role string, keyword string) (res *v1.ListUsersRes, err error) {
@@ -398,4 +460,258 @@ func UpdateAvatar(ctx context.Context, userId int) (res *v1.UpdateAvatarRes, err
 
 	res = &v1.UpdateAvatarRes{Id: out.UserId, AvatarURL: out.AvatarURL}
 	return
+}
+
+// ListQuestions 分页查询管理员内容管理的一层问题列表。
+func ListQuestions(ctx context.Context, req *v1.ListQuestionsReq) (res *v1.ListQuestionsRes, err error) {
+	md := adminQuestionModel(ctx)
+
+	if !req.IncludeDeleted {
+		md = md.Where("q.deleted_at IS NULL")
+	}
+	if req.TeacherId > 0 {
+		md = md.Where("q.dst_user_id = ?", req.TeacherId)
+	}
+
+	switch req.Status {
+	case "", "all":
+	case "answered":
+		md = md.Where("EXISTS (SELECT 1 FROM answers ax WHERE ax.question_id = q.id AND ax.deleted_at IS NULL)")
+	case "unanswered":
+		md = md.Where("NOT EXISTS (SELECT 1 FROM answers ax WHERE ax.question_id = q.id AND ax.deleted_at IS NULL)")
+	default:
+		return nil, gerror.New("无效的问题状态")
+	}
+
+	switch req.Visibility {
+	case "", "all":
+	case "public":
+		md = md.Where("q.is_private = 0")
+	case "private":
+		md = md.Where("q.is_private = 1")
+	default:
+		return nil, gerror.New("无效的问题公开性")
+	}
+
+	likePattern := "%" + req.Keyword + "%"
+	if req.Keyword != "" {
+		md = md.Where(`
+			(
+				q.title LIKE ?
+				OR q.contents LIKE ?
+				OR src.name LIKE ?
+				OR src.nickname LIKE ?
+				OR dst.name LIKE ?
+				OR dst.nickname LIKE ?
+				OR EXISTS (
+				SELECT 1
+				FROM answers ax
+				WHERE ax.question_id = q.id
+				  AND ax.deleted_at IS NULL
+				  AND ax.contents LIKE ?
+				)
+			)`,
+			likePattern, likePattern, likePattern, likePattern, likePattern, likePattern, likePattern,
+		)
+	}
+
+	var rows []adminQuestionRow
+	var total int
+	err = md.Order("q.created_at DESC").
+		Page(req.Page, pageSize).
+		ScanAndCount(&rows, &total, false)
+	if err != nil {
+		return nil, gerror.New(consts.ErrInternal)
+	}
+
+	matchedAnswerCounts := map[int]int{}
+	if req.Keyword != "" && len(rows) > 0 {
+		qIDs := make([]int, 0, len(rows))
+		for _, row := range rows {
+			qIDs = append(qIDs, row.Id)
+		}
+		var counts []matchedAnswerCountRow
+		err = g.DB().Ctx(ctx).Model("answers").
+			Fields("question_id, COUNT(1) AS cnt").
+			WhereIn("question_id", qIDs).
+			Where("deleted_at IS NULL").
+			WhereLike("contents", likePattern).
+			Group("question_id").
+			Scan(&counts)
+		if err != nil {
+			return nil, gerror.New(consts.ErrInternal)
+		}
+		for _, count := range counts {
+			matchedAnswerCounts[count.QuestionId] = count.Count
+		}
+	}
+
+	list := make([]v1.AdminQuestionItem, 0, len(rows))
+	for _, row := range rows {
+		list = append(list, buildAdminQuestionItem(row, matchedAnswerCounts[row.Id]))
+	}
+
+	totalPages := (total + pageSize - 1) / pageSize
+	remainPage := totalPages - req.Page
+	if remainPage < 0 {
+		remainPage = 0
+	}
+
+	return &v1.ListQuestionsRes{
+		List:       list,
+		Total:      total,
+		RemainPage: remainPage,
+	}, nil
+}
+
+// GetQuestionDetail 返回管理员视角的问题详情，回答作为二级内容挂在问题下。
+func GetQuestionDetail(ctx context.Context, req *v1.GetQuestionDetailReq) (res *v1.GetQuestionDetailRes, err error) {
+	var question adminQuestionRow
+	err = adminQuestionModel(ctx).
+		Where("q.id = ?", req.Id).
+		Scan(&question)
+	if err != nil {
+		return nil, gerror.New(consts.ErrInternal)
+	}
+	if question.Id == 0 {
+		return nil, gerror.New("问题不存在")
+	}
+
+	md := g.DB().Ctx(ctx).Model("answers a").
+		LeftJoin("users u", "u.id = a.user_id").
+		Fields(`
+			a.id,
+			a.question_id,
+			a.user_id,
+			u.name AS user_name,
+			u.nickname AS user_nickname,
+			u.role AS user_role,
+			a.contents,
+			a.created_at,
+			a.upvotes,
+			a.in_reply_to,
+			a.deleted_at`).
+		Where("a.question_id = ?", req.Id)
+	if !req.IncludeDeleted {
+		md = md.Where("a.deleted_at IS NULL")
+	}
+
+	var answerRows []adminAnswerRow
+	err = md.Order("a.created_at ASC").Scan(&answerRows)
+	if err != nil {
+		return nil, gerror.New(consts.ErrInternal)
+	}
+
+	answers := make([]v1.AdminQuestionAnswerItem, 0, len(answerRows))
+	for _, row := range answerRows {
+		answers = append(answers, buildAdminQuestionAnswerItem(row))
+	}
+
+	return &v1.GetQuestionDetailRes{
+		Question: buildAdminQuestionItem(question, 0),
+		Answers:  answers,
+	}, nil
+}
+
+// DeleteQuestion 管理员软删除问题，复用已有的问题删除权限与行为。
+func DeleteQuestion(ctx context.Context, questionId int, currentUserId int) (res *v1.DeleteQuestionRes, err error) {
+	if err = service.QuestionDetail().DeleteQuestion(ctx, questionId, currentUserId); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteQuestionRes{Id: questionId}, nil
+}
+
+// DeleteQuestionAnswer 管理员软删除问题下的回答，并同步维护问题当前可见回复数。
+func DeleteQuestionAnswer(ctx context.Context, questionId int, answerId int) (res *v1.DeleteQuestionAnswerRes, err error) {
+	err = g.DB().Transaction(ctx, func(ctx context.Context, tx gdb.TX) error {
+		var answer entity.Answers
+		if err := tx.Model("answers").
+			Fields("id, question_id").
+			Where("id = ? AND question_id = ? AND deleted_at IS NULL", answerId, questionId).
+			Scan(&answer); err != nil {
+			return gerror.New(consts.ErrInternal)
+		}
+		if answer.Id == 0 {
+			return gerror.New("回答不存在")
+		}
+
+		if _, err := tx.Exec(
+			"UPDATE answers SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND question_id = ? AND deleted_at IS NULL",
+			answerId,
+			questionId,
+		); err != nil {
+			return gerror.New(consts.ErrInternal)
+		}
+
+		if _, err := tx.Exec(
+			"UPDATE questions SET reply_cnt = CASE WHEN reply_cnt > 0 THEN reply_cnt - 1 ELSE 0 END WHERE id = ?",
+			questionId,
+		); err != nil {
+			return gerror.New(consts.ErrInternal)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &v1.DeleteQuestionAnswerRes{Id: answerId, QuestionId: questionId}, nil
+}
+
+func adminQuestionModel(ctx context.Context) *gdb.Model {
+	return g.DB().Ctx(ctx).Model("questions q").
+		LeftJoin("users src", "src.id = q.src_user_id").
+		LeftJoin("users dst", "dst.id = q.dst_user_id").
+		Fields(adminQuestionFields)
+}
+
+func buildAdminQuestionItem(row adminQuestionRow, matchedAnswerCount int) v1.AdminQuestionItem {
+	status := "unanswered"
+	if row.AnswerCount > 0 {
+		status = "answered"
+	}
+	return v1.AdminQuestionItem{
+		Id:                 row.Id,
+		Title:              row.Title,
+		Contents:           row.Contents,
+		SrcUserId:          row.SrcUserId,
+		SrcUserName:        row.SrcUserName,
+		SrcUserNickname:    row.SrcUserNickname,
+		DstUserId:          row.DstUserId,
+		DstUserName:        row.DstUserName,
+		DstUserNickname:    row.DstUserNickname,
+		IsPrivate:          row.IsPrivate,
+		CreatedAt:          timeMilli(row.CreatedAt),
+		Views:              row.Views,
+		ReplyCnt:           row.ReplyCnt,
+		AnswerCount:        row.AnswerCount,
+		MatchedAnswerCount: matchedAnswerCount,
+		Status:             status,
+		IsDeleted:          row.DeletedAt != nil,
+		DeletedAt:          timeMilli(row.DeletedAt),
+	}
+}
+
+func buildAdminQuestionAnswerItem(row adminAnswerRow) v1.AdminQuestionAnswerItem {
+	return v1.AdminQuestionAnswerItem{
+		Id:           row.Id,
+		QuestionId:   row.QuestionId,
+		UserId:       row.UserId,
+		UserName:     row.UserName,
+		UserNickname: row.UserNickname,
+		UserRole:     row.UserRole,
+		Contents:     row.Contents,
+		CreatedAt:    timeMilli(row.CreatedAt),
+		Upvotes:      row.Upvotes,
+		InReplyTo:    row.InReplyTo,
+		IsDeleted:    row.DeletedAt != nil,
+		DeletedAt:    timeMilli(row.DeletedAt),
+	}
+}
+
+func timeMilli(t *gtime.Time) int64 {
+	if t == nil {
+		return 0
+	}
+	return t.TimestampMilli()
 }

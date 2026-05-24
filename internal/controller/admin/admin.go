@@ -44,3 +44,24 @@ func (c *cAdmin) DeleteUser(ctx context.Context, req *v1.DeleteUserReq) (res *v1
 func (c *cAdmin) UpdateAvatar(ctx context.Context, req *v1.UpdateAvatarReq) (res *v1.UpdateAvatarRes, err error) {
 	return admin.UpdateAvatar(ctx, req.Id)
 }
+
+// ListQuestions 管理员-问题列表
+func (c *cAdmin) ListQuestions(ctx context.Context, req *v1.ListQuestionsReq) (res *v1.ListQuestionsRes, err error) {
+	return admin.ListQuestions(ctx, req)
+}
+
+// GetQuestionDetail 管理员-问题详情
+func (c *cAdmin) GetQuestionDetail(ctx context.Context, req *v1.GetQuestionDetailReq) (res *v1.GetQuestionDetailRes, err error) {
+	return admin.GetQuestionDetail(ctx, req)
+}
+
+// DeleteQuestion 管理员-删除问题
+func (c *cAdmin) DeleteQuestion(ctx context.Context, req *v1.DeleteQuestionReq) (res *v1.DeleteQuestionRes, err error) {
+	currentUserId := gconv.Int(ctx.Value(consts.CtxId))
+	return admin.DeleteQuestion(ctx, req.Id, currentUserId)
+}
+
+// DeleteQuestionAnswer 管理员-删除问题下的回答
+func (c *cAdmin) DeleteQuestionAnswer(ctx context.Context, req *v1.DeleteQuestionAnswerReq) (res *v1.DeleteQuestionAnswerRes, err error) {
+	return admin.DeleteQuestionAnswer(ctx, req.QuestionId, req.AnswerId)
+}

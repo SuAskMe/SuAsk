@@ -127,6 +127,10 @@ var (
 						admin.Admin.ResetPassword,
 						admin.Admin.DeleteUser,
 						admin.Admin.UpdateAvatar,
+						admin.Admin.ListQuestions,
+						admin.Admin.GetQuestionDetail,
+						admin.Admin.DeleteQuestion,
+						admin.Admin.DeleteQuestionAnswer,
 					)
 				})
 			})
