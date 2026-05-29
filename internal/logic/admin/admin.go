@@ -21,6 +21,12 @@ import (
 
 const pageSize = 20
 
+const (
+	adminDeletedStatusAll       = "all"
+	adminDeletedStatusDeleted   = "deleted"
+	adminDeletedStatusUndeleted = "undeleted"
+)
+
 const adminQuestionFields = `
 	q.id,
 	q.title,
@@ -463,20 +469,21 @@ func UpdateAvatar(ctx context.Context, userId int) (res *v1.UpdateAvatarRes, err
 // ListQuestions 分页查询管理员内容管理的一层问题列表。
 func ListQuestions(ctx context.Context, req *v1.ListQuestionsReq) (res *v1.ListQuestionsRes, err error) {
 	md := adminQuestionModel(ctx)
-
-	if !req.IncludeDeleted {
-		md = md.Where("q.deleted_at IS NULL")
-	}
 	if req.TeacherId > 0 {
 		md = md.Where("q.dst_user_id = ?", req.TeacherId)
 	}
 
 	switch req.Status {
 	case "", "all":
+		md = md.Where("q.deleted_at IS NULL")
 	case "answered":
+		md = md.Where("q.deleted_at IS NULL")
 		md = md.Where("EXISTS (SELECT 1 FROM answers ax WHERE ax.question_id = q.id AND ax.deleted_at IS NULL)")
 	case "unanswered":
+		md = md.Where("q.deleted_at IS NULL")
 		md = md.Where("NOT EXISTS (SELECT 1 FROM answers ax WHERE ax.question_id = q.id AND ax.deleted_at IS NULL)")
+	case "deleted":
+		md = md.Where("q.deleted_at IS NOT NULL")
 	default:
 		return nil, gerror.New("无效的问题状态")
 	}
@@ -554,6 +561,11 @@ func ListQuestions(ctx context.Context, req *v1.ListQuestionsReq) (res *v1.ListQ
 
 // GetQuestionDetail 返回管理员视角的问题详情，回答作为二级内容挂在问题下。
 func GetQuestionDetail(ctx context.Context, req *v1.GetQuestionDetailReq) (res *v1.GetQuestionDetailRes, err error) {
+	deletedStatus, err := resolveAdminDeletedStatus(req.DeletedStatus, req.IncludeDeleted)
+	if err != nil {
+		return nil, err
+	}
+
 	var question adminQuestionRow
 	err = adminQuestionModel(ctx).
 		Where("q.id = ?", req.Id).
@@ -566,6 +578,7 @@ func GetQuestionDetail(ctx context.Context, req *v1.GetQuestionDetailReq) (res *
 	}
 
 	md := g.DB().Ctx(ctx).Model("answers a").
+		Unscoped().
 		LeftJoin("users u", "u.id = a.user_id AND u.deleted_at IS NULL").
 		Fields(`
 			a.id,
@@ -580,9 +593,7 @@ func GetQuestionDetail(ctx context.Context, req *v1.GetQuestionDetailReq) (res *
 			a.in_reply_to,
 			a.deleted_at`).
 		Where("a.question_id = ?", req.Id)
-	if !req.IncludeDeleted {
-		md = md.Where("a.deleted_at IS NULL")
-	}
+	md = applyDeletedStatusFilter(md, "a.deleted_at", deletedStatus)
 
 	var answerRows []adminAnswerRow
 	err = md.Order("a.created_at ASC").Scan(&answerRows)
@@ -607,6 +618,35 @@ func DeleteQuestion(ctx context.Context, questionId int, currentUserId int) (res
 		return nil, err
 	}
 	return &v1.DeleteQuestionRes{Id: questionId}, nil
+}
+
+// RestoreQuestion 管理员恢复已删除问题。
+func RestoreQuestion(ctx context.Context, questionId int) (res *v1.RestoreQuestionRes, err error) {
+	var question entity.Questions
+	err = dao.Questions.Ctx(ctx).
+		Unscoped().
+		Fields(dao.Questions.Columns().Id, dao.Questions.Columns().DeletedAt).
+		Where(dao.Questions.Columns().Id, questionId).
+		Scan(&question)
+	if err != nil {
+		return nil, gerror.New(consts.ErrInternal)
+	}
+	if question.Id == 0 {
+		return nil, gerror.New("问题不存在")
+	}
+	if question.DeletedAt == nil {
+		return nil, gerror.New("问题未删除")
+	}
+
+	_, err = dao.Questions.Ctx(ctx).
+		Unscoped().
+		Where(dao.Questions.Columns().Id, questionId).
+		Data(dao.Questions.Columns().DeletedAt, gdb.Raw("NULL")).
+		Update()
+	if err != nil {
+		return nil, gerror.New(consts.ErrInternal)
+	}
+	return &v1.RestoreQuestionRes{Id: questionId}, nil
 }
 
 // DeleteQuestionAnswer 管理员软删除问题下的回答，并同步维护问题当前可见回复数。
@@ -646,8 +686,54 @@ func DeleteQuestionAnswer(ctx context.Context, questionId int, answerId int) (re
 	return &v1.DeleteQuestionAnswerRes{Id: answerId, QuestionId: questionId}, nil
 }
 
+// RestoreQuestionAnswer 管理员恢复问题下的已删除回答，并同步维护问题当前可见回复数。
+func RestoreQuestionAnswer(ctx context.Context, questionId int, answerId int) (res *v1.RestoreQuestionAnswerRes, err error) {
+	err = g.DB().Transaction(ctx, func(ctx context.Context, tx gdb.TX) error {
+		var answer struct {
+			Id         int         `orm:"id"`
+			QuestionId int         `orm:"question_id"`
+			DeletedAt  *gtime.Time `orm:"deleted_at"`
+		}
+		if err := tx.Model("answers").
+			Unscoped().
+			Fields("id, question_id, deleted_at").
+			Where("id = ? AND question_id = ?", answerId, questionId).
+			Scan(&answer); err != nil {
+			return gerror.New(consts.ErrInternal)
+		}
+		if answer.Id == 0 {
+			return gerror.New("回答不存在")
+		}
+		if answer.DeletedAt == nil {
+			return gerror.New("回答未删除")
+		}
+
+		if _, err := tx.Exec(
+			"UPDATE answers SET deleted_at = NULL WHERE id = ? AND question_id = ? AND deleted_at IS NOT NULL",
+			answerId,
+			questionId,
+		); err != nil {
+			return gerror.New(consts.ErrInternal)
+		}
+
+		if _, err := tx.Exec(
+			"UPDATE questions SET reply_cnt = reply_cnt + 1 WHERE id = ?",
+			questionId,
+		); err != nil {
+			return gerror.New(consts.ErrInternal)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &v1.RestoreQuestionAnswerRes{Id: answerId, QuestionId: questionId}, nil
+}
+
 func adminQuestionModel(ctx context.Context) *gdb.Model {
 	return g.DB().Ctx(ctx).Model("questions q").
+		Unscoped().
 		LeftJoin("users src", "src.id = q.src_user_id AND src.deleted_at IS NULL").
 		LeftJoin("users dst", "dst.id = q.dst_user_id AND dst.deleted_at IS NULL").
 		Fields(adminQuestionFields)
@@ -724,4 +810,29 @@ func timeMilli(t *gtime.Time) int64 {
 		return 0
 	}
 	return t.TimestampMilli()
+}
+
+func resolveAdminDeletedStatus(deletedStatus string, includeDeleted bool) (string, error) {
+	switch deletedStatus {
+	case "":
+		if includeDeleted {
+			return adminDeletedStatusAll, nil
+		}
+		return adminDeletedStatusUndeleted, nil
+	case adminDeletedStatusAll, adminDeletedStatusDeleted, adminDeletedStatusUndeleted:
+		return deletedStatus, nil
+	default:
+		return "", gerror.New("无效的删除状态")
+	}
+}
+
+func applyDeletedStatusFilter(md *gdb.Model, deletedAtField string, deletedStatus string) *gdb.Model {
+	switch deletedStatus {
+	case adminDeletedStatusDeleted:
+		return md.Where(deletedAtField + " IS NOT NULL")
+	case adminDeletedStatusUndeleted:
+		return md.Where(deletedAtField + " IS NULL")
+	default:
+		return md
+	}
 }

@@ -61,7 +61,17 @@ func (c *cAdmin) DeleteQuestion(ctx context.Context, req *v1.DeleteQuestionReq) 
 	return admin.DeleteQuestion(ctx, req.Id, currentUserId)
 }
 
+// RestoreQuestion 管理员-恢复已删除问题
+func (c *cAdmin) RestoreQuestion(ctx context.Context, req *v1.RestoreQuestionReq) (res *v1.RestoreQuestionRes, err error) {
+	return admin.RestoreQuestion(ctx, req.Id)
+}
+
 // DeleteQuestionAnswer 管理员-删除问题下的回答
 func (c *cAdmin) DeleteQuestionAnswer(ctx context.Context, req *v1.DeleteQuestionAnswerReq) (res *v1.DeleteQuestionAnswerRes, err error) {
 	return admin.DeleteQuestionAnswer(ctx, req.QuestionId, req.AnswerId)
+}
+
+// RestoreQuestionAnswer 管理员-恢复已删除回答
+func (c *cAdmin) RestoreQuestionAnswer(ctx context.Context, req *v1.RestoreQuestionAnswerReq) (res *v1.RestoreQuestionAnswerRes, err error) {
+	return admin.RestoreQuestionAnswer(ctx, req.QuestionId, req.AnswerId)
 }

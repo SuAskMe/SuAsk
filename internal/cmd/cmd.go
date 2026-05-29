@@ -130,7 +130,9 @@ var (
 						admin.Admin.ListQuestions,
 						admin.Admin.GetQuestionDetail,
 						admin.Admin.DeleteQuestion,
+						admin.Admin.RestoreQuestion,
 						admin.Admin.DeleteQuestionAnswer,
+						admin.Admin.RestoreQuestionAnswer,
 					)
 				})
 			})

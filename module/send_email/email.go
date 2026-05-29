@@ -113,7 +113,11 @@ func SendNotice(email string, notice *Notice) error {
 
 func SendEmail(email string, subject string, content string) error {
 	m := gomail.NewMessage()
-	m.SetHeader("From", "SuAsk<"+username+">")
+	fromAddress := strings.TrimSpace(username)
+	if fromAddress == "" {
+		fromAddress = "no-reply@suask.local"
+	}
+	m.SetAddressHeader("From", fromAddress, "SuAsk")
 	m.SetHeader("To", email)
 	m.SetHeader("Subject", subject)
 	m.SetBody("text/html", content)

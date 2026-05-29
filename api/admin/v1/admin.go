@@ -121,12 +121,11 @@ type AdminQuestionItem struct {
 }
 
 type ListQuestionsReq struct {
-	g.Meta         `path:"/admin/questions" method:"GET" tags:"Admin" summary:"管理员-问题列表"`
-	Page           int    `json:"page"             in:"query" v:"required|min:1" dc:"页码"`
-	Keyword        string `json:"keyword"          in:"query" dc:"搜索关键词"`
-	Status         string `json:"status"           in:"query" dc:"回答状态: all/answered/unanswered"`
-	TeacherId      int    `json:"teacher_id"       in:"query" dc:"目标教师ID"`
-	IncludeDeleted bool   `json:"include_deleted" in:"query" dc:"是否包含已删除内容"`
+	g.Meta    `path:"/admin/questions" method:"GET" tags:"Admin" summary:"管理员-问题列表"`
+	Page      int    `json:"page"       in:"query" v:"required|min:1" dc:"页码"`
+	Keyword   string `json:"keyword"    in:"query" dc:"搜索关键词"`
+	Status    string `json:"status"     in:"query" v:"in:all,answered,unanswered,deleted" dc:"列表状态: all/answered/unanswered/deleted"`
+	TeacherId int    `json:"teacher_id" in:"query" dc:"目标教师ID"`
 }
 
 type ListQuestionsRes struct {
@@ -154,8 +153,9 @@ type AdminQuestionAnswerItem struct {
 
 type GetQuestionDetailReq struct {
 	g.Meta         `path:"/admin/questions/{id}" method:"GET" tags:"Admin" summary:"管理员-问题详情"`
-	Id             int  `json:"id"              in:"path"  v:"required|min:1" dc:"问题ID"`
-	IncludeDeleted bool `json:"include_deleted" in:"query" dc:"是否包含已删除回答"`
+	Id             int    `json:"id"               in:"path"  v:"required|min:1" dc:"问题ID"`
+	DeletedStatus  string `json:"deleted_status"   in:"query" dc:"回答删除状态: all/deleted/undeleted"`
+	IncludeDeleted bool   `json:"include_deleted"  in:"query" dc:"兼容字段: true 等价于 deleted_status=all"`
 }
 
 type GetQuestionDetailRes struct {
@@ -174,6 +174,15 @@ type DeleteQuestionRes struct {
 	Id int `json:"id" dc:"问题ID"`
 }
 
+type RestoreQuestionReq struct {
+	g.Meta `path:"/admin/questions/{id}/restore" method:"PUT" tags:"Admin" summary:"管理员-恢复已删除问题"`
+	Id     int `json:"id" in:"path" v:"required|min:1" dc:"问题ID"`
+}
+
+type RestoreQuestionRes struct {
+	Id int `json:"id" dc:"问题ID"`
+}
+
 type DeleteQuestionAnswerReq struct {
 	g.Meta     `path:"/admin/questions/{question_id}/answers/{answer_id}" method:"DELETE" tags:"Admin" summary:"管理员-删除问题下的回答"`
 	QuestionId int `json:"question_id" in:"path" v:"required|min:1" dc:"问题ID"`
@@ -181,6 +190,17 @@ type DeleteQuestionAnswerReq struct {
 }
 
 type DeleteQuestionAnswerRes struct {
+	Id         int `json:"id"          dc:"回答ID"`
+	QuestionId int `json:"question_id" dc:"问题ID"`
+}
+
+type RestoreQuestionAnswerReq struct {
+	g.Meta     `path:"/admin/questions/{question_id}/answers/{answer_id}/restore" method:"PUT" tags:"Admin" summary:"管理员-恢复已删除回答"`
+	QuestionId int `json:"question_id" in:"path" v:"required|min:1" dc:"问题ID"`
+	AnswerId   int `json:"answer_id"   in:"path" v:"required|min:1" dc:"回答ID"`
+}
+
+type RestoreQuestionAnswerRes struct {
 	Id         int `json:"id"          dc:"回答ID"`
 	QuestionId int `json:"question_id" dc:"问题ID"`
 }

@@ -120,10 +120,19 @@ def ensure_teacher(
         if not exists:
             conn.execute(
                 """
-                INSERT INTO teachers (id, responses, name, perm)
-                VALUES (?, 0, ?, 'public')
+                INSERT INTO teachers (id, responses, perm)
+                VALUES (?, 0, 'public')
                 """,
-                (uid, name),
+                (uid,),
+            )
+        else:
+            conn.execute(
+                """
+                UPDATE teachers
+                SET perm = 'public'
+                WHERE id = ?
+                """,
+                (uid,),
             )
         conn.commit()
         return uid
