@@ -3,8 +3,6 @@ package favorite
 import (
 	"context"
 	v1 "suask/api/favorite/v1"
-	"suask/internal/consts"
-	qutil "suask/internal/logic/questions_util"
 	"suask/internal/model"
 	"suask/internal/service"
 
@@ -27,42 +25,23 @@ func GetFavoriteImpl(ctx context.Context, req interface{}) (res interface{}, err
 	}
 	QuestionList := baseOutput.Questions
 	idMap := baseOutput.IdMap
-	// 获取图片
-	imagesOutput, err := service.QuestionUtil().GetImages(ctx, &model.GetImagesInput{QuestionIDs: baseOutput.QuestionIDs})
+	dstUserIDMap := make(map[int]int, len(QuestionList))
+	for _, question := range QuestionList {
+		dstUserIDMap[question.ID] = question.DstUserID
+	}
+	assetsOutput, err := service.QuestionUtil().GetQuestionListAssets(ctx, &model.GetQuestionListAssetsInput{
+		QuestionIDs:  baseOutput.QuestionIDs,
+		DstUserIDMap: dstUserIDMap,
+	})
 	if err != nil {
 		return
 	}
-	// 获取回答者头像
-	answersOutput, err := service.QuestionUtil().GetAnswers(ctx, &model.GetAnswersInput{QuestionIDs: baseOutput.QuestionIDs})
-	if err != nil {
-		return
+	for questionId, urls := range assetsOutput.ImageURLMap {
+		QuestionList[idMap[questionId]].ImageURLs = urls
 	}
-	avatarsMap := map[int][]int{}
-	if answersOutput != nil {
-		avatarsMap = answersOutput.AvatarsMap
+	for questionId, urls := range assetsOutput.AnswerAvatarMap {
+		QuestionList[idMap[questionId]].AnswerAvatars = urls
 	}
-	// 一次性批量查所有 file_id -> URL (#2 优化)
-	allFileIDs := qutil.CollectFileIDs(imagesOutput.ImageMap, avatarsMap)
-	urlMap, err := qutil.BatchGetFileURLs(ctx, allFileIDs)
-	if err != nil {
-		return nil, err
-	}
-	// 按原始顺序分发图片 URL
-	imageURLs := qutil.ResolveImageURLs(urlMap, imagesOutput.ImageMap)
-	for qid, urls := range imageURLs {
-		QuestionList[idMap[qid]].ImageURLs = urls
-	}
-	// 按原始顺序分发头像 URL
-	avatarURLs := qutil.ResolveAvatarURLs(urlMap, avatarsMap)
-	for qid, urls := range avatarURLs {
-		dstId := QuestionList[idMap[qid]].DstUserID
-		if dstId != 0 {
-			QuestionList[idMap[qid]].AnswerAvatars = []string{consts.DefaultAvatarURL}
-		} else {
-			QuestionList[idMap[qid]].AnswerAvatars = urls
-		}
-	}
-	// 返回结果
 	res = &v1.GetFavoritePageRes{
 		QuestionList: QuestionList,
 		RemainPage:   baseOutput.RemainPage,

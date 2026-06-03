@@ -13,6 +13,7 @@ import (
 type (
 	IQuestionUtil interface {
 		GetImages(ctx context.Context, input *model.GetImagesInput) (*model.GetImagesOutput, error)
+		GetQuestionListAssets(ctx context.Context, input *model.GetQuestionListAssetsInput) (*model.GetQuestionListAssetsOutput, error)
 		Favorite(ctx context.Context, in *model.FavoriteInput) (out *model.FavoriteOutput, err error)
 		GetQuestionSrcUserId(ctx context.Context, questionID int) (out int, err error)
 		AddQuestion(ctx context.Context, in *model.AddQuestionInput) (out *model.AddQuestionOutput, err error)

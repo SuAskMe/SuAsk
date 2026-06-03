@@ -42,6 +42,16 @@ type GetImagesOutput struct {
 	ImageMap map[int][]int `json:"image_map"`
 }
 
+type GetQuestionListAssetsInput struct {
+	QuestionIDs  []int       `json:"question_ids"`
+	DstUserIDMap map[int]int `json:"dst_user_id_map"`
+}
+
+type GetQuestionListAssetsOutput struct {
+	ImageURLMap     map[int][]string `json:"image_url_map"`
+	AnswerAvatarMap map[int][]string `json:"answer_avatar_map"`
+}
+
 // FavoriteInput / FavoriteOutput —— 收藏/取消收藏
 type FavoriteInput struct {
 	QuestionID int `json:"question_id"`

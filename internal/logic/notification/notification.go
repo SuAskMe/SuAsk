@@ -31,10 +31,7 @@ func (s *sNotification) Add(ctx context.Context, in model.AddNotificationInput) 
 	return out, nil
 }
 
-// Get 一次 JOIN 拉取所有通知 + 关联的问题/回答/用户信息。
-// 原实现 6+ 次 SQL，现在合并为 1 条 JOIN + 1 轮 Go 组装。
 func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput) (out model.GetNotificationsOutput, err error) {
-	// 单条 SQL 拿全部需要的字段
 	const query = `
 	SELECT
 		n.id              AS nid,
@@ -77,6 +74,9 @@ func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput)
 	for _, row := range rows {
 		ntype := row["ntype"].String()
 		qid := row["qid"].Int()
+		if qid == 0 {
+			continue
+		}
 		var createdAt int64
 		if t := row["n_created_at"].GTime(); t != nil {
 			createdAt = t.TimestampMilli()
@@ -99,29 +99,41 @@ func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput)
 			})
 
 		case consts.NewAnswer:
+			aid := row["aid"].Int()
+			if aid == 0 {
+				continue
+			}
 			respdName := row["a_nickname"].String()
 			respdId := row["a_user_id"].Int()
+			if respdId == 0 {
+				respdName = consts.DefaultUserName
+				respdId = consts.DefaultUserId
+			}
 			out.NewAnswer = append(out.NewAnswer, model.NotificationNewAnswer{
 				NotificationBase: base,
-				AnswerId:         row["aid"].Int(),
+				AnswerId:         aid,
 				AnswerContent:    row["a_contents"].String(),
 				RespondentName:   respdName,
 				RespondentId:     respdId,
 			})
 
 		case consts.NewReply:
+			aid := row["aid"].Int()
+			rid := row["rid"].Int()
+			if aid == 0 || rid == 0 {
+				continue
+			}
 			respdName := row["r_nickname"].String()
 			respdId := row["r_user_id"].Int()
-			// 如果问题的目标老师就是当前用户，回复者匿名化
-			if row["q_dst_user_id"].Int() == in.UserId {
+			if respdId == 0 || row["q_dst_user_id"].Int() == in.UserId {
 				respdName = consts.DefaultUserName
 				respdId = consts.DefaultUserId
 			}
 			out.NewReply = append(out.NewReply, model.NotificationNewReply{
 				NotificationBase: base,
-				AnswerId:         row["aid"].Int(),
+				AnswerId:         aid,
 				AnswerContent:    row["a_contents"].String(),
-				ReplyToId:        row["rid"].Int(),
+				ReplyToId:        rid,
 				ReplyToContent:   row["r_contents"].String(),
 				RespondentName:   respdName,
 				RespondentId:     respdId,
@@ -162,7 +174,6 @@ func (s *sNotification) Delete(ctx context.Context, in model.DeleteNotificationI
 }
 
 func (s *sNotification) NewNotificationCount(ctx context.Context, in model.NewNotificationCountInput) (out model.NewNotificationCountOutput, err error) {
-	// 优化：原来 3 次 COUNT 查询合并为 1 次 GROUP BY
 	type typeCount struct {
 		Type string `json:"type"`
 		Cnt  int    `json:"cnt"`

@@ -44,6 +44,95 @@ func (sQuestionUtil) GetImages(ctx context.Context, input *model.GetImagesInput)
 	return &output, nil
 }
 
+func (s sQuestionUtil) GetQuestionListAssets(ctx context.Context, input *model.GetQuestionListAssetsInput) (*model.GetQuestionListAssetsOutput, error) {
+	out := &model.GetQuestionListAssetsOutput{
+		ImageURLMap:     make(map[int][]string),
+		AnswerAvatarMap: make(map[int][]string),
+	}
+	if input == nil || len(input.QuestionIDs) == 0 {
+		return out, nil
+	}
+
+	imagesOutput, err := s.GetImages(ctx, &model.GetImagesInput{QuestionIDs: input.QuestionIDs})
+	if err != nil {
+		return nil, err
+	}
+	imageFileIds := make([]int, 0)
+	for _, ids := range imagesOutput.ImageMap {
+		imageFileIds = append(imageFileIds, ids...)
+	}
+	imageURLMap, err := getFileURLMap(ctx, imageFileIds)
+	if err != nil {
+		return nil, err
+	}
+	for questionId, ids := range imagesOutput.ImageMap {
+		urls := make([]string, 0, len(ids))
+		for _, id := range ids {
+			if url, ok := imageURLMap[id]; ok {
+				urls = append(urls, url)
+			}
+		}
+		out.ImageURLMap[questionId] = urls
+	}
+
+	answersOutput, err := s.GetAnswers(ctx, &model.GetAnswersInput{QuestionIDs: input.QuestionIDs})
+	if err != nil {
+		return nil, err
+	}
+	if answersOutput == nil {
+		return out, nil
+	}
+	avatarFileIds := make([]int, 0)
+	for questionId, ids := range answersOutput.AvatarsMap {
+		if input.DstUserIDMap != nil && input.DstUserIDMap[questionId] != 0 {
+			continue
+		}
+		for _, id := range ids {
+			if id != 0 {
+				avatarFileIds = append(avatarFileIds, id)
+			}
+		}
+	}
+	avatarURLMap, err := getFileURLMap(ctx, avatarFileIds)
+	if err != nil {
+		return nil, err
+	}
+	for questionId, ids := range answersOutput.AvatarsMap {
+		if input.DstUserIDMap != nil && input.DstUserIDMap[questionId] != 0 {
+			out.AnswerAvatarMap[questionId] = []string{consts.DefaultAvatarURL}
+			continue
+		}
+		urls := make([]string, 0, len(ids))
+		for _, id := range ids {
+			if id == 0 {
+				urls = append(urls, consts.DefaultAvatarURL)
+				continue
+			}
+			if url, ok := avatarURLMap[id]; ok {
+				urls = append(urls, url)
+			}
+		}
+		out.AnswerAvatarMap[questionId] = urls
+	}
+	return out, nil
+}
+
+func getFileURLMap(ctx context.Context, idList []int) (map[int]string, error) {
+	urlMap := make(map[int]string)
+	if len(idList) == 0 {
+		return urlMap, nil
+	}
+	files, err := service.File().GetList(ctx, model.FileListGetInput{IdList: idList})
+	if err != nil {
+		return nil, err
+	}
+	for i, id := range files.FileId {
+		if i < len(files.URL) {
+			urlMap[id] = files.URL[i]
+		}
+	}
+	return urlMap, nil
+}
 func (sQuestionUtil) Favorite(ctx context.Context, in *model.FavoriteInput) (out *model.FavoriteOutput, err error) {
 	md := dao.Favorites.Ctx(ctx)
 	//UserId := 1
@@ -131,7 +220,10 @@ func (sQuestionUtil) GetAnswers(ctx context.Context, input *model.GetAnswersInpu
 	for _, row := range res {
 		id := row["question_id"].Int()
 		if _, ok := avatarsMap[id]; !ok {
-			avatarsMap[id] = make([]int, 0, 5)
+			avatarsMap[id] = make([]int, 0, consts.MaxAvatarsPerQuestion)
+		}
+		if len(avatarsMap[id]) >= consts.MaxAvatarsPerQuestion {
+			continue
 		}
 		avatarsMap[id] = append(avatarsMap[id], row["avatar_file_id"].Int())
 	}
