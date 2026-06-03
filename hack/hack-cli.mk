@@ -1,9 +1,11 @@
 
-# Install/Update to the latest CLI tool.
+# Install/Update to the pinned CLI tool.
+GF_CLI_VERSION ?= v2.10.0
+
 .PHONY: cli
 cli:
 	@set -e; \
-	wget -O gf https://github.com/gogf/gf/releases/latest/download/gf_$(shell go env GOOS)_$(shell go env GOARCH) && \
+	wget -O gf https://github.com/gogf/gf/releases/download/$(GF_CLI_VERSION)/gf_$(shell go env GOOS)_$(shell go env GOARCH) && \
 	chmod +x gf && \
 	./gf install -y && \
 	rm ./gf
