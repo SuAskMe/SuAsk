@@ -11,9 +11,12 @@ import (
 	"suask/internal/service"
 	"suask/module/sjwt"
 	"suask/utility"
+	"time"
 
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type sLogin struct{}
@@ -84,18 +87,47 @@ func (s sLogin) Login(ctx context.Context, in *model.UserLoginInput) (res *model
 	return &model.UserLoginOutput{Type: consts.TokenType, Id: userInfo.Id, Role: userInfo.Role, Token: token}, nil
 }
 
-// Logout 仅作为 service.ILogin 接口契约存在；真正的登出逻辑在
-// internal/controller/login/login.go 里直接操作 Redis 完成。
-// 这里以前写的是 panic("implement me")，若被误调会直接 500 + goroutine crash，
-// 现在改为 no-op 并记录一条 debug 日志，方便定位谁在错误调用。
 func (s sLogin) Logout(ctx context.Context) error {
-	g.Log().Debug(ctx, "sLogin.Logout called; logout is handled in controller layer")
+	userId := gconv.Int(ctx.Value(consts.CtxId))
+	if userId == 0 {
+		return gerror.New("未找到登录用户")
+	}
+	_, err := g.Redis().Del(ctx, consts.RedisJWTPrefix+strconv.Itoa(userId))
+	if err != nil {
+		g.Log().Error(ctx, err)
+		return gerror.New(consts.ErrInternal)
+	}
 	return nil
 }
 
-// HeartBeats 同 Logout：占位实现，真逻辑在 controller 层。
 func (s sLogin) HeartBeats(ctx context.Context) error {
-	g.Log().Debug(ctx, "sLogin.HeartBeats called; heartbeat is handled in controller layer")
+	userId := gconv.Int(ctx.Value(consts.CtxId))
+	if userId == 0 {
+		return gerror.New("未找到登录用户")
+	}
+	key := consts.RedisJWTPrefix + strconv.Itoa(userId)
+	maxTTL := sjwt.GetExpireSecond()
+	threshold := maxTTL / 2
+
+	ttl, err := g.Redis().TTL(ctx, key)
+	if err != nil {
+		g.Log().Error(ctx, err)
+		return nil
+	}
+	if ttl <= 0 || ttl > threshold {
+		return nil
+	}
+	_, _ = g.Redis().Expire(ctx, key, maxTTL)
+
+	var user entity.Users
+	_ = dao.Users.Ctx(ctx).Where(dao.Users.Columns().Id, userId).Fields(dao.Users.Columns().Role).Scan(&user)
+	if user.Role == consts.GUEST {
+		newExpire := gtime.Now().Add(14 * 24 * time.Hour)
+		_, _ = dao.GuestUsers.Ctx(ctx).
+			Where(dao.GuestUsers.Columns().Id, userId).
+			Data(do.GuestUsers{ExpiresAt: newExpire}).
+			Update()
+	}
 	return nil
 }
 
