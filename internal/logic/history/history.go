@@ -29,10 +29,16 @@ func (s *sHistory) GetBase(ctx context.Context, in *model.GetHistoryBaseInput) (
 		}
 	}
 
+	// 1. 先统计总数 (无 Page 分页及 Fields 干扰，确保获取到真实总数)
+	remain, err := md.Count()
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. 应用分页并进行列表查询
 	md = md.Page(in.Page, consts.MaxQuestionsPerPage)
-	var remain int
 	var q []*custom.Questions
-	err = md.ScanAndCount(&q, &remain, false)
+	err = md.Scan(&q)
 	if err != nil {
 		return nil, err
 	}

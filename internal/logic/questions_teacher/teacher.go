@@ -2,6 +2,7 @@ package questions_teacher
 
 import (
 	"context"
+	"fmt"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
@@ -13,40 +14,45 @@ import (
 type sTeacherQuestion struct{}
 
 func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeacherInput) (*model.GetBaseOfTeacherOutput, error) {
-	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherID).Where("deleted_at IS NULL")
-	md = md.WhereGT(dao.Questions.Columns().ReplyCnt, 0)
+	relation := fmt.Sprintf("favorites.question_id = questions.id AND favorites.user_id = %d AND favorites.package = '%s'", input.TeacherID, consts.OnTop)
+	md := dao.Questions.Ctx(ctx).
+		LeftJoin("favorites", relation).
+		Where(dao.Questions.Columns().DstUserId, input.TeacherID).
+		WhereNull(dao.Questions.Columns().DeletedAt).
+		WhereGT(dao.Questions.Columns().ReplyCnt, 0)
 
 	if input.Keyword != "" {
-		md = md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%")
-	} else {
-		err := utility.SortByType(&md, input.SortType)
-		if err != nil {
-			return nil, err
-		}
+		md = md.WhereLike("questions.title", "%"+input.Keyword+"%")
 	}
-	md = md.Page(input.Page, consts.MaxQuestionsPerPage)
 
+	// 1. 先统计总数 (此时没有 Fields 和 Order，可生成正确的 COUNT(1) 语句)
+	remain, err := md.Count()
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. 注入 Fields、置顶以及选择的排序逻辑
+	md = md.Fields("questions.*", "(favorites.id IS NOT NULL) AS is_pinned")
+	md = md.Order("favorites.id DESC")
+	err = utility.SortByType(&md, input.SortType)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. 再应用分页进行列表查询
+	md = md.Page(input.Page, consts.MaxQuestionsPerPage)
 	var q []*custom.Questions
-	var remain int
-	err := md.ScanAndCount(&q, &remain, false) // 先查不包含favorites的结果
+	err = md.Scan(&q)
 	if err != nil {
 		return nil, err
 	}
 	// 计算剩余页数
 	remain = utility.CountRemainPage(remain, input.Page)
-	// 获取问题ID列表 （官方的静态联表也是这么做的）
+	// 获取问题ID列表
 	qIDs := make([]int, len(q))
 	for i, pq := range q {
 		qIDs[i] = pq.Id
 	}
-	//var fav []*custom.MyFavorites
-	//UserId := 1
-	//// UserId := gconv.Int(ctx.Value(consts.CtxId))
-	//md = dao.Favorites.Ctx(ctx).WhereIn(dao.Favorites.Columns().QuestionId, qIDs).WhereIn(dao.Favorites.Columns().UserId, UserId)
-	//err = md.Scan(&fav) // 再查favorites
-	//if err != nil {
-	//	return nil, err
-	//}
 
 	pqs := make([]model.TeacherQuestion, len(q)) // 用于存放最终结果
 	idMap := make(map[int]int)                   // 用于快速查找问题ID对应的索引
@@ -58,6 +64,7 @@ func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeach
 			Content:   utility.TruncateString(pq.Contents),
 			CreatedAt: pq.CreatedAt.TimestampMilli(),
 			Views:     pq.Views,
+			IsPinned:  pq.IsPinned,
 		}
 	}
 	//for _, f := range fav { // 填充IsFavorited字段

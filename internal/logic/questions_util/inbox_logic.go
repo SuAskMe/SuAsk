@@ -2,6 +2,7 @@ package questions
 
 import (
 	"context"
+	"fmt"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
@@ -17,26 +18,41 @@ import (
 type sTeacherQuestionSelf struct{}
 
 func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMInput) (*model.GetQFMOutput, error) {
-	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().DstUserId, input.TeacherId).Where("deleted_at IS NULL")
+	relation := fmt.Sprintf("favorites.question_id = questions.id AND favorites.user_id = %d AND favorites.package = '%s'", input.TeacherId, consts.OnTop)
+	md := dao.Questions.Ctx(ctx).
+		LeftJoin("favorites", relation).
+		Where(dao.Questions.Columns().DstUserId, input.TeacherId).
+		WhereNull(dao.Questions.Columns().DeletedAt)
+
 	switch input.Tag {
 	case consts.Unanswered:
-		md = md.Where(dao.Questions.Columns().ReplyCnt, 0)
+		md = md.Where("questions.reply_cnt", 0)
 	case consts.Answered:
-		md = md.WhereGT(dao.Questions.Columns().ReplyCnt, 0)
+		md = md.WhereGT("questions.reply_cnt", 0)
 	}
-	if input.Keyword != "" {
-		md = md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%")
-	} else {
-		err := utility.SortByType(&md, input.SortType)
-		if err != nil {
-			return nil, err
-		}
-	}
-	md = md.Page(input.Page, consts.MaxQuestionsPerPage)
 
+	if input.Keyword != "" {
+		md = md.WhereLike("questions.title", "%"+input.Keyword+"%")
+	}
+
+	// 1. 先统计总数 (此时没有 Fields 和 Order，可生成正确的 COUNT(1) 语句)
+	remain, err := md.Count()
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. 注入 Fields、置顶以及选择的排序逻辑
+	md = md.Fields("questions.*", "(favorites.id IS NOT NULL) AS is_pinned")
+	md = md.Order("favorites.id DESC")
+	err = utility.SortByType(&md, input.SortType)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. 应用分页进行列表查询
+	md = md.Page(input.Page, consts.MaxQuestionsPerPage)
 	var q []*custom.Questions
-	var remain int
-	err := md.ScanAndCount(&q, &remain, false)
+	err = md.Scan(&q)
 	if err != nil {
 		return nil, err
 	}
@@ -58,20 +74,7 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 		pqs[i].Content = utility.TruncateString(pq.Contents)
 		pqs[i].CreatedAt = pq.CreatedAt.TimestampMilli()
 		pqs[i].Views = pq.Views
-	}
-
-	var fav []*custom.MyFavorites
-	if len(qIDs) > 0 {
-		md = dao.Favorites.Ctx(ctx).WhereIn(dao.Favorites.Columns().QuestionId, qIDs)
-		md = md.Where(dao.Favorites.Columns().UserId, input.TeacherId)
-		md = md.Where(dao.Favorites.Columns().Package, consts.OnTop)
-		err = md.Scan(&fav)
-		if err != nil {
-			return nil, err
-		}
-		for _, f := range fav {
-			pqs[idMap[f.QuestionId]].IsPinned = true
-		}
+		pqs[i].IsPinned = pq.IsPinned
 	}
 
 	output := model.GetQFMOutput{

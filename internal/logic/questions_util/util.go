@@ -79,11 +79,16 @@ func (s sQuestionUtil) GetQuestionListAssets(ctx context.Context, input *model.G
 	if err != nil {
 		return nil, err
 	}
-	if answersOutput == nil {
-		return out, nil
+
+	var avatarsMap map[int][]int
+	if answersOutput != nil {
+		avatarsMap = answersOutput.AvatarsMap
+	} else {
+		avatarsMap = make(map[int][]int)
 	}
+
 	avatarFileIds := make([]int, 0)
-	for questionId, ids := range answersOutput.AvatarsMap {
+	for questionId, ids := range avatarsMap {
 		if input.DstUserIDMap != nil && input.DstUserIDMap[questionId] != 0 {
 			continue
 		}
@@ -93,13 +98,59 @@ func (s sQuestionUtil) GetQuestionListAssets(ctx context.Context, input *model.G
 			}
 		}
 	}
+
+	teacherUserIDs := make([]int, 0)
+	teacherUserIDSet := make(map[int]struct{})
+	if input.DstUserIDMap != nil {
+		for _, qid := range input.QuestionIDs {
+			if dstUserID, ok := input.DstUserIDMap[qid]; ok && dstUserID != 0 {
+				if _, exists := teacherUserIDSet[dstUserID]; !exists {
+					teacherUserIDSet[dstUserID] = struct{}{}
+					teacherUserIDs = append(teacherUserIDs, dstUserID)
+				}
+			}
+		}
+	}
+
+	teacherAvatarFileIDMap := make(map[int]int)
+	if len(teacherUserIDs) > 0 {
+		var teacherUsers []struct {
+			Id           int `json:"id"`
+			AvatarFileId int `json:"avatar_file_id"`
+		}
+		err = dao.Users.Ctx(ctx).Fields("id", "avatar_file_id").WhereIn(dao.Users.Columns().Id, teacherUserIDs).Scan(&teacherUsers)
+		if err != nil {
+			return nil, err
+		}
+		for _, u := range teacherUsers {
+			teacherAvatarFileIDMap[u.Id] = u.AvatarFileId
+			if u.AvatarFileId != 0 {
+				avatarFileIds = append(avatarFileIds, u.AvatarFileId)
+			}
+		}
+	}
+
 	avatarURLMap, err := getFileURLMap(ctx, avatarFileIds)
 	if err != nil {
 		return nil, err
 	}
-	for questionId, ids := range answersOutput.AvatarsMap {
-		if input.DstUserIDMap != nil && input.DstUserIDMap[questionId] != 0 {
-			out.AnswerAvatarMap[questionId] = []string{consts.DefaultAvatarURL}
+
+	for _, questionId := range input.QuestionIDs {
+		if dstUserID, ok := input.DstUserIDMap[questionId]; ok && dstUserID != 0 {
+			avatarFileID := teacherAvatarFileIDMap[dstUserID]
+			if avatarFileID == 0 {
+				out.AnswerAvatarMap[questionId] = []string{consts.DefaultAvatarURL}
+			} else if url, ok := avatarURLMap[avatarFileID]; ok {
+				out.AnswerAvatarMap[questionId] = []string{url}
+			} else {
+				out.AnswerAvatarMap[questionId] = []string{consts.DefaultAvatarURL}
+			}
+			continue
+		}
+
+		ids, ok := avatarsMap[questionId]
+		if !ok || len(ids) == 0 {
+			out.AnswerAvatarMap[questionId] = []string{}
 			continue
 		}
 		urls := make([]string, 0, len(ids))

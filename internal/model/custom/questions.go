@@ -14,6 +14,7 @@ type Questions struct {
 	CreatedAt *gtime.Time `json:"created_at" orm:"created_at"  description:"创建时间"`         // 创建时间
 	Views     int         `json:"views"     orm:"views"       description:"浏览量"`           // 浏览量
 	ReplyCnt  int         `json:"reply_cnt" orm:"reply_cnt"   description:"回复数量"`          // 回复数量
+	IsPinned  bool        `json:"is_pinned"  orm:"is_pinned"   description:"是否置顶"`        // 是否置顶
 }
 
 type Image struct {

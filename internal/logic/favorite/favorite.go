@@ -15,19 +15,34 @@ import (
 type sFavorite struct{}
 
 func (s *sFavorite) GetBase(ctx context.Context, in *model.GetFavoriteBaseInput) (out *model.GetFavoriteBaseOutput, err error) {
-	md := dao.Favorites.Ctx(ctx)
-	//userId := 1
 	userId := gconv.Int(ctx.Value(consts.CtxId))
 
-	md = md.Where(dao.Favorites.Columns().UserId, userId).Where(dao.Favorites.Columns().Package, "default")
-	md = md.Page(in.Page, consts.MaxQuestionsPerPage)
+	// 关联 questions 表进行过滤与排序，确保能按 questions.created_at / questions.views 正常运行
+	md := dao.Favorites.Ctx(ctx).
+		LeftJoin("questions", "questions.id = favorites.question_id").
+		Where(dao.Favorites.Columns().UserId, userId).
+		Where(dao.Favorites.Columns().Package, "default").
+		WhereNull("questions.deleted_at")
+
+	// 1. 先在干净的 Model 上统计总数 (无 Fields, Order, Page 干扰)
+	remain, err := md.Count()
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. 注入特定的字段 (只读取 favorites.* 以便 Scan 映射)
+	md = md.Fields("favorites.*")
+
+	// 3. 注入排序逻辑
 	err = utility.SortByType(&md, in.SortType)
 	if err != nil {
 		return nil, err
 	}
-	var remain int
+
+	// 4. 应用分页进行列表查询
+	md = md.Page(in.Page, consts.MaxQuestionsPerPage)
 	var f []*model.Favorite
-	err = md.ScanAndCount(&f, &remain, true)
+	err = md.Scan(&f)
 	if err != nil {
 		return nil, err
 	}

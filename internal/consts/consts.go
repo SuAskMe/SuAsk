@@ -5,8 +5,8 @@ const (
 	MaxHotQuestions       = 20 // 热点问题最多展示条数
 	MaxKeywordsPerReq     = 8
 	MaxAvatarsPerQuestion = 3
-	SortByTimeDsc         = 0
-	SortByTimeAsc         = 1
+	SortByDefault         = 0
+	SortByTimeDsc         = 1
 	SortByViewsDsc        = 2
 	SortByViewsAsc        = 3
 )
