@@ -249,7 +249,7 @@ func (sQuestionDetail) AddAnswerUpvote(ctx context.Context, in *model.UpvoteInpu
 			result = &model.UpvoteOutput{IsUpvoted: false, Upvotes: newCnt}
 		} else {
 			// 点赞
-			_, err = tx.Insert("upvotes", g.Map{"answer_id": in.AnswerId, "user_id": UserId})
+			_, err = tx.Model("upvotes").Data(do.Upvotes{AnswerId: in.AnswerId, UserId: UserId}).Insert()
 			if err != nil {
 				return err
 			}
@@ -290,27 +290,46 @@ func (sQuestionDetail) ReplyQuestion(ctx context.Context, in *model.AddAnswerInp
 	if err != nil {
 		return nil, fmt.Errorf("you are not allowed to access this question")
 	}
-	// 保存回答
-	md = dao.Answers.Ctx(ctx)
-	id, err := md.InsertAndGetId(do.Answers{
-		QuestionId: in.QuestionId,
-		UserId:     in.UserId,
-		Contents:   in.Content,
-		InReplyTo:  in.InReplyTo,
+
+	out := &model.AddAnswerOutput{}
+	err = g.DB().Transaction(ctx, func(ctx context.Context, tx gdb.TX) error {
+		id, err := tx.Model("answers").Data(do.Answers{
+			QuestionId: in.QuestionId,
+			UserId:     in.UserId,
+			Contents:   in.Content,
+			InReplyTo:  in.InReplyTo,
+		}).InsertAndGetId()
+		if err != nil {
+			return err
+		}
+
+		row, err := tx.Query("UPDATE questions SET reply_cnt = reply_cnt + 1 WHERE id = ? RETURNING reply_cnt", in.QuestionId)
+		if err != nil {
+			return err
+		}
+		replyCnt := 0
+		if len(row) > 0 {
+			replyCnt = row[0]["reply_cnt"].Int()
+		}
+		if replyCnt == 1 {
+			if _, err = tx.Exec("UPDATE teachers SET responses = responses + 1 WHERE id = ?", question.DstUserId); err != nil {
+				return err
+			}
+		}
+		if replyCnt <= consts.MaxAvatarsPerQuestion {
+			if _, err = tx.Model("user_relation").Data(do.UserRelation{QuestionId: in.QuestionId, UserId: in.UserId}).Insert(); err != nil {
+				return err
+			}
+		}
+
+		out.Id = int(id)
+		out.ReplyCnt = replyCnt
+		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-
-	if question.ReplyCnt == 0 { // 第一次回复 → 给老师的 responses 计数 +1
-		if err = AddResponseCnt(ctx, question.DstUserId); err != nil {
-			return nil, err
-		}
-	}
-
-	return &model.AddAnswerOutput{
-		Id: int(id),
-	}, nil
+	return out, nil
 }
 
 func (sQuestionDetail) AddReplyCnt(ctx context.Context, in *model.AddReplyCntInput) (*model.AddReplyCntOutput, error) {

@@ -79,7 +79,8 @@ type AddAnswerInput struct {
 }
 
 type AddAnswerOutput struct {
-	Id int `json:"id"`
+	Id       int `json:"id"`
+	ReplyCnt int `json:"reply_cnt"`
 }
 
 type AddReplyCntInput struct {

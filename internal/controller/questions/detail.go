@@ -172,20 +172,6 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 		return
 	}
 
-	// 更新回答数
-	replyCntOut, err := service.QuestionDetail().AddReplyCnt(ctx, &model.AddReplyCntInput{QuestionId: input.QuestionId})
-	if err != nil {
-		return
-	}
-
-	// 记录头像
-	if replyCntOut.ReplyCnt <= consts.MaxAvatarsPerQuestion {
-		_, err = service.QuestionDetail().BuildRelation(ctx, &model.BuildRelationInput{QuestionId: input.QuestionId})
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	// 上传文件
 	if req.Files != nil {
 		fileList := model.FileListAddInput{

@@ -8,6 +8,7 @@ import (
 	"suask/internal/service"
 	"suask/module/send_email"
 
+	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -85,28 +86,30 @@ func (c *cRegister) Register(ctx context.Context, req *v1.RegisterReq) (res *v1.
 		}
 		return nil, gerror.New("验证码错误")
 	}
-	// 验证码一次性使用
-	g.Redis().Del(ctx, consts.RedisSendCodePrefix+req.Email, consts.RedisCountCodePrefix+req.Email)
-
 	// 注册用户
 	data := model.RegisterInput{}
 	err = gconv.Struct(req, &data)
 	if err != nil {
 		return nil, err
 	}
-	out, err := service.Register().Register(ctx, data)
-	if err != nil {
-		return nil, err
-	}
-	// 注册 setting 表，notify_email 默认等于注册邮箱
-	_, err = service.Setting().AddSetting(ctx, model.AddSettingInput{
-		Id:           out.Id,
-		ThemeId:      consts.DefaultThemeId,
-		NotifySwitch: true,
-		NotifyEmail:  data.Email,
+	var out model.RegisterOutput
+	err = g.DB().Transaction(ctx, func(ctx context.Context, _ gdb.TX) error {
+		out, err = service.Register().Register(ctx, data)
+		if err != nil {
+			return err
+		}
+		_, err = service.Setting().AddSetting(ctx, model.AddSettingInput{
+			Id:           out.Id,
+			ThemeId:      consts.DefaultThemeId,
+			NotifySwitch: true,
+			NotifyEmail:  data.Email,
+		})
+		return err
 	})
 	if err != nil {
 		return nil, err
 	}
+	// 验证码一次性使用
+	g.Redis().Del(ctx, consts.RedisSendCodePrefix+req.Email, consts.RedisCountCodePrefix+req.Email)
 	return &v1.RegisterRes{Id: out.Id}, nil
 }

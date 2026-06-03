@@ -10,6 +10,8 @@ import (
 	"suask/module/send_email"
 	"suask/module/validation"
 
+	"github.com/gogf/gf/v2/database/gdb"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/util/gconv"
 )
 
@@ -33,40 +35,44 @@ func (cQuestion) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v1.AddQu
 		return nil, err
 	}
 	questionInput.SrcUserID = UserId
-	questionOut, err := service.QuestionUtil().AddQuestion(ctx, &questionInput)
-	if err != nil {
-		return nil, err
-	}
+	var fileIdList model.FileListAddOutput
 	if req.Files != nil {
 		fileList := model.FileListAddInput{
 			UploaderId: UserId,
 			FileList:   req.Files,
 		}
-		fileIdList, err := service.File().UploadFileList(ctx, fileList)
-		if err != nil {
-			return nil, err
-		}
-		attachment := model.AddAttachmentInput{
-			QuestionId: questionOut.ID,
-			Type:       consts.QuestionFileType,
-			FileId:     fileIdList.IdList,
-		}
-		_, err = service.Attachment().AddAttachments(ctx, attachment)
+		fileIdList, err = service.File().UploadFileList(ctx, fileList)
 		if err != nil {
 			return nil, err
 		}
 	}
-	res = &v1.AddQuestionRes{Id: questionOut.ID}
 
-	// 添加通知（因为 dst_user_id 已经必填，这里固定要发）
-	_, err = service.Notification().Add(ctx, model.AddNotificationInput{
-		UserId:     req.DstUserId,
-		QuestionId: questionOut.ID,
-		Type:       consts.NewQuestion,
+	var questionOut *model.AddQuestionOutput
+	err = g.DB().Transaction(ctx, func(ctx context.Context, _ gdb.TX) error {
+		questionOut, err = service.QuestionUtil().AddQuestion(ctx, &questionInput)
+		if err != nil {
+			return err
+		}
+		_, err = service.Attachment().AddAttachments(ctx, model.AddAttachmentInput{
+			QuestionId: questionOut.ID,
+			Type:       consts.QuestionFileType,
+			FileId:     fileIdList.IdList,
+		})
+		if err != nil {
+			return err
+		}
+		_, err = service.Notification().Add(ctx, model.AddNotificationInput{
+			UserId:     req.DstUserId,
+			QuestionId: questionOut.ID,
+			Type:       consts.NewQuestion,
+		})
+		return err
 	})
 	if err != nil {
 		return nil, err
 	}
+	res = &v1.AddQuestionRes{Id: questionOut.ID}
+
 	err = service.Notification().SendNoticeEmail(ctx, &model.SendNoticeEmailInput{
 		To: req.DstUserId,
 		Notice: &send_email.Notice{
@@ -77,7 +83,7 @@ func (cQuestion) Add(ctx context.Context, req *v1.AddQuestionReq) (res *v1.AddQu
 		},
 	})
 	if err != nil {
-		return nil, err
+		g.Log().Warningf(ctx, "发送提问邮件通知失败: %v", err)
 	}
 	return res, nil
 }
