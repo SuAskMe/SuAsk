@@ -32,3 +32,12 @@ type DeleteQuestionReq struct {
 }
 
 type DeleteQuestionRes struct{}
+
+// --- 恢复问题 ---
+
+type RestoreQuestionReq struct {
+	g.Meta `path:"/questions/restore" method:"POST" tags:"Question" summary:"恢复已删除问题（本人/目标老师/管理员）"`
+	ID     int `json:"id" v:"required|min:1"`
+}
+
+type RestoreQuestionRes struct{}

@@ -29,7 +29,7 @@ func AddResponseCnt(ctx context.Context, teacherId int) error {
 }
 
 func (sQuestionDetail) GetQuestionBase(ctx context.Context, in *model.GetQuestionBaseInput) (*model.GetQuestionBaseOutput, error) {
-	md := dao.Questions.Ctx(ctx).Where(dao.Questions.Columns().Id, in.QuestionId).Where("deleted_at IS NULL")
+	md := dao.Questions.Ctx(ctx).Unscoped().Where(dao.Questions.Columns().Id, in.QuestionId)
 	var question entity.Questions
 	err := md.Scan(&question)
 	if err != nil {
@@ -395,6 +395,33 @@ func (sQuestionDetail) DeleteQuestion(ctx context.Context, questionId, userId in
 		}
 	}
 	_, err = g.DB().Exec(ctx, "UPDATE questions SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?", questionId)
+	return err
+}
+
+// RestoreQuestion 恢复软删的问题。允许：提问者本人 / 目标老师 / admin。
+func (sQuestionDetail) RestoreQuestion(ctx context.Context, questionId, userId int) error {
+	var question entity.Questions
+	err := dao.Questions.Ctx(ctx).Unscoped().
+		Where(dao.Questions.Columns().Id, questionId).
+		Scan(&question)
+	if err != nil {
+		return fmt.Errorf("问题不存在")
+	}
+	if question.DeletedAt == nil {
+		return fmt.Errorf("该问题尚未删除")
+	}
+	// 权限：本人 / 目标老师 / admin
+	if question.SrcUserId != userId && question.DstUserId != userId {
+		// 检查是否 admin
+		var user entity.Users
+		if err := dao.Users.Ctx(ctx).Where(dao.Users.Columns().Id, userId).Fields("role").Scan(&user); err != nil {
+			return fmt.Errorf("无权恢复")
+		}
+		if user.Role != consts.ADMIN {
+			return fmt.Errorf("无权恢复该问题")
+		}
+	}
+	_, err = g.DB().Exec(ctx, "UPDATE questions SET deleted_at = NULL WHERE id = ?", questionId)
 	return err
 }
 

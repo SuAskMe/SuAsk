@@ -19,15 +19,12 @@ type sTeacherQuestionSelf struct{}
 
 func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMInput) (*model.GetQFMOutput, error) {
 	relation := fmt.Sprintf("favorites.question_id = questions.id AND favorites.user_id = %d AND favorites.package = '%s'", input.TeacherId, consts.OnTop)
-	md := dao.Questions.Ctx(ctx).
-		LeftJoin("favorites", relation).
-		Where(dao.Questions.Columns().DstUserId, input.TeacherId)
-
+	md := dao.Questions.Ctx(ctx)
 	if input.Tag == "deleted" {
-		md = md.WhereNotNull("questions.deleted_at")
-	} else {
-		md = md.WhereNull("questions.deleted_at")
+		md = md.Unscoped().WhereNotNull("questions.deleted_at")
 	}
+	md = md.LeftJoin("favorites", relation).
+		Where(dao.Questions.Columns().DstUserId, input.TeacherId)
 
 	switch input.Tag {
 	case consts.Unanswered:

@@ -98,3 +98,14 @@ func (cQuestion) Delete(ctx context.Context, req *v1.DeleteQuestionReq) (res *v1
 	}
 	return &v1.DeleteQuestionRes{}, nil
 }
+
+func (cQuestion) Restore(ctx context.Context, req *v1.RestoreQuestionReq) (res *v1.RestoreQuestionRes, err error) {
+	userId := gconv.Int(ctx.Value(consts.CtxId))
+	if userId == consts.DefaultUserId {
+		return nil, fmt.Errorf("请登录后操作")
+	}
+	if err := service.QuestionDetail().RestoreQuestion(ctx, req.ID, userId); err != nil {
+		return nil, err
+	}
+	return &v1.RestoreQuestionRes{}, nil
+}
