@@ -314,8 +314,16 @@ func (sQuestionDetail) ReplyQuestion(ctx context.Context, in *model.AddAnswerInp
 			}
 		}
 		if replyCnt <= consts.MaxAvatarsPerQuestion {
-			if _, err = tx.Model("user_relation").Data(do.UserRelation{QuestionId: in.QuestionId, UserId: in.UserId}).Insert(); err != nil {
+			count, err := tx.Model("user_relation").
+				Where("question_id = ? AND user_id = ?", in.QuestionId, in.UserId).
+				Count()
+			if err != nil {
 				return err
+			}
+			if count == 0 {
+				if _, err = tx.Model("user_relation").Data(do.UserRelation{QuestionId: in.QuestionId, UserId: in.UserId}).Insert(); err != nil {
+					return err
+				}
 			}
 		}
 
@@ -343,16 +351,24 @@ func (sQuestionDetail) AddReplyCnt(ctx context.Context, in *model.AddReplyCntInp
 	return &model.AddReplyCntOutput{ReplyCnt: cnt}, nil
 }
 
-func (sQuestionDetail) BuildRelation(ctx context.Context, in *model.BuildRelationInput) (*model.BuildRelationOutput, error) {
+func (s *sQuestionDetail) BuildRelation(ctx context.Context, in *model.BuildRelationInput) (*model.BuildRelationOutput, error) {
 	// 保存关系
 	UserId := gconv.Int(ctx.Value(consts.CtxId))
 	md := dao.UserRelation.Ctx(ctx)
-	_, err := md.Insert(do.UserRelation{
-		QuestionId: in.QuestionId,
-		UserId:     UserId,
-	})
+	count, err := md.Where(dao.UserRelation.Columns().QuestionId, in.QuestionId).
+		Where(dao.UserRelation.Columns().UserId, UserId).
+		Count()
 	if err != nil {
 		return nil, err
+	}
+	if count == 0 {
+		_, err = md.Insert(do.UserRelation{
+			QuestionId: in.QuestionId,
+			UserId:     UserId,
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &model.BuildRelationOutput{}, nil
 }
