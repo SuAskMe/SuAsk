@@ -158,10 +158,7 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 				answerList[IdMap[v]].TeacherName = info.Name
 			}
 		}
-		if info.AvatarFileId == 0 && info.Role == consts.TEACHER {
-			// 老师没有头像，显示信息头像
-			AvatarMap[-info.UserId] = UserIdMap[info.UserId]
-		} else if info.AvatarFileId == 0 {
+		if info.AvatarFileId == 0 {
 			for _, v := range UserIdMap[info.UserId] {
 				answerList[IdMap[v]].UserAvatar = consts.DefaultAvatarURL
 			}

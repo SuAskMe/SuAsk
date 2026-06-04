@@ -62,12 +62,9 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 
 	// 获取回答头像
 	AvatarList := make([]int, 0, len(AvatarsMap))
-	TeacherAvatarList := make([]int, 0)
 	for k := range AvatarsMap {
 		if k > 0 {
 			AvatarList = append(AvatarList, k)
-		} else if k < 0 {
-			TeacherAvatarList = append(TeacherAvatarList, k)
 		}
 	}
 
@@ -90,37 +87,6 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 				for _, aid := range ansIds {
 					answerList[IdMap[aid]].UserAvatar = url
 				}
-			}
-		}
-	}
-	// 老师头像（file_id < 0 表示 -teacherId，走 teachers.avatar_url）
-	// 批量收集所有需要查的 teacherId，一次查 teachers 表
-	if len(TeacherAvatarList) > 0 {
-		teacherIDs := make([]int, len(TeacherAvatarList))
-		for i, tid := range TeacherAvatarList {
-			teacherIDs[i] = -tid // 还原成正数 teacherId
-		}
-		type teacherAvatar struct {
-			Id        int    `json:"id"`
-			AvatarUrl string `json:"avatar_url"`
-		}
-		var avatars []teacherAvatar
-		err = g.DB().Ctx(ctx).Model("teachers").
-			WhereIn("id", teacherIDs).
-			Fields("id, avatar_url").
-			Scan(&avatars)
-		if err != nil {
-			return nil, err
-		}
-		teacherUrlMap := make(map[int]string, len(avatars))
-		for _, a := range avatars {
-			teacherUrlMap[a.Id] = a.AvatarUrl
-		}
-		for _, tid := range TeacherAvatarList {
-			realId := -tid
-			url := teacherUrlMap[realId]
-			for _, aid := range AvatarsMap[tid] {
-				answerList[IdMap[aid]].UserAvatar = url
 			}
 		}
 	}
