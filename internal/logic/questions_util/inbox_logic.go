@@ -29,6 +29,8 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 		md = md.Where("questions.reply_cnt", 0)
 	case consts.Answered:
 		md = md.WhereGT("questions.reply_cnt", 0)
+	case "pinned":
+		md = md.WhereNotNull("favorites.id")
 	}
 
 	if input.Keyword != "" {

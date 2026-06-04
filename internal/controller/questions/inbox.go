@@ -43,11 +43,9 @@ func (cInbox) Get(ctx context.Context, req *v1.InboxReq) (res *v1.InboxRes, err 
 	case "unanswered":
 		in.Tag = consts.Unanswered
 	case "pinned":
-		out, err := service.TeacherQuestionSelf().GetQFMPinned(ctx, &in)
-		if err != nil {
-			return nil, err
-		}
-		return buildInboxRes(ctx, out)
+		in.Tag = "pinned"
+	default:
+		in.Tag = "all"
 	}
 
 	out, err := service.TeacherQuestionSelf().GetQFMAll(ctx, &in)
