@@ -15,6 +15,7 @@ type Questions struct {
 	Views     int         `json:"views"     orm:"views"       description:"浏览量"`           // 浏览量
 	ReplyCnt  int         `json:"reply_cnt" orm:"reply_cnt"   description:"回复数量"`          // 回复数量
 	IsPinned  bool        `json:"is_pinned"  orm:"is_pinned"   description:"是否置顶"`        // 是否置顶
+	DeletedAt *gtime.Time `json:"deleted_at" orm:"deleted_at"  description:"删除时间"`         // 删除时间
 }
 
 type Image struct {

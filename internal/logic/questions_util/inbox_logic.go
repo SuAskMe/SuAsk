@@ -21,8 +21,13 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 	relation := fmt.Sprintf("favorites.question_id = questions.id AND favorites.user_id = %d AND favorites.package = '%s'", input.TeacherId, consts.OnTop)
 	md := dao.Questions.Ctx(ctx).
 		LeftJoin("favorites", relation).
-		Where(dao.Questions.Columns().DstUserId, input.TeacherId).
-		WhereNull(dao.Questions.Columns().DeletedAt)
+		Where(dao.Questions.Columns().DstUserId, input.TeacherId)
+
+	if input.Tag == "deleted" {
+		md = md.WhereNotNull("questions.deleted_at")
+	} else {
+		md = md.WhereNull("questions.deleted_at")
+	}
 
 	switch input.Tag {
 	case consts.Unanswered:
@@ -66,7 +71,9 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 	for i, pq := range q {
 		idMap[pq.Id] = i
 		qIDs[i] = pq.Id
-		if pq.ReplyCnt > 0 {
+		if pq.DeletedAt != nil {
+			pqs[i].Tag = "已删除"
+		} else if pq.ReplyCnt > 0 {
 			pqs[i].Tag = consts.Answered
 		} else {
 			pqs[i].Tag = consts.Unanswered

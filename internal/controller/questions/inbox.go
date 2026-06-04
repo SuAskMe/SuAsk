@@ -44,6 +44,8 @@ func (cInbox) Get(ctx context.Context, req *v1.InboxReq) (res *v1.InboxRes, err 
 		in.Tag = consts.Unanswered
 	case "pinned":
 		in.Tag = "pinned"
+	case "deleted":
+		in.Tag = "deleted"
 	default:
 		in.Tag = "all"
 	}
