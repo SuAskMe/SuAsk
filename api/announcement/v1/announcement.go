@@ -5,6 +5,16 @@ import (
 	"github.com/gogf/gf/v2/net/ghttp"
 )
 
+// --- 活跃公告（Banner） ---
+
+type ActiveReq struct {
+	g.Meta `path:"/announcements/active" method:"GET" tags:"Announcement" summary:"当前活跃公告"`
+}
+
+type ActiveRes struct {
+	Announcement *AnnouncementItem `json:"announcement"`
+}
+
 // --- 列表 ---
 
 type ListReq struct {
@@ -15,6 +25,7 @@ type ListReq struct {
 type ListRes struct {
 	Announcements []AnnouncementItem `json:"announcements"`
 	RemainPage    int                `json:"remain_page"`
+	Total         int                `json:"total"`
 }
 
 type AnnouncementItem struct {
@@ -24,6 +35,7 @@ type AnnouncementItem struct {
 	AuthorName  string `json:"author_name"`
 	IsPinned    bool   `json:"is_pinned"`
 	PublishedAt int64  `json:"published_at"`
+	ExpiresAt   int64  `json:"expires_at"`
 	CommentCnt  int    `json:"comment_cnt"`
 }
 
@@ -41,6 +53,7 @@ type DetailRes struct {
 	AuthorName  string        `json:"author_name"`
 	IsPinned    bool          `json:"is_pinned"`
 	PublishedAt int64         `json:"published_at"`
+	ExpiresAt   int64         `json:"expires_at"`
 	ImageURLs   []string      `json:"image_urls"`
 	Comments    []CommentItem `json:"comments"`
 }
@@ -74,11 +87,11 @@ type CreateRes struct {
 
 type UpdateReq struct {
 	g.Meta    `path:"/announcements" method:"PUT" tags:"Announcement" summary:"编辑公告（仅管理员）"`
-	ID        int    `json:"id" v:"required|min:1"`
-	Title     string `json:"title"`
-	Content   string `json:"content"`
-	IsPinned  *bool  `json:"is_pinned"`
-	ExpiresAt string `json:"expires_at"`
+	ID        int     `json:"id" v:"required|min:1"`
+	Title     string  `json:"title"`
+	Content   string  `json:"content"`
+	IsPinned  *bool   `json:"is_pinned"`
+	ExpiresAt *string `json:"expires_at"`
 }
 
 type UpdateRes struct {

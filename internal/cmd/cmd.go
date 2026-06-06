@@ -62,8 +62,6 @@ var (
 					teacher.Teacher.GetTeacher,
 					teacher.Teacher.GetTeacherPin,
 					questions.HotQuestion,
-					announcement.Announcement.List,
-					announcement.Announcement.Detail,
 					guest.Guest.Login,
 					login.Login.Login,
 				)
@@ -93,7 +91,6 @@ var (
 						questions.QuestionDetail.Upvote,
 						questions.Inbox,
 						history.History,
-						announcement.Announcement.AddComment,
 						notification.Notification,
 					)
 				})
@@ -110,6 +107,10 @@ var (
 						user.User.Deactivate,
 						favorite.Favorite,
 						teacher.Teacher.UpdatePerm,
+						announcement.Announcement.List,
+						announcement.Announcement.GetActive,
+						announcement.Announcement.Detail,
+						announcement.Announcement.AddComment,
 						announcement.Announcement.Create,
 						announcement.Announcement.Update,
 						announcement.Announcement.Delete,

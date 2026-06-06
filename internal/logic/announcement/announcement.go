@@ -10,6 +10,7 @@ import (
 	"suask/utility"
 	"suask/utility/files"
 
+	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gtime"
 )
@@ -18,10 +19,29 @@ type sAnnouncement struct{}
 
 const pageSize = 10
 
+func timestampMilli(t *gtime.Time) int64 {
+	if t == nil {
+		return 0
+	}
+	return t.TimestampMilli()
+}
+
+func countRemainPage(total, page, size int) int {
+	remainNum := total - size*page
+	if remainNum <= 0 {
+		return 0
+	}
+	remain := remainNum / size
+	if remainNum%size > 0 {
+		remain++
+	}
+	return remain
+}
+
 func (s *sAnnouncement) List(ctx context.Context, in model.AnnouncementListInput) (*model.AnnouncementListOutput, error) {
 	md := g.DB().Ctx(ctx).Model("announcements a").
 		LeftJoin("users u", "u.id = a.author_id").
-		Fields("a.id, a.title, a.contents, u.nickname AS author_name, a.is_pinned, a.published_at").
+		Fields("a.id, a.title, a.contents, u.nickname AS author_name, a.is_pinned, a.published_at, a.expires_at").
 		Where("a.deleted_at IS NULL").
 		Where("a.expires_at IS NULL OR a.expires_at > ?", gtime.Now()).
 		Order("a.is_pinned DESC, a.published_at DESC").
@@ -34,6 +54,7 @@ func (s *sAnnouncement) List(ctx context.Context, in model.AnnouncementListInput
 		AuthorName  string      `json:"author_name"`
 		IsPinned    int         `json:"is_pinned"`
 		PublishedAt *gtime.Time `json:"published_at"`
+		ExpiresAt   *gtime.Time `json:"expires_at"`
 	}
 	var rows []row
 	var total int
@@ -74,13 +95,46 @@ func (s *sAnnouncement) List(ctx context.Context, in model.AnnouncementListInput
 			Content:     utility.TruncateString(r.Contents),
 			AuthorName:  r.AuthorName,
 			IsPinned:    r.IsPinned == 1,
-			PublishedAt: r.PublishedAt.TimestampMilli(),
+			PublishedAt: timestampMilli(r.PublishedAt),
+			ExpiresAt:   timestampMilli(r.ExpiresAt),
 			CommentCnt:  commentCounts[r.Id],
 		}
 	}
 
-	remain := utility.CountRemainPage(total, in.Page)
-	return &model.AnnouncementListOutput{Items: items, RemainPage: remain}, nil
+	remain := countRemainPage(total, in.Page, pageSize)
+	return &model.AnnouncementListOutput{Items: items, RemainPage: remain, Total: total}, nil
+}
+
+func (s *sAnnouncement) GetActive(ctx context.Context) (*model.AnnouncementActiveOutput, error) {
+	type row struct {
+		Id          int         `json:"id"`
+		Title       string      `json:"title"`
+		IsPinned    int         `json:"is_pinned"`
+		PublishedAt *gtime.Time `json:"published_at"`
+		ExpiresAt   *gtime.Time `json:"expires_at"`
+	}
+
+	var r row
+	err := g.DB().Ctx(ctx).Model("announcements a").
+		Fields("a.id, a.title, a.is_pinned, a.published_at, a.expires_at").
+		Where("a.deleted_at IS NULL").
+		Where("a.expires_at IS NULL OR a.expires_at > ?", gtime.Now()).
+		Order("a.is_pinned DESC, a.published_at DESC").
+		Limit(1).
+		Scan(&r)
+	if err != nil {
+		return nil, err
+	}
+	if r.Id == 0 {
+		return &model.AnnouncementActiveOutput{}, nil
+	}
+	return &model.AnnouncementActiveOutput{Item: &model.AnnouncementListItem{
+		ID:          r.Id,
+		Title:       r.Title,
+		IsPinned:    r.IsPinned == 1,
+		PublishedAt: timestampMilli(r.PublishedAt),
+		ExpiresAt:   timestampMilli(r.ExpiresAt),
+	}}, nil
 }
 
 func (s *sAnnouncement) Detail(ctx context.Context, in model.AnnouncementDetailInput) (*model.AnnouncementDetailOutput, error) {
@@ -91,11 +145,12 @@ func (s *sAnnouncement) Detail(ctx context.Context, in model.AnnouncementDetailI
 		AuthorName  string      `json:"author_name"`
 		IsPinned    int         `json:"is_pinned"`
 		PublishedAt *gtime.Time `json:"published_at"`
+		ExpiresAt   *gtime.Time `json:"expires_at"`
 	}
 	var r row
 	err := g.DB().Ctx(ctx).Model("announcements a").
 		LeftJoin("users u", "u.id = a.author_id").
-		Fields("a.id, a.title, a.contents, u.nickname AS author_name, a.is_pinned, a.published_at").
+		Fields("a.id, a.title, a.contents, u.nickname AS author_name, a.is_pinned, a.published_at, a.expires_at").
 		Where("a.id = ? AND a.deleted_at IS NULL", in.ID).
 		Scan(&r)
 	if err != nil {
@@ -116,7 +171,8 @@ func (s *sAnnouncement) Detail(ctx context.Context, in model.AnnouncementDetailI
 		Content:     r.Contents,
 		AuthorName:  r.AuthorName,
 		IsPinned:    r.IsPinned == 1,
-		PublishedAt: r.PublishedAt.TimestampMilli(),
+		PublishedAt: timestampMilli(r.PublishedAt),
+		ExpiresAt:   timestampMilli(r.ExpiresAt),
 		ImageIDs:    imgIDs,
 	}, nil
 }
@@ -147,7 +203,9 @@ func (s *sAnnouncement) Update(ctx context.Context, in model.AnnouncementUpdateI
 	if in.IsPinned != nil {
 		data["is_pinned"] = *in.IsPinned
 	}
-	if in.ExpiresAt != nil {
+	if in.ClearExpiresAt {
+		data["expires_at"] = gdb.Raw("NULL")
+	} else if in.ExpiresAt != nil {
 		data["expires_at"] = in.ExpiresAt
 	}
 	_, err := g.DB().Ctx(ctx).Model("announcements").Where("id = ?", in.ID).Update(data)

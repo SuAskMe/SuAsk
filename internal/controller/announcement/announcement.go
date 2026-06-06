@@ -16,6 +16,34 @@ type cAnnouncement struct{}
 
 var Announcement = cAnnouncement{}
 
+func toAnnouncementItem(it model.AnnouncementListItem) v1.AnnouncementItem {
+	return v1.AnnouncementItem{
+		ID:          it.ID,
+		Title:       it.Title,
+		Content:     it.Content,
+		AuthorName:  it.AuthorName,
+		IsPinned:    it.IsPinned,
+		PublishedAt: it.PublishedAt,
+		ExpiresAt:   it.ExpiresAt,
+		CommentCnt:  it.CommentCnt,
+	}
+}
+
+// --- 列表（所有人可访问） ---
+
+func (c *cAnnouncement) GetActive(ctx context.Context, req *v1.ActiveReq) (res *v1.ActiveRes, err error) {
+	out, err := service.Announcement().GetActive(ctx)
+	if err != nil {
+		return nil, err
+	}
+	res = &v1.ActiveRes{}
+	if out.Item != nil {
+		item := toAnnouncementItem(*out.Item)
+		res.Announcement = &item
+	}
+	return res, nil
+}
+
 // --- 列表（所有人可访问） ---
 
 func (c *cAnnouncement) List(ctx context.Context, req *v1.ListReq) (res *v1.ListRes, err error) {
@@ -25,17 +53,9 @@ func (c *cAnnouncement) List(ctx context.Context, req *v1.ListReq) (res *v1.List
 	}
 	items := make([]v1.AnnouncementItem, len(out.Items))
 	for i, it := range out.Items {
-		items[i] = v1.AnnouncementItem{
-			ID:          it.ID,
-			Title:       it.Title,
-			Content:     it.Content,
-			AuthorName:  it.AuthorName,
-			IsPinned:    it.IsPinned,
-			PublishedAt: it.PublishedAt,
-			CommentCnt:  it.CommentCnt,
-		}
+		items[i] = toAnnouncementItem(it)
 	}
-	return &v1.ListRes{Announcements: items, RemainPage: out.RemainPage}, nil
+	return &v1.ListRes{Announcements: items, RemainPage: out.RemainPage, Total: out.Total}, nil
 }
 
 // --- 详情（所有人可访问） ---
@@ -74,6 +94,7 @@ func (c *cAnnouncement) Detail(ctx context.Context, req *v1.DetailReq) (res *v1.
 		AuthorName:  out.AuthorName,
 		IsPinned:    out.IsPinned,
 		PublishedAt: out.PublishedAt,
+		ExpiresAt:   out.ExpiresAt,
 		ImageURLs:   imageURLs,
 		Comments:    commentItems,
 	}, nil
@@ -127,16 +148,24 @@ func (c *cAnnouncement) Update(ctx context.Context, req *v1.UpdateReq) (res *v1.
 	if err := requireAdmin(ctx, uid); err != nil {
 		return nil, err
 	}
-	var expiresAt *gtime.Time
-	if req.ExpiresAt != "" {
-		expiresAt = gtime.NewFromStr(req.ExpiresAt)
+	var (
+		expiresAt      *gtime.Time
+		clearExpiresAt bool
+	)
+	if req.ExpiresAt != nil {
+		if *req.ExpiresAt == "" {
+			clearExpiresAt = true
+		} else {
+			expiresAt = gtime.NewFromStr(*req.ExpiresAt)
+		}
 	}
 	out, err := service.Announcement().Update(ctx, model.AnnouncementUpdateInput{
-		ID:        req.ID,
-		Title:     req.Title,
-		Content:   req.Content,
-		IsPinned:  req.IsPinned,
-		ExpiresAt: expiresAt,
+		ID:             req.ID,
+		Title:          req.Title,
+		Content:        req.Content,
+		IsPinned:       req.IsPinned,
+		ExpiresAt:      expiresAt,
+		ClearExpiresAt: clearExpiresAt,
 	})
 	if err != nil {
 		return nil, err

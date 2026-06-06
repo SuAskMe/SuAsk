@@ -9,6 +9,7 @@ type (
 	IAnnouncement interface {
 		List(ctx context.Context, in model.AnnouncementListInput) (*model.AnnouncementListOutput, error)
 		Detail(ctx context.Context, in model.AnnouncementDetailInput) (*model.AnnouncementDetailOutput, error)
+		GetActive(ctx context.Context) (*model.AnnouncementActiveOutput, error)
 		Create(ctx context.Context, in model.AnnouncementCreateInput) (*model.AnnouncementCreateOutput, error)
 		Update(ctx context.Context, in model.AnnouncementUpdateInput) (*model.AnnouncementUpdateOutput, error)
 		Delete(ctx context.Context, in model.AnnouncementDeleteInput) error

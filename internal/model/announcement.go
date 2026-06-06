@@ -11,6 +11,7 @@ type AnnouncementListInput struct {
 type AnnouncementListOutput struct {
 	Items      []AnnouncementListItem
 	RemainPage int
+	Total      int
 }
 
 type AnnouncementListItem struct {
@@ -20,6 +21,7 @@ type AnnouncementListItem struct {
 	AuthorName  string
 	IsPinned    bool
 	PublishedAt int64
+	ExpiresAt   int64
 	CommentCnt  int
 }
 
@@ -34,6 +36,7 @@ type AnnouncementDetailOutput struct {
 	AuthorName  string
 	IsPinned    bool
 	PublishedAt int64
+	ExpiresAt   int64
 	ImageIDs    []int
 }
 
@@ -50,11 +53,12 @@ type AnnouncementCreateOutput struct {
 }
 
 type AnnouncementUpdateInput struct {
-	ID        int
-	Title     string
-	Content   string
-	IsPinned  *bool
-	ExpiresAt *gtime.Time
+	ID             int
+	Title          string
+	Content        string
+	IsPinned       *bool
+	ExpiresAt      *gtime.Time
+	ClearExpiresAt bool
 }
 
 type AnnouncementUpdateOutput struct {
@@ -84,4 +88,8 @@ type AnnouncementComment struct {
 	Contents  string
 	CreatedAt int64
 	InReplyTo int
+}
+
+type AnnouncementActiveOutput struct {
+	Item *AnnouncementListItem
 }
