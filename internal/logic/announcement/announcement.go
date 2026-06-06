@@ -43,9 +43,11 @@ func (s *sAnnouncement) List(ctx context.Context, in model.AnnouncementListInput
 		LeftJoin("users u", "u.id = a.author_id").
 		Fields("a.id, a.title, a.contents, u.nickname AS author_name, a.is_pinned, a.published_at, a.expires_at").
 		Where("a.deleted_at IS NULL").
-		Where("a.expires_at IS NULL OR a.expires_at > ?", gtime.Now()).
 		Order("a.is_pinned DESC, a.published_at DESC").
 		Page(in.Page, pageSize)
+	if !in.IncludeExpired {
+		md = md.Where("a.expires_at IS NULL OR a.expires_at > ?", gtime.Now())
+	}
 
 	type row struct {
 		Id          int         `json:"id"`

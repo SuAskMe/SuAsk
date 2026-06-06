@@ -29,6 +29,22 @@ func toAnnouncementItem(it model.AnnouncementListItem) v1.AnnouncementItem {
 	}
 }
 
+func toAnnouncementItems(items []model.AnnouncementListItem) []v1.AnnouncementItem {
+	res := make([]v1.AnnouncementItem, len(items))
+	for i, it := range items {
+		res[i] = toAnnouncementItem(it)
+	}
+	return res
+}
+
+func toListRes(out *model.AnnouncementListOutput) *v1.ListRes {
+	return &v1.ListRes{
+		Announcements: toAnnouncementItems(out.Items),
+		RemainPage:    out.RemainPage,
+		Total:         out.Total,
+	}
+}
+
 // --- 列表（所有人可访问） ---
 
 func (c *cAnnouncement) GetActive(ctx context.Context, req *v1.ActiveReq) (res *v1.ActiveRes, err error) {
@@ -51,11 +67,19 @@ func (c *cAnnouncement) List(ctx context.Context, req *v1.ListReq) (res *v1.List
 	if err != nil {
 		return nil, err
 	}
-	items := make([]v1.AnnouncementItem, len(out.Items))
-	for i, it := range out.Items {
-		items[i] = toAnnouncementItem(it)
+	return toListRes(out), nil
+}
+
+func (c *cAnnouncement) AdminList(ctx context.Context, req *v1.AdminListReq) (res *v1.AdminListRes, err error) {
+	uid := gconv.Int(ctx.Value(consts.CtxId))
+	if err := requireAdmin(ctx, uid); err != nil {
+		return nil, err
 	}
-	return &v1.ListRes{Announcements: items, RemainPage: out.RemainPage, Total: out.Total}, nil
+	out, err := service.Announcement().List(ctx, model.AnnouncementListInput{Page: req.Page, IncludeExpired: true})
+	if err != nil {
+		return nil, err
+	}
+	return toListRes(out), nil
 }
 
 // --- 详情（所有人可访问） ---

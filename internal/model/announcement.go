@@ -5,7 +5,8 @@ import "github.com/gogf/gf/v2/os/gtime"
 // --- Service 层入参/出参 ---
 
 type AnnouncementListInput struct {
-	Page int
+	Page           int
+	IncludeExpired bool
 }
 
 type AnnouncementListOutput struct {

@@ -134,6 +134,7 @@ var (
 						admin.Admin.RestoreQuestion,
 						admin.Admin.DeleteQuestionAnswer,
 						admin.Admin.RestoreQuestionAnswer,
+						announcement.Announcement.AdminList,
 					)
 				})
 			})

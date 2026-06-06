@@ -28,6 +28,13 @@ type ListRes struct {
 	Total         int                `json:"total"`
 }
 
+type AdminListReq struct {
+	g.Meta `path:"/announcements/admin" method:"GET" tags:"Announcement" summary:"公告管理列表（仅管理员）"`
+	Page   int `json:"page" v:"required|min:1"`
+}
+
+type AdminListRes = ListRes
+
 type AnnouncementItem struct {
 	ID          int    `json:"id"`
 	Title       string `json:"title"`
