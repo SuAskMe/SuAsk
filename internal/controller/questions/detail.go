@@ -3,6 +3,8 @@ package questions
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	v1 "suask/api/answer/v1"
 	"suask/internal/consts"
 	qutil "suask/internal/logic/questions_util"
@@ -22,37 +24,65 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 	qid := req.QuestionID
 	userId := gconv.Int(ctx.Value(consts.CtxId))
 
-	// 获取问题
 	QBOutput, err := service.QuestionDetail().GetQuestionBase(ctx, &model.GetQuestionBaseInput{QuestionId: qid, UserId: userId})
 	if err != nil {
 		return nil, err
 	}
-	// 增加浏览量
-	_, err = service.QuestionDetail().AddQuestionView(ctx, &model.AddViewInput{QuestionId: qid})
-	if err != nil {
-		return nil, err
+
+	var (
+		wg                sync.WaitGroup
+		viewErr           error
+		questionImageErr  error
+		answerErr         error
+		questionImageURLs []string
+		ansOutput         *model.GetAnswerDetailOutput
+	)
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		_, viewErr = service.QuestionDetail().AddQuestionView(ctx, &model.AddViewInput{QuestionId: qid})
+	}()
+	go func() {
+		defer wg.Done()
+		urlMap, err := qutil.BatchGetFileURLs(ctx, QBOutput.ImageList)
+		if err != nil {
+			questionImageErr = err
+			return
+		}
+		questionImageURLs = make([]string, 0, len(QBOutput.ImageList))
+		for _, fid := range QBOutput.ImageList {
+			if url, ok := urlMap[fid]; ok {
+				questionImageURLs = append(questionImageURLs, url)
+			}
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		ansOutput, answerErr = service.QuestionDetail().GetAnswers(ctx, &model.GetAnswerDetailInput{QuestionId: qid, DstUserId: QBOutput.DstUserId})
+	}()
+	wg.Wait()
+
+	if viewErr != nil {
+		return nil, viewErr
 	}
-	// 获取问题图片列表
-	fileList, err := service.File().GetList(ctx, model.FileListGetInput{IdList: QBOutput.ImageList})
-	if err != nil {
-		return nil, err
+	if questionImageErr != nil {
+		return nil, questionImageErr
 	}
-	res = &v1.GetDetailRes{ // 填充返回结果
+	if answerErr != nil {
+		return nil, answerErr
+	}
+
+	res = &v1.GetDetailRes{
 		Question: model.QuestionBase{
 			ID:         QBOutput.ID,
 			Title:      QBOutput.Title,
 			Content:    QBOutput.Content,
 			Views:      QBOutput.Views + 1,
 			CreatedAt:  QBOutput.CreatedAt,
-			ImageURLs:  fileList.URL,
+			ImageURLs:  questionImageURLs,
 			IsFavorite: QBOutput.IsFavorite,
 		},
 		CanReply: QBOutput.CanReply,
-	}
-	// 获取回答列表
-	ansOutput, err := service.QuestionDetail().GetAnswers(ctx, &model.GetAnswerDetailInput{QuestionId: qid, DstUserId: QBOutput.DstUserId})
-	if err != nil {
-		return nil, err
 	}
 
 	answerList := ansOutput.Answers
@@ -103,11 +133,13 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 	}
 	res.Answers = answerList
 
-	// 更新通知
-	_, err = service.Notification().UpdateAoQ(ctx, model.UpdateAoQInput{UserID: userId, QuestionID: req.QuestionID})
-	if err != nil {
-		return nil, err
-	}
+	bgCtx := context.WithoutCancel(ctx)
+	go func(userID, questionID int) {
+		_, err := service.Notification().UpdateAoQ(bgCtx, model.UpdateAoQInput{UserID: userID, QuestionID: questionID})
+		if err != nil {
+			g.Log().Warningf(bgCtx, "更新问题通知已读状态失败: %v", err)
+		}
+	}(userId, qid)
 	return
 }
 

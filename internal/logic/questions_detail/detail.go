@@ -3,6 +3,8 @@ package questions_detail
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
@@ -48,28 +50,44 @@ func (sQuestionDetail) GetQuestionBase(ctx context.Context, in *model.GetQuestio
 		return nil, err
 	}
 	canReply := true
-	err = validation.AnswerPerm(ctx, &question)
-	if err != nil {
-		canReply = false
+	var (
+		wg          sync.WaitGroup
+		imgList     []custom.Image
+		isFavorite  bool
+		imgErr      error
+		favoriteErr error
+	)
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		if err := validation.AnswerPerm(ctx, &question); err != nil {
+			canReply = false
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		imgErr = dao.Attachments.Ctx(ctx).Where(dao.Attachments.Columns().QuestionId, question.Id).Scan(&imgList)
+	}()
+	go func() {
+		defer wg.Done()
+		if in.UserId == 0 {
+			return
+		}
+		one, err := dao.Favorites.Ctx(ctx).Where(dao.Favorites.Columns().QuestionId, in.QuestionId).Where(dao.Favorites.Columns().UserId, in.UserId).One()
+		if err != nil {
+			favoriteErr = err
+			return
+		}
+		isFavorite = !one.IsEmpty()
+	}()
+	wg.Wait()
+	if imgErr != nil {
+		return nil, imgErr
 	}
-	// 获取问题详情
-	var imgList []custom.Image
-	var count int
-	err = dao.Attachments.Ctx(ctx).Where(dao.Attachments.Columns().QuestionId, question.Id).ScanAndCount(&imgList, &count, false)
-	if err != nil {
-		return nil, err
+	if favoriteErr != nil {
+		return nil, favoriteErr
 	}
 	imgIdList := extractFileIDs(imgList)
-	isFavorite := false
-	if in.UserId != 0 {
-		one, err := dao.Favorites.Ctx(ctx).Where(dao.Favorites.Columns().QuestionId, in.QuestionId).Where(dao.Favorites.Columns().UserId, in.UserId).One()
-		if !one.IsEmpty() {
-			isFavorite = true
-		}
-		if err != nil {
-			return nil, err
-		}
-	}
 	output := model.GetQuestionBaseOutput{
 		ID:         question.Id,
 		Title:      question.Title,
@@ -123,28 +141,59 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 		answerList[i].Upvotes = ans.Upvotes
 	}
 
-	// 获取用户点赞信息
-	//UserId := 2
-	UserId := gconv.Int(ctx.Value(consts.CtxId))
-	md = dao.Upvotes.Ctx(ctx).WhereIn(dao.Upvotes.Columns().AnswerId, IdList).Where(dao.Upvotes.Columns().UserId, UserId)
-	var upvotes []custom.MyUpvotes
-	err = md.Scan(&upvotes)
-	if err != nil {
-		return nil, err
+	if len(answers) == 0 {
+		return &model.GetAnswerDetailOutput{
+			IdMap:      IdMap,
+			Answers:    answerList,
+			AvatarsMap: map[int][]int{},
+			ImageMap:   map[int][]int{},
+		}, nil
 	}
-	for _, upvote := range upvotes {
-		answerList[IdMap[upvote.AnswerId]].IsUpvoted = true
-	}
-	// 获取回答者的信息
+
 	UserIdList := make([]int, 0, len(answers)) // 用户ID列表
 	for k := range UserIdMap {
 		UserIdList = append(UserIdList, k)
 	}
-	md = dao.Users.Ctx(ctx).WhereIn(dao.Users.Columns().Id, UserIdList)
-	var userInfo []custom.UserInfo // 用户信息
-	err = md.Scan(&userInfo)
-	if err != nil {
-		return nil, err
+
+	var (
+		wg             sync.WaitGroup
+		upvotes        []custom.MyUpvotes
+		userInfo       []custom.UserInfo
+		imgList        []custom.AnswerImage
+		upvotesErr     error
+		userInfoErr    error
+		attachmentsErr error
+	)
+	UserId := gconv.Int(ctx.Value(consts.CtxId))
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		upvotesErr = dao.Upvotes.Ctx(ctx).
+			WhereIn(dao.Upvotes.Columns().AnswerId, IdList).
+			Where(dao.Upvotes.Columns().UserId, UserId).
+			Scan(&upvotes)
+	}()
+	go func() {
+		defer wg.Done()
+		userInfoErr = dao.Users.Ctx(ctx).WhereIn(dao.Users.Columns().Id, UserIdList).Scan(&userInfo)
+	}()
+	go func() {
+		defer wg.Done()
+		attachmentsErr = dao.Attachments.Ctx(ctx).WhereIn(dao.Attachments.Columns().AnswerId, IdList).Scan(&imgList)
+	}()
+	wg.Wait()
+	if upvotesErr != nil {
+		return nil, upvotesErr
+	}
+	if userInfoErr != nil {
+		return nil, userInfoErr
+	}
+	if attachmentsErr != nil {
+		return nil, attachmentsErr
+	}
+
+	for _, upvote := range upvotes {
+		answerList[IdMap[upvote.AnswerId]].IsUpvoted = true
 	}
 	AvatarMap := make(map[int][]int) // 头像ID对应的回答ID列表
 	seenUserIDs := make(map[int]struct{}, len(userInfo))
@@ -177,13 +226,6 @@ func (sQuestionDetail) GetAnswers(ctx context.Context, in *model.GetAnswerDetail
 			answerList[IdMap[answerId]].UserAvatar = consts.DefaultAvatarURL
 		}
 		AvatarMap[0] = append(AvatarMap[0], answerIDs...)
-	}
-	// 获取回答的图片
-	md = dao.Attachments.Ctx(ctx).WhereIn(dao.Attachments.Columns().AnswerId, IdList)
-	var imgList []custom.AnswerImage
-	err = md.Scan(&imgList)
-	if err != nil {
-		return nil, err
 	}
 	ImgMap := make(map[int][]int)
 	for _, img := range imgList {
