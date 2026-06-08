@@ -19,8 +19,19 @@ type GetAnswersInput struct {
 	QuestionIDs []int `json:"question_ids"`
 }
 
+type AnswerUserAsset struct {
+	AvatarFileID int    `json:"avatar_file_id"`
+	Nickname     string `json:"nickname"`
+}
+
+type AnswerUserSummary struct {
+	Avatar   string `json:"avatar"`
+	Nickname string `json:"nickname"`
+}
+
 type GetAnswersOutput struct {
-	AvatarsMap map[int][]int `json:"avatars_map"`
+	AvatarsMap    map[int][]int             `json:"avatars_map"`
+	AnswerUserMap map[int][]AnswerUserAsset `json:"answer_user_map"`
 }
 
 // Keyword 原来定义在 questions_public.go 里，被 history / teacher 等关键字搜索接口复用。
@@ -48,8 +59,9 @@ type GetQuestionListAssetsInput struct {
 }
 
 type GetQuestionListAssetsOutput struct {
-	ImageURLMap     map[int][]string `json:"image_url_map"`
-	AnswerAvatarMap map[int][]string `json:"answer_avatar_map"`
+	ImageURLMap     map[int][]string            `json:"image_url_map"`
+	AnswerAvatarMap map[int][]string            `json:"answer_avatar_map"`
+	AnswerUserMap   map[int][]AnswerUserSummary `json:"answer_user_map"`
 }
 
 // FavoriteInput / FavoriteOutput —— 收藏/取消收藏

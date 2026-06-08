@@ -42,6 +42,9 @@ func GetHistoryImpl(ctx context.Context, req interface{}) (res interface{}, err 
 	for questionId, urls := range assetsOutput.AnswerAvatarMap {
 		QuestionList[idMap[questionId]].AnswerAvatars = urls
 	}
+	for questionId, users := range assetsOutput.AnswerUserMap {
+		QuestionList[idMap[questionId]].AnswerUsers = users
+	}
 	res = &v1.GetHistoryPageRes{
 		QuestionList: QuestionList,
 		RemainPage:   baseOutput.RemainPage,
