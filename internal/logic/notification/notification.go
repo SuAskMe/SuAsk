@@ -4,10 +4,13 @@ import (
 	"context"
 	"suask/internal/consts"
 	"suask/internal/dao"
+	qutil "suask/internal/logic/questions_util"
 	"suask/internal/model"
 	"suask/internal/model/do"
 	"suask/internal/service"
 
+	"github.com/gogf/gf/v2/database/gdb"
+	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
 )
 
@@ -32,115 +35,195 @@ func (s *sNotification) Add(ctx context.Context, in model.AddNotificationInput) 
 }
 
 func (s *sNotification) Get(ctx context.Context, in model.GetNotificationsInput) (out model.GetNotificationsOutput, err error) {
-	const query = `
-	SELECT
-		n.id              AS nid,
-		n.type            AS ntype,
-		n.is_read         AS is_read,
-		n.created_at      AS n_created_at,
-		n.question_id     AS qid,
-		n.answer_id       AS aid,
-		n.reply_to_id     AS rid,
-		q.title           AS q_title,
-		q.contents        AS q_contents,
-		q.dst_user_id     AS q_dst_user_id,
-		a.contents        AS a_contents,
-		a.user_id         AS a_user_id,
-		r.contents        AS r_contents,
-		r.user_id         AS r_user_id,
-		ua.nickname       AS a_nickname,
-		ur.nickname       AS r_nickname
-	FROM notifications n
-	LEFT JOIN questions q ON q.id = n.question_id
-	LEFT JOIN answers   a ON a.id = n.answer_id
-	LEFT JOIN answers   r ON r.id = n.reply_to_id
-	LEFT JOIN users    ua ON ua.id = a.user_id
-	LEFT JOIN users    ur ON ur.id = r.user_id
-	WHERE n.user_id = ?
-	ORDER BY n.is_read ASC, n.created_at DESC
-	`
+	const questionQuery = `
+		SELECT
+			n.id AS nid,
+			n.is_read AS is_read,
+			n.created_at AS n_created_at,
+			n.question_id AS qid,
+			CASE WHEN q.deleted_at IS NULL THEN q.title ELSE '' END AS q_title,
+			CASE WHEN q.deleted_at IS NULL THEN q.contents ELSE '' END AS q_contents,
+			q.dst_user_id AS q_dst_user_id
+		FROM notifications n
+		LEFT JOIN questions q ON q.id = n.question_id
+		WHERE n.user_id = ? AND n.type = ? AND n.deleted_at IS NULL
+		ORDER BY n.is_read ASC, n.created_at DESC`
+	const answerQuery = `
+		SELECT
+			n.id AS nid,
+			n.is_read AS is_read,
+			n.created_at AS n_created_at,
+			n.question_id AS qid,
+			n.answer_id AS aid,
+			CASE WHEN q.deleted_at IS NULL THEN q.title ELSE '' END AS q_title,
+			CASE WHEN q.deleted_at IS NULL THEN q.contents ELSE '' END AS q_contents,
+			q.dst_user_id AS q_dst_user_id,
+			CASE WHEN a.deleted_at IS NULL THEN a.contents ELSE '' END AS a_contents,
+			CASE WHEN a.deleted_at IS NULL THEN a.user_id ELSE 0 END AS a_user_id,
+			CASE WHEN a.deleted_at IS NULL THEN ua.nickname ELSE '' END AS a_nickname,
+			CASE WHEN a.deleted_at IS NULL THEN ua.avatar_file_id ELSE 0 END AS a_avatar_file_id
+		FROM notifications n
+		LEFT JOIN questions q ON q.id = n.question_id
+		LEFT JOIN answers a ON a.id = n.answer_id
+		LEFT JOIN users ua ON ua.id = a.user_id AND ua.deleted_at IS NULL
+		WHERE n.user_id = ? AND n.type = ? AND n.deleted_at IS NULL
+		ORDER BY n.is_read ASC, n.created_at DESC`
+	const replyQuery = `
+		SELECT
+			n.id AS nid,
+			n.is_read AS is_read,
+			n.created_at AS n_created_at,
+			n.question_id AS qid,
+			n.answer_id AS aid,
+			n.reply_to_id AS rid,
+			CASE WHEN q.deleted_at IS NULL THEN q.title ELSE '' END AS q_title,
+			CASE WHEN q.deleted_at IS NULL THEN q.contents ELSE '' END AS q_contents,
+			q.dst_user_id AS q_dst_user_id,
+			CASE WHEN a.deleted_at IS NULL THEN a.contents ELSE '' END AS a_contents,
+			CASE WHEN r.deleted_at IS NULL THEN r.contents ELSE '' END AS r_contents,
+			CASE WHEN r.deleted_at IS NULL THEN r.user_id ELSE 0 END AS r_user_id,
+			CASE WHEN r.deleted_at IS NULL THEN ur.nickname ELSE '' END AS r_nickname,
+			CASE WHEN r.deleted_at IS NULL THEN ur.avatar_file_id ELSE 0 END AS r_avatar_file_id
+		FROM notifications n
+		LEFT JOIN questions q ON q.id = n.question_id
+		LEFT JOIN answers a ON a.id = n.answer_id
+		LEFT JOIN answers r ON r.id = n.reply_to_id
+		LEFT JOIN users ur ON ur.id = r.user_id AND ur.deleted_at IS NULL
+		WHERE n.user_id = ? AND n.type = ? AND n.deleted_at IS NULL
+		ORDER BY n.is_read ASC, n.created_at DESC`
 
-	rows, err := g.DB().Ctx(ctx).Query(ctx, query, in.UserId)
+	questionRows, err := queryNotificationRows(ctx, questionQuery, in.UserId, consts.NewQuestion)
+	if err != nil {
+		return model.GetNotificationsOutput{}, err
+	}
+	answerRows, err := queryNotificationRows(ctx, answerQuery, in.UserId, consts.NewAnswer)
+	if err != nil {
+		return model.GetNotificationsOutput{}, err
+	}
+	replyRows, err := queryNotificationRows(ctx, replyQuery, in.UserId, consts.NewReply)
 	if err != nil {
 		return model.GetNotificationsOutput{}, err
 	}
 
-	out = model.GetNotificationsOutput{
-		NewQuestion: make([]model.NotificationNewQuestion, 0),
-		NewAnswer:   make([]model.NotificationNewAnswer, 0),
-		NewReply:    make([]model.NotificationNewReply, 0),
+	avatarFileIDs := make([]int, 0, len(answerRows)+len(replyRows))
+	for _, row := range answerRows {
+		avatarFileIDs = append(avatarFileIDs, row["a_avatar_file_id"].Int())
+	}
+	for _, row := range replyRows {
+		avatarFileIDs = append(avatarFileIDs, row["r_avatar_file_id"].Int())
+	}
+	avatarURLMap, err := qutil.BatchGetFileURLs(ctx, qutil.CollectUniqueFileIDs(avatarFileIDs))
+	if err != nil {
+		return model.GetNotificationsOutput{}, gerror.Wrap(err, "resolve notification avatars")
 	}
 
-	for _, row := range rows {
-		ntype := row["ntype"].String()
-		qid := row["qid"].Int()
-		if qid == 0 {
-			continue
-		}
-		var createdAt int64
-		if t := row["n_created_at"].GTime(); t != nil {
-			createdAt = t.TimestampMilli()
-		}
-		base := model.NotificationBase{
-			Id:              int64(row["nid"].Int()),
-			QuestionId:      qid,
-			QuestionTitle:   row["q_title"].String(),
-			QuestionContent: row["q_contents"].String(),
-			IsRead:          row["is_read"].Int() == 1,
-			CreatedAt:       createdAt,
-		}
+	out = model.GetNotificationsOutput{
+		NewQuestion: make([]model.NotificationNewQuestion, 0, len(questionRows)),
+		NewAnswer:   make([]model.NotificationNewAnswer, 0, len(answerRows)),
+		NewReply:    make([]model.NotificationNewReply, 0, len(replyRows)),
+	}
 
-		switch ntype {
-		case consts.NewQuestion:
-			out.NewQuestion = append(out.NewQuestion, model.NotificationNewQuestion{
-				NotificationBase: base,
-				UserName:         consts.DefaultUserName,
-				UserId:           consts.DefaultUserId,
-			})
-
-		case consts.NewAnswer:
-			aid := row["aid"].Int()
-			if aid == 0 {
-				continue
-			}
-			respdName := row["a_nickname"].String()
-			respdId := row["a_user_id"].Int()
-			if respdId == 0 {
-				respdName = consts.DefaultUserName
-				respdId = consts.DefaultUserId
-			}
-			out.NewAnswer = append(out.NewAnswer, model.NotificationNewAnswer{
-				NotificationBase: base,
-				AnswerId:         aid,
-				AnswerContent:    row["a_contents"].String(),
-				RespondentName:   respdName,
-				RespondentId:     respdId,
-			})
-
-		case consts.NewReply:
-			aid := row["aid"].Int()
-			rid := row["rid"].Int()
-			if aid == 0 || rid == 0 {
-				continue
-			}
-			respdName := row["r_nickname"].String()
-			respdId := row["r_user_id"].Int()
-			if respdId == 0 || row["q_dst_user_id"].Int() == in.UserId {
-				respdName = consts.DefaultUserName
-				respdId = consts.DefaultUserId
-			}
-			out.NewReply = append(out.NewReply, model.NotificationNewReply{
-				NotificationBase: base,
-				AnswerId:         aid,
-				AnswerContent:    row["a_contents"].String(),
-				ReplyToId:        rid,
-				ReplyToContent:   row["r_contents"].String(),
-				RespondentName:   respdName,
-				RespondentId:     respdId,
-			})
+	defaultActor := buildNotificationActor(0, "", 0, avatarURLMap)
+	for _, row := range questionRows {
+		out.NewQuestion = append(out.NewQuestion, model.NotificationNewQuestion{
+			NotificationBase: buildNotificationBase(row),
+			UserAvatar:       defaultActor.Avatar,
+			UserName:         defaultActor.Name,
+			UserId:           defaultActor.Id,
+		})
+	}
+	for _, row := range answerRows {
+		respondent := buildNotificationActor(
+			row["a_user_id"].Int(),
+			row["a_nickname"].String(),
+			row["a_avatar_file_id"].Int(),
+			avatarURLMap,
+		)
+		out.NewAnswer = append(out.NewAnswer, model.NotificationNewAnswer{
+			NotificationBase: buildNotificationBase(row),
+			AnswerId:         row["aid"].Int(),
+			AnswerContent:    row["a_contents"].String(),
+			RespondentAvatar: respondent.Avatar,
+			RespondentName:   respondent.Name,
+			RespondentId:     respondent.Id,
+		})
+	}
+	for _, row := range replyRows {
+		respondent := buildNotificationActor(
+			row["r_user_id"].Int(),
+			row["r_nickname"].String(),
+			row["r_avatar_file_id"].Int(),
+			avatarURLMap,
+		)
+		if row["q_dst_user_id"].Int() == in.UserId {
+			respondent = defaultActor
 		}
+		out.NewReply = append(out.NewReply, model.NotificationNewReply{
+			NotificationBase: buildNotificationBase(row),
+			ReplyToId:        row["rid"].Int(),
+			ReplyToContent:   row["r_contents"].String(),
+			RespondentAvatar: respondent.Avatar,
+			RespondentName:   respondent.Name,
+			RespondentId:     respondent.Id,
+			AnswerId:         row["aid"].Int(),
+			AnswerContent:    row["a_contents"].String(),
+		})
 	}
 	return out, nil
+}
+
+func queryNotificationRows(ctx context.Context, query string, userID int, notificationType string) (gdb.Result, error) {
+	rows, err := g.DB().Ctx(ctx).Query(ctx, query, userID, notificationType)
+	if err != nil {
+		return nil, gerror.Wrap(err, "query notifications")
+	}
+	return rows, nil
+}
+
+type notificationActor struct {
+	Id     int
+	Name   string
+	Avatar string
+}
+
+func buildNotificationBase(row gdb.Record) model.NotificationBase {
+	var createdAt int64
+	if t := row["n_created_at"].GTime(); t != nil {
+		createdAt = t.TimestampMilli()
+	}
+	return model.NotificationBase{
+		Id:              int64(row["nid"].Int()),
+		QuestionId:      row["qid"].Int(),
+		QuestionTitle:   row["q_title"].String(),
+		QuestionContent: row["q_contents"].String(),
+		IsRead:          row["is_read"].Int() == 1,
+		CreatedAt:       createdAt,
+	}
+}
+
+func buildNotificationActor(userID int, nickname string, avatarFileID int, avatarURLMap map[int]string) notificationActor {
+	actor := notificationActor{
+		Id:     userID,
+		Name:   nickname,
+		Avatar: resolveNotificationAvatar(avatarFileID, avatarURLMap),
+	}
+	if actor.Id == 0 {
+		actor.Id = consts.DefaultUserId
+	}
+	if actor.Name == "" {
+		actor.Name = consts.DefaultUserName
+	}
+	return actor
+}
+
+func resolveNotificationAvatar(avatarFileID int, avatarURLMap map[int]string) string {
+	if avatarFileID == 0 {
+		return consts.DefaultAvatarURL
+	}
+	if url, ok := avatarURLMap[avatarFileID]; ok {
+		return url
+	}
+	return consts.DefaultAvatarURL
 }
 
 func (s *sNotification) Update(ctx context.Context, in model.UpdateNotificationInput) (out model.UpdateNotificationOutput, err error) {
