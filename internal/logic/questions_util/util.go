@@ -57,11 +57,7 @@ func (s sQuestionUtil) GetQuestionListAssets(ctx context.Context, input *model.G
 	if err != nil {
 		return nil, err
 	}
-	imageFileIds := make([]int, 0)
-	for _, ids := range imagesOutput.ImageMap {
-		imageFileIds = append(imageFileIds, ids...)
-	}
-	imageURLMap, err := getFileURLMap(ctx, imageFileIds)
+	imageURLMap, err := BatchGetFileURLs(ctx, CollectFileIDs(imagesOutput.ImageMap, nil))
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +126,7 @@ func (s sQuestionUtil) GetQuestionListAssets(ctx context.Context, input *model.G
 		}
 	}
 
-	avatarURLMap, err := getFileURLMap(ctx, avatarFileIds)
+	avatarURLMap, err := BatchGetFileURLs(ctx, avatarFileIds)
 	if err != nil {
 		return nil, err
 	}
@@ -168,22 +164,6 @@ func (s sQuestionUtil) GetQuestionListAssets(ctx context.Context, input *model.G
 	return out, nil
 }
 
-func getFileURLMap(ctx context.Context, idList []int) (map[int]string, error) {
-	urlMap := make(map[int]string)
-	if len(idList) == 0 {
-		return urlMap, nil
-	}
-	files, err := service.File().GetList(ctx, model.FileListGetInput{IdList: idList})
-	if err != nil {
-		return nil, err
-	}
-	for i, id := range files.FileId {
-		if i < len(files.URL) {
-			urlMap[id] = files.URL[i]
-		}
-	}
-	return urlMap, nil
-}
 func (sQuestionUtil) Favorite(ctx context.Context, in *model.FavoriteInput) (out *model.FavoriteOutput, err error) {
 	md := dao.Favorites.Ctx(ctx)
 	//UserId := 1
@@ -261,9 +241,22 @@ func (sQuestionUtil) GetAnswers(ctx context.Context, input *model.GetAnswersInpu
 	}
 	db := g.DB()
 	sqlStr := `
-	SELECT ur.question_id, u.avatar_file_id FROM user_relation ur, users u
-	WHERE ur.question_id IN (?) AND u.id = ur.user_id;`
-	res, err := db.Query(ctx, sqlStr, input.QuestionIDs)
+	SELECT question_id, avatar_file_id
+	FROM (
+		SELECT
+			ur.question_id,
+			u.avatar_file_id,
+			ROW_NUMBER() OVER (
+				PARTITION BY ur.question_id
+				ORDER BY ur.user_id
+			) AS rn
+		FROM user_relation ur
+		JOIN users u ON u.id = ur.user_id
+		WHERE ur.question_id IN (?)
+	) ranked
+	WHERE rn <= ?
+	ORDER BY question_id, rn`
+	res, err := db.Query(ctx, sqlStr, input.QuestionIDs, consts.MaxAvatarsPerQuestion)
 	if err != nil {
 		return nil, err
 	}
