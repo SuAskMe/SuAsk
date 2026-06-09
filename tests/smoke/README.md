@@ -21,7 +21,7 @@ pip install -r tests/smoke/requirements.txt
 ### 1. 第一次运行 —— 录制快照（在你改代码之前）
 
 ```powershell
-# 先在 SQLite 里塞一个确定性的测试账户（幂等，多跑也没关系）
+# 先在 SQLite 里塞确定性的测试学生、smoke_teacher 和教师收件箱冒烟提问（幂等，多跑也没关系）
 python tests/smoke/run_smoke.py seed
 
 # 录制快照
@@ -58,7 +58,7 @@ python tests/smoke/run_smoke.py verify `
 - `GET /user`
 - `GET /info/user?id=...`
 - `GET /info/teacher`
-- `GET /questions/public?sort_type=0&page=1`
+- `GET /questions/teacher?sort_type=0&page=1&teacher_id=...`
 - `GET /answer?question_id=...`
 - `GET /favorites?sort_type=0&page=1`
 - `GET /history?sort_type=0&page=1`

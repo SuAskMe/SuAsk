@@ -24,7 +24,7 @@ import requests
 _HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(_HERE))
 
-from seed import ensure_teacher, ensure_user  # noqa: E402
+from seed import ensure_teacher, ensure_teacher_questions, ensure_user  # noqa: E402
 from shape import diff_shapes, shape_of  # noqa: E402
 
 
@@ -132,11 +132,14 @@ def case_teacher_list(client: Client) -> dict[str, Any]:
 
 
 def _get_teacher_id(client: Client) -> int:
-    """从 /info/teacher 拿第一个老师的 id，供发问等 case 使用。"""
+    """从 /info/teacher 优先拿 smoke teacher 的 id，供发问等 case 使用。"""
     body = client.request("GET", "/info/teacher")
     teachers = (body.get("data") or {}).get("teachers") or []
     if not teachers:
         raise AssertionError("没有老师数据，无法跑发问 case")
+    for teacher in teachers:
+        if teacher.get("name") == DEFAULT_TEACHER or teacher.get("email") == DEFAULT_TEACHER_EMAIL:
+            return int(teacher["id"])
     return int(teachers[0]["id"])
 
 
@@ -335,14 +338,17 @@ def main() -> None:
             sys.exit(2)
         uid = ensure_user(args.db, args.user, args.email, args.password)
         tid = ensure_teacher(args.db, DEFAULT_TEACHER, DEFAULT_TEACHER_EMAIL, DEFAULT_TEACHER_PASSWORD)
+        ensure_teacher_questions(args.db, uid, tid)
         print(f"[seed] 测试学生就绪: id={uid}, name={args.user}")
         print(f"[seed] 测试老师就绪: id={tid}, name={DEFAULT_TEACHER}")
+        print("[seed] smoke teacher 冒烟提问就绪")
         return
 
     # snapshot / verify 都需要先登录；登录前同样保证账户存在
     if args.db.exists():
-        ensure_user(args.db, args.user, args.email, args.password)
-        ensure_teacher(args.db, DEFAULT_TEACHER, DEFAULT_TEACHER_EMAIL, DEFAULT_TEACHER_PASSWORD)
+        uid = ensure_user(args.db, args.user, args.email, args.password)
+        tid = ensure_teacher(args.db, DEFAULT_TEACHER, DEFAULT_TEACHER_EMAIL, DEFAULT_TEACHER_PASSWORD)
+        ensure_teacher_questions(args.db, uid, tid)
     else:
         print(
             f"[warn] 未找到数据库 {args.db}，假设账户已经由其他方式创建",

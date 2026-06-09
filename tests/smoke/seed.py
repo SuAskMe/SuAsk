@@ -43,6 +43,50 @@ def hash_password(password: str) -> tuple[str, str]:
     return salt, legacy_encrypt_password(password, salt)
 
 
+SMOKE_QUESTION_SEEDS = [
+    {
+        "title": "[smoke] teacher inbox unanswered",
+        "contents": "用于教师收件箱未回答状态的冒烟提问。",
+        "created_at": "2026-01-02 09:00:00",
+        "views": 12,
+        "reply_cnt": 0,
+        "pinned": False,
+        "deleted_at": None,
+        "answer": None,
+    },
+    {
+        "title": "[smoke] teacher inbox answered",
+        "contents": "用于教师收件箱已回答状态的冒烟提问。",
+        "created_at": "2026-01-02 09:05:00",
+        "views": 24,
+        "reply_cnt": 1,
+        "pinned": False,
+        "deleted_at": None,
+        "answer": "[smoke] teacher answered this question for regression coverage.",
+    },
+    {
+        "title": "[smoke] teacher inbox pinned",
+        "contents": "用于教师收件箱已置顶状态的冒烟提问。",
+        "created_at": "2026-01-02 09:10:00",
+        "views": 36,
+        "reply_cnt": 0,
+        "pinned": True,
+        "deleted_at": None,
+        "answer": None,
+    },
+    {
+        "title": "[smoke] teacher inbox deleted",
+        "contents": "用于教师收件箱已删除状态的冒烟提问。",
+        "created_at": "2026-01-02 09:15:00",
+        "views": 48,
+        "reply_cnt": 0,
+        "pinned": False,
+        "deleted_at": "2026-01-02 10:00:00",
+        "answer": None,
+    },
+]
+
+
 def ensure_user(
     db_path: Path,
     name: str,
@@ -136,5 +180,87 @@ def ensure_teacher(
             )
         conn.commit()
         return uid
+    finally:
+        conn.close()
+
+
+def ensure_teacher_questions(db_path: Path, student_id: int, teacher_id: int) -> None:
+    """为 smoke teacher 幂等写入覆盖各收件箱状态的冒烟提问。"""
+    conn = sqlite3.connect(str(db_path))
+    try:
+        conn.execute("PRAGMA foreign_keys = ON")
+        for item in SMOKE_QUESTION_SEEDS:
+            row = conn.execute(
+                "SELECT id FROM questions WHERE title = ?",
+                (item["title"],),
+            ).fetchone()
+            values = (
+                student_id,
+                teacher_id,
+                item["contents"],
+                item["created_at"],
+                item["views"],
+                item["reply_cnt"],
+                item["deleted_at"],
+            )
+            if row:
+                question_id = int(row[0])
+                conn.execute(
+                    """
+                    UPDATE questions
+                    SET src_user_id = ?, dst_user_id = ?, contents = ?, created_at = ?,
+                        views = ?, reply_cnt = ?, deleted_at = ?
+                    WHERE id = ?
+                    """,
+                    (*values, question_id),
+                )
+            else:
+                cur = conn.execute(
+                    """
+                    INSERT INTO questions
+                        (src_user_id, dst_user_id, title, contents, created_at, views, reply_cnt, deleted_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        student_id,
+                        teacher_id,
+                        item["title"],
+                        item["contents"],
+                        item["created_at"],
+                        item["views"],
+                        item["reply_cnt"],
+                        item["deleted_at"],
+                    ),
+                )
+                question_id = int(cur.lastrowid)
+
+            conn.execute(
+                "DELETE FROM favorites WHERE user_id = ? AND question_id = ? AND package = 'top'",
+                (teacher_id, question_id),
+            )
+            if item["pinned"]:
+                conn.execute(
+                    """
+                    INSERT INTO favorites (user_id, question_id, created_at, package)
+                    VALUES (?, ?, ?, 'top')
+                    ON CONFLICT(user_id, question_id, package) DO UPDATE SET created_at = excluded.created_at
+                    """,
+                    (teacher_id, question_id, item["created_at"]),
+                )
+
+            conn.execute(
+                "DELETE FROM answers WHERE question_id = ? AND contents LIKE '[smoke]%'",
+                (question_id,),
+            )
+            if item["answer"]:
+                conn.execute(
+                    """
+                    INSERT INTO answers (user_id, question_id, contents, created_at, upvotes)
+                    VALUES (?, ?, ?, ?, 0)
+                    """,
+                    (teacher_id, question_id, item["answer"], item["created_at"]),
+                )
+
+        conn.commit()
     finally:
         conn.close()
