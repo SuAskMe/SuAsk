@@ -15,6 +15,11 @@ type AnnouncementListOutput struct {
 	Total      int
 }
 
+type AnnouncementImage struct {
+	ID  int
+	URL string
+}
+
 type AnnouncementListItem struct {
 	ID          int
 	Title       string
@@ -24,6 +29,7 @@ type AnnouncementListItem struct {
 	PublishedAt int64
 	ExpiresAt   int64
 	CommentCnt  int
+	ImageURLs   []string
 }
 
 type AnnouncementDetailInput struct {
@@ -38,7 +44,8 @@ type AnnouncementDetailOutput struct {
 	IsPinned    bool
 	PublishedAt int64
 	ExpiresAt   int64
-	ImageIDs    []int
+	ImageURLs   []string
+	Images      []AnnouncementImage
 }
 
 type AnnouncementCreateInput struct {
@@ -92,5 +99,22 @@ type AnnouncementComment struct {
 }
 
 type AnnouncementActiveOutput struct {
-	Item *AnnouncementListItem
+	Item *AnnouncementActiveItem
+}
+
+type AnnouncementActiveItem struct {
+	ID          int
+	Title       string
+	Content     string
+	AuthorName  string
+	IsPinned    bool
+	PublishedAt int64
+	ExpiresAt   int64
+	ImageURLs   []string
+}
+
+type AnnouncementImageSyncInput struct {
+	AnnouncementID int
+	KeepFileIDs    []int
+	AddFileIDs     []int
 }

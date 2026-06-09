@@ -2,7 +2,10 @@ package announcement
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 	v1 "suask/api/announcement/v1"
 	"suask/internal/consts"
 	"suask/internal/model"
@@ -16,6 +19,21 @@ type cAnnouncement struct{}
 
 var Announcement = cAnnouncement{}
 
+func toAnnouncementImage(it model.AnnouncementImage) v1.AnnouncementImage {
+	return v1.AnnouncementImage{
+		ID:  it.ID,
+		URL: it.URL,
+	}
+}
+
+func toAnnouncementImages(items []model.AnnouncementImage) []v1.AnnouncementImage {
+	res := make([]v1.AnnouncementImage, len(items))
+	for i, it := range items {
+		res[i] = toAnnouncementImage(it)
+	}
+	return res
+}
+
 func toAnnouncementItem(it model.AnnouncementListItem) v1.AnnouncementItem {
 	return v1.AnnouncementItem{
 		ID:          it.ID,
@@ -26,6 +44,20 @@ func toAnnouncementItem(it model.AnnouncementListItem) v1.AnnouncementItem {
 		PublishedAt: it.PublishedAt,
 		ExpiresAt:   it.ExpiresAt,
 		CommentCnt:  it.CommentCnt,
+		ImageURLs:   it.ImageURLs,
+	}
+}
+
+func toActiveAnnouncementItem(it model.AnnouncementActiveItem) v1.ActiveAnnouncementItem {
+	return v1.ActiveAnnouncementItem{
+		ID:          it.ID,
+		Title:       it.Title,
+		Content:     it.Content,
+		AuthorName:  it.AuthorName,
+		IsPinned:    it.IsPinned,
+		PublishedAt: it.PublishedAt,
+		ExpiresAt:   it.ExpiresAt,
+		ImageURLs:   it.ImageURLs,
 	}
 }
 
@@ -45,6 +77,28 @@ func toListRes(out *model.AnnouncementListOutput) *v1.ListRes {
 	}
 }
 
+func parseKeepImageIDs(raw string) []int {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil
+	}
+	var ids []int
+	if strings.HasPrefix(raw, "[") {
+		if err := json.Unmarshal([]byte(raw), &ids); err == nil {
+			return ids
+		}
+	}
+	parts := strings.Split(raw, ",")
+	ids = make([]int, 0, len(parts))
+	for _, part := range parts {
+		id, err := strconv.Atoi(strings.TrimSpace(part))
+		if err == nil && id > 0 {
+			ids = append(ids, id)
+		}
+	}
+	return ids
+}
+
 // --- 列表（所有人可访问） ---
 
 func (c *cAnnouncement) GetActive(ctx context.Context, req *v1.ActiveReq) (res *v1.ActiveRes, err error) {
@@ -54,7 +108,7 @@ func (c *cAnnouncement) GetActive(ctx context.Context, req *v1.ActiveReq) (res *
 	}
 	res = &v1.ActiveRes{}
 	if out.Item != nil {
-		item := toAnnouncementItem(*out.Item)
+		item := toActiveAnnouncementItem(*out.Item)
 		res.Announcement = &item
 	}
 	return res, nil
@@ -89,15 +143,6 @@ func (c *cAnnouncement) Detail(ctx context.Context, req *v1.DetailReq) (res *v1.
 	if err != nil {
 		return nil, err
 	}
-	// 图片 URL
-	var imageURLs []string
-	if len(out.ImageIDs) > 0 {
-		fileList, err := service.File().GetList(ctx, model.FileListGetInput{IdList: out.ImageIDs})
-		if err == nil {
-			imageURLs = fileList.URL
-		}
-	}
-	// 评论
 	comments, _ := service.Announcement().GetComments(ctx, req.ID)
 	commentItems := make([]v1.CommentItem, len(comments))
 	for i, c := range comments {
@@ -119,7 +164,8 @@ func (c *cAnnouncement) Detail(ctx context.Context, req *v1.DetailReq) (res *v1.
 		IsPinned:    out.IsPinned,
 		PublishedAt: out.PublishedAt,
 		ExpiresAt:   out.ExpiresAt,
-		ImageURLs:   imageURLs,
+		ImageURLs:   out.ImageURLs,
+		Images:      toAnnouncementImages(out.Images),
 		Comments:    commentItems,
 	}, nil
 }
@@ -193,6 +239,24 @@ func (c *cAnnouncement) Update(ctx context.Context, req *v1.UpdateReq) (res *v1.
 	})
 	if err != nil {
 		return nil, err
+	}
+	if req.SyncImages {
+		var addFileIDs []int
+		if len(req.Files) > 0 {
+			fileList := model.FileListAddInput{FileList: req.Files, UploaderId: uid}
+			fileIdList, err := service.File().UploadFileList(ctx, fileList)
+			if err != nil {
+				return nil, err
+			}
+			addFileIDs = fileIdList.IdList
+		}
+		if err := service.Announcement().SyncImages(ctx, model.AnnouncementImageSyncInput{
+			AnnouncementID: req.ID,
+			KeepFileIDs:    parseKeepImageIDs(req.KeepImageIDs),
+			AddFileIDs:     addFileIDs,
+		}); err != nil {
+			return nil, err
+		}
 	}
 	return &v1.UpdateRes{ID: out.ID}, nil
 }

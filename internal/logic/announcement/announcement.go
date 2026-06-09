@@ -5,7 +5,6 @@ import (
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
-	"suask/internal/model/custom"
 	"suask/internal/service"
 	"suask/utility"
 	"suask/utility/files"
@@ -36,6 +35,70 @@ func countRemainPage(total, page, size int) int {
 		remain++
 	}
 	return remain
+}
+
+type announcementImageAttachment struct {
+	Id             int `json:"id"`
+	AnnouncementId int `json:"announcement_id"`
+	FileId         int `json:"file_id"`
+}
+
+func (s *sAnnouncement) getImageURLs(ctx context.Context, announcementIDs []int) (map[int][]string, map[int][]model.AnnouncementImage, error) {
+	imageURLs := make(map[int][]string, len(announcementIDs))
+	images := make(map[int][]model.AnnouncementImage, len(announcementIDs))
+	if len(announcementIDs) == 0 {
+		return imageURLs, images, nil
+	}
+
+	var attachments []announcementImageAttachment
+	err := g.DB().Ctx(ctx).Model("attachments").
+		Fields("id, announcement_id, file_id").
+		WhereIn("announcement_id", announcementIDs).
+		Where("type = ?", consts.QuestionFileType).
+		Order("id ASC").
+		Scan(&attachments)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(attachments) == 0 {
+		return imageURLs, images, nil
+	}
+
+	fileIDs := make([]int, 0, len(attachments))
+	seen := make(map[int]struct{}, len(attachments))
+	for _, attachment := range attachments {
+		if attachment.FileId == 0 {
+			continue
+		}
+		if _, ok := seen[attachment.FileId]; ok {
+			continue
+		}
+		seen[attachment.FileId] = struct{}{}
+		fileIDs = append(fileIDs, attachment.FileId)
+	}
+	fileList, err := service.File().GetList(ctx, model.FileListGetInput{IdList: fileIDs})
+	if err != nil {
+		return nil, nil, err
+	}
+	urlByFileID := make(map[int]string, len(fileList.FileId))
+	for i, fileID := range fileList.FileId {
+		if i < len(fileList.URL) {
+			urlByFileID[fileID] = fileList.URL[i]
+		}
+	}
+
+	for _, attachment := range attachments {
+		url, ok := urlByFileID[attachment.FileId]
+		if !ok || url == "" {
+			continue
+		}
+		imageURLs[attachment.AnnouncementId] = append(imageURLs[attachment.AnnouncementId], url)
+		images[attachment.AnnouncementId] = append(images[attachment.AnnouncementId], model.AnnouncementImage{
+			ID:  attachment.FileId,
+			URL: url,
+		})
+	}
+	return imageURLs, images, nil
 }
 
 func (s *sAnnouncement) List(ctx context.Context, in model.AnnouncementListInput) (*model.AnnouncementListOutput, error) {
@@ -89,6 +152,11 @@ func (s *sAnnouncement) List(ctx context.Context, in model.AnnouncementListInput
 		}
 	}
 
+	imageURLs, _, err := s.getImageURLs(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+
 	items := make([]model.AnnouncementListItem, len(rows))
 	for i, r := range rows {
 		items[i] = model.AnnouncementListItem{
@@ -100,6 +168,7 @@ func (s *sAnnouncement) List(ctx context.Context, in model.AnnouncementListInput
 			PublishedAt: timestampMilli(r.PublishedAt),
 			ExpiresAt:   timestampMilli(r.ExpiresAt),
 			CommentCnt:  commentCounts[r.Id],
+			ImageURLs:   imageURLs[r.Id],
 		}
 	}
 
@@ -111,6 +180,8 @@ func (s *sAnnouncement) GetActive(ctx context.Context) (*model.AnnouncementActiv
 	type row struct {
 		Id          int         `json:"id"`
 		Title       string      `json:"title"`
+		Contents    string      `json:"contents"`
+		AuthorName  string      `json:"author_name"`
 		IsPinned    int         `json:"is_pinned"`
 		PublishedAt *gtime.Time `json:"published_at"`
 		ExpiresAt   *gtime.Time `json:"expires_at"`
@@ -118,10 +189,12 @@ func (s *sAnnouncement) GetActive(ctx context.Context) (*model.AnnouncementActiv
 
 	var r row
 	err := g.DB().Ctx(ctx).Model("announcements a").
-		Fields("a.id, a.title, a.is_pinned, a.published_at, a.expires_at").
+		LeftJoin("users u", "u.id = a.author_id").
+		Fields("a.id, a.title, a.contents, u.nickname AS author_name, a.is_pinned, a.published_at, a.expires_at").
 		Where("a.deleted_at IS NULL").
+		Where("a.is_pinned = ?", 1).
 		Where("a.expires_at IS NULL OR a.expires_at > ?", gtime.Now()).
-		Order("a.is_pinned DESC, a.published_at DESC").
+		Order("a.published_at DESC").
 		Limit(1).
 		Scan(&r)
 	if err != nil {
@@ -130,12 +203,19 @@ func (s *sAnnouncement) GetActive(ctx context.Context) (*model.AnnouncementActiv
 	if r.Id == 0 {
 		return &model.AnnouncementActiveOutput{}, nil
 	}
-	return &model.AnnouncementActiveOutput{Item: &model.AnnouncementListItem{
+	imageURLs, _, err := s.getImageURLs(ctx, []int{r.Id})
+	if err != nil {
+		return nil, err
+	}
+	return &model.AnnouncementActiveOutput{Item: &model.AnnouncementActiveItem{
 		ID:          r.Id,
 		Title:       r.Title,
+		Content:     r.Contents,
+		AuthorName:  r.AuthorName,
 		IsPinned:    r.IsPinned == 1,
 		PublishedAt: timestampMilli(r.PublishedAt),
 		ExpiresAt:   timestampMilli(r.ExpiresAt),
+		ImageURLs:   imageURLs[r.Id],
 	}}, nil
 }
 
@@ -159,12 +239,9 @@ func (s *sAnnouncement) Detail(ctx context.Context, in model.AnnouncementDetailI
 		return nil, err
 	}
 
-	// 附件图片
-	var imgs []custom.Image
-	dao.Attachments.Ctx(ctx).Where("announcement_id = ?", in.ID).Scan(&imgs)
-	imgIDs := make([]int, 0, len(imgs))
-	for _, img := range imgs {
-		imgIDs = append(imgIDs, img.FileID)
+	imageURLs, images, err := s.getImageURLs(ctx, []int{in.ID})
+	if err != nil {
+		return nil, err
 	}
 
 	return &model.AnnouncementDetailOutput{
@@ -175,7 +252,8 @@ func (s *sAnnouncement) Detail(ctx context.Context, in model.AnnouncementDetailI
 		IsPinned:    r.IsPinned == 1,
 		PublishedAt: timestampMilli(r.PublishedAt),
 		ExpiresAt:   timestampMilli(r.ExpiresAt),
-		ImageIDs:    imgIDs,
+		ImageURLs:   imageURLs[in.ID],
+		Images:      images[in.ID],
 	}, nil
 }
 
@@ -215,6 +293,45 @@ func (s *sAnnouncement) Update(ctx context.Context, in model.AnnouncementUpdateI
 		return nil, err
 	}
 	return &model.AnnouncementUpdateOutput{ID: in.ID}, nil
+}
+
+func (s *sAnnouncement) SyncImages(ctx context.Context, in model.AnnouncementImageSyncInput) error {
+	var current []announcementImageAttachment
+	err := g.DB().Ctx(ctx).Model("attachments").
+		Fields("id, announcement_id, file_id").
+		Where("announcement_id = ?", in.AnnouncementID).
+		Where("type = ?", consts.QuestionFileType).
+		Order("id ASC").
+		Scan(&current)
+	if err != nil {
+		return err
+	}
+
+	keep := make(map[int]struct{}, len(in.KeepFileIDs))
+	for _, fileID := range in.KeepFileIDs {
+		keep[fileID] = struct{}{}
+	}
+	deleteIDs := make([]int, 0, len(current))
+	for _, attachment := range current {
+		if _, ok := keep[attachment.FileId]; !ok {
+			deleteIDs = append(deleteIDs, attachment.Id)
+		}
+	}
+	if len(deleteIDs) > 0 {
+		_, err = g.DB().Ctx(ctx).Model("attachments").WhereIn("id", deleteIDs).Delete()
+		if err != nil {
+			return err
+		}
+	}
+	if len(in.AddFileIDs) == 0 {
+		return nil
+	}
+	_, err = service.Attachment().AddAttachments(ctx, model.AddAttachmentInput{
+		AnnouncementId: in.AnnouncementID,
+		Type:           consts.QuestionFileType,
+		FileId:         in.AddFileIDs,
+	})
+	return err
 }
 
 func (s *sAnnouncement) Delete(ctx context.Context, in model.AnnouncementDeleteInput) error {

@@ -12,7 +12,18 @@ type ActiveReq struct {
 }
 
 type ActiveRes struct {
-	Announcement *AnnouncementItem `json:"announcement"`
+	Announcement *ActiveAnnouncementItem `json:"announcement"`
+}
+
+type ActiveAnnouncementItem struct {
+	ID          int      `json:"id"`
+	Title       string   `json:"title"`
+	Content     string   `json:"contents"`
+	AuthorName  string   `json:"author_name"`
+	IsPinned    bool     `json:"is_pinned"`
+	PublishedAt int64    `json:"published_at"`
+	ExpiresAt   int64    `json:"expires_at"`
+	ImageURLs   []string `json:"image_urls"`
 }
 
 // --- 列表 ---
@@ -36,14 +47,20 @@ type AdminListReq struct {
 type AdminListRes = ListRes
 
 type AnnouncementItem struct {
-	ID          int    `json:"id"`
-	Title       string `json:"title"`
-	Content     string `json:"contents"`
-	AuthorName  string `json:"author_name"`
-	IsPinned    bool   `json:"is_pinned"`
-	PublishedAt int64  `json:"published_at"`
-	ExpiresAt   int64  `json:"expires_at"`
-	CommentCnt  int    `json:"comment_cnt"`
+	ID          int      `json:"id"`
+	Title       string   `json:"title"`
+	Content     string   `json:"contents"`
+	AuthorName  string   `json:"author_name"`
+	IsPinned    bool     `json:"is_pinned"`
+	PublishedAt int64    `json:"published_at"`
+	ExpiresAt   int64    `json:"expires_at"`
+	CommentCnt  int      `json:"comment_cnt"`
+	ImageURLs   []string `json:"image_urls"`
+}
+
+type AnnouncementImage struct {
+	ID  int    `json:"id"`
+	URL string `json:"url"`
 }
 
 // --- 详情 ---
@@ -54,15 +71,16 @@ type DetailReq struct {
 }
 
 type DetailRes struct {
-	ID          int           `json:"id"`
-	Title       string        `json:"title"`
-	Content     string        `json:"contents"`
-	AuthorName  string        `json:"author_name"`
-	IsPinned    bool          `json:"is_pinned"`
-	PublishedAt int64         `json:"published_at"`
-	ExpiresAt   int64         `json:"expires_at"`
-	ImageURLs   []string      `json:"image_urls"`
-	Comments    []CommentItem `json:"comments"`
+	ID          int                 `json:"id"`
+	Title       string              `json:"title"`
+	Content     string              `json:"contents"`
+	AuthorName  string              `json:"author_name"`
+	IsPinned    bool                `json:"is_pinned"`
+	PublishedAt int64               `json:"published_at"`
+	ExpiresAt   int64               `json:"expires_at"`
+	ImageURLs   []string            `json:"image_urls"`
+	Images      []AnnouncementImage `json:"images"`
+	Comments    []CommentItem       `json:"comments"`
 }
 
 type CommentItem struct {
@@ -93,12 +111,15 @@ type CreateRes struct {
 // --- 编辑 ---
 
 type UpdateReq struct {
-	g.Meta    `path:"/announcements" method:"PUT" tags:"Announcement" summary:"编辑公告（仅管理员）"`
-	ID        int     `json:"id" v:"required|min:1"`
-	Title     string  `json:"title"`
-	Content   string  `json:"content"`
-	IsPinned  *bool   `json:"is_pinned"`
-	ExpiresAt *string `json:"expires_at"`
+	g.Meta       `path:"/announcements" method:"PUT" tags:"Announcement" summary:"编辑公告（仅管理员）"`
+	ID           int                 `json:"id" v:"required|min:1"`
+	Title        string              `json:"title"`
+	Content      string              `json:"content"`
+	IsPinned     *bool               `json:"is_pinned"`
+	ExpiresAt    *string             `json:"expires_at"`
+	SyncImages   bool                `json:"sync_images"`
+	KeepImageIDs string              `json:"keep_image_ids"`
+	Files        []*ghttp.UploadFile `json:"files"`
 }
 
 type UpdateRes struct {

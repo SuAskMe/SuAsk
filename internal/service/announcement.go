@@ -12,6 +12,7 @@ type (
 		GetActive(ctx context.Context) (*model.AnnouncementActiveOutput, error)
 		Create(ctx context.Context, in model.AnnouncementCreateInput) (*model.AnnouncementCreateOutput, error)
 		Update(ctx context.Context, in model.AnnouncementUpdateInput) (*model.AnnouncementUpdateOutput, error)
+		SyncImages(ctx context.Context, in model.AnnouncementImageSyncInput) error
 		Delete(ctx context.Context, in model.AnnouncementDeleteInput) error
 		AddComment(ctx context.Context, in model.AnnouncementCommentInput) (*model.AnnouncementCommentOutput, error)
 		GetComments(ctx context.Context, announcementID int) ([]model.AnnouncementComment, error)
