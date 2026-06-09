@@ -2,7 +2,6 @@ package admin
 
 import (
 	"context"
-	"strconv"
 	v1 "suask/api/admin/v1"
 	"suask/internal/consts"
 	"suask/internal/dao"
@@ -10,6 +9,7 @@ import (
 	qutil "suask/internal/logic/questions_util"
 	"suask/internal/model/do"
 	"suask/internal/model/entity"
+	"suask/module/session"
 	"suask/internal/service"
 	"suask/utility"
 
@@ -390,10 +390,10 @@ func ResetPassword(ctx context.Context, userId int, newPassword string) (res *v1
 		return nil, gerror.New(consts.ErrInternal)
 	}
 
-	// 清除 Redis JWT，强制用户重新登录
-	_, err = g.Redis().Del(ctx, consts.RedisJWTPrefix+strconv.Itoa(userId))
+	// 清除 Redis session，强制用户重新登录
+	err = session.DeleteUserSessions(ctx, userId)
 	if err != nil {
-		g.Log().Error(ctx, "ResetPassword: del redis jwt failed", "userId", userId, "err", err)
+		g.Log().Error(ctx, "ResetPassword: del session failed", "userId", userId, "err", err)
 	}
 
 	res = &v1.ResetPasswordRes{Id: userId}
@@ -426,10 +426,10 @@ func DeleteUser(ctx context.Context, userId int, currentUserId int) (res *v1.Del
 		return nil, gerror.New(consts.ErrInternal)
 	}
 
-	// 清除 Redis JWT，强制用户下线
-	_, err = g.Redis().Del(ctx, consts.RedisJWTPrefix+strconv.Itoa(userId))
+	// 清除 Redis session，强制用户下线
+	err = session.DeleteUserSessions(ctx, userId)
 	if err != nil {
-		g.Log().Error(ctx, "DeleteUser: del redis jwt failed", "userId", userId, "err", err)
+		g.Log().Error(ctx, "DeleteUser: del session failed", "userId", userId, "err", err)
 	}
 
 	res = &v1.DeleteUserRes{Id: userId}

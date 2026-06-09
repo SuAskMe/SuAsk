@@ -70,7 +70,7 @@ var (
 				// ========== Guest 升级（需要校园网 + 登录） ==========
 				group.Group("/", func(group *ghttp.RouterGroup) {
 					group.Middleware(middleware.CampusNetworkCheck)
-					group.Middleware(middleware.JwtRequired)
+					group.Middleware(middleware.SessionRequired)
 					group.Bind(
 						guest.Guest.Upgrade,
 						guest.Guest.SendCode,
@@ -79,7 +79,7 @@ var (
 
 				// ========== 必须登录（Guest 也可以访问） ==========
 				group.Group("/", func(group *ghttp.RouterGroup) {
-					group.Middleware(middleware.JwtRequired)
+					group.Middleware(middleware.SessionRequired)
 					group.Bind(
 						login.Login.Logout,
 						login.Login.HeartBeats,
@@ -99,7 +99,7 @@ var (
 
 				// ========== 必须登录 + 非 Guest（Guest 不可访问） ==========
 				group.Group("/", func(group *ghttp.RouterGroup) {
-					group.Middleware(middleware.JwtRequired)
+					group.Middleware(middleware.SessionRequired)
 					group.Middleware(middleware.NonGuestRequired)
 					group.Bind(
 						user.User.UpdateUserInfo,
@@ -120,7 +120,7 @@ var (
 
 				// ========== 管理员接口（需要登录 + 管理员角色） ==========
 				group.Group("/", func(group *ghttp.RouterGroup) {
-					group.Middleware(middleware.JwtRequired)
+					group.Middleware(middleware.SessionRequired)
 					group.Middleware(middleware.AdminRequired)
 					group.Bind(
 						admin.Admin.ListUsers,

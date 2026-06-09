@@ -2,11 +2,10 @@ package guest
 
 import (
 	"context"
-	"strconv"
 
-	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model/entity"
+	"suask/module/session"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gcron"
@@ -57,7 +56,7 @@ func cleanupExpiredGuests(ctx context.Context) {
 
 	// 4. Clean up Redis JWT keys for deleted users
 	for _, id := range ids {
-		_, _ = g.Redis().Del(ctx, consts.RedisJWTPrefix+strconv.Itoa(id))
+		_ = session.DeleteUserSessions(ctx, id)
 	}
 
 	// 5. Log results

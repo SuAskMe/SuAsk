@@ -11,7 +11,7 @@ import (
 )
 
 // NonGuestRequired 中间件：拒绝 guest 用户访问特定接口。
-// 必须在 JwtRequired 之后使用，依赖其设置的 CtxId。
+// 必须在 SessionRequired 之后使用，依赖其设置的 CtxId。
 func NonGuestRequired(r *ghttp.Request) {
 	userId := gconv.Int(r.Context().Value(consts.CtxId))
 

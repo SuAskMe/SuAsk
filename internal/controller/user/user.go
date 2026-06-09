@@ -9,6 +9,7 @@ import (
 	"suask/internal/model"
 	"suask/internal/service"
 	"suask/module/send_email"
+	"suask/module/session"
 	"suask/module/validation"
 	"suask/utility"
 
@@ -294,7 +295,7 @@ func (c *cUser) Deactivate(ctx context.Context, req *v1.DeactivateReq) (res *v1.
 	g.DB().Exec(ctx, "UPDATE settings SET notify_email = NULL, notify_switch = 0 WHERE id = ?", userId)
 
 	// 清除 Redis 登录态
-	g.Redis().Del(ctx, consts.RedisJWTPrefix+gconv.String(userId))
+	session.DeleteUserSessions(ctx, userId)
 
 	return &v1.DeactivateRes{}, nil
 }

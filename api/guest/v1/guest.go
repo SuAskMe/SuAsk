@@ -9,10 +9,8 @@ type GuestLoginReq struct {
 }
 
 type GuestLoginRes struct {
-	Type  string `json:"type"  dc:"Token格式"`
-	Token string `json:"token" dc:"JWT Token"`
-	Role  string `json:"role"  dc:"用户角色"`
-	Id    int    `json:"id"    dc:"用户ID"`
+	Role string `json:"role" dc:"用户角色"`
+	Id   int    `json:"id"   dc:"用户ID"`
 }
 
 // --- 升级为正式用户 ---
@@ -26,10 +24,8 @@ type GuestUpgradeReq struct {
 }
 
 type GuestUpgradeRes struct {
-	Type  string `json:"type"  dc:"Token格式"`
-	Token string `json:"token" dc:"新JWT Token"`
-	Role  string `json:"role"  dc:"新角色"`
-	Id    int    `json:"id"    dc:"用户ID"`
+	Role string `json:"role" dc:"新角色"`
+	Id   int    `json:"id"   dc:"用户ID"`
 }
 
 // --- 升级时发送验证码 ---

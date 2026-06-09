@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
-	"strconv"
 	"time"
 
 	"suask/internal/consts"
@@ -13,7 +12,6 @@ import (
 	"suask/internal/model/do"
 	"suask/internal/model/entity"
 	"suask/internal/service"
-	"suask/module/sjwt"
 	"suask/utility"
 
 	"github.com/gogf/gf/v2/errors/gerror"
@@ -22,15 +20,12 @@ import (
 )
 
 // ErrRateLimited is returned when the guest creation rate limit is exceeded.
-// The controller layer should check this error and return HTTP 429.
 var ErrRateLimited = gerror.New("请求过于频繁，请稍后再试")
 
 // CreateGuestOutput holds the result of a successful guest creation.
 type CreateGuestOutput struct {
-	Type  string
-	Token string
-	Role  string
-	Id    int
+	Role string
+	Id   int
 }
 
 // CreateGuest creates a temporary guest user with device and IP rate limiting.
@@ -41,7 +36,7 @@ func CreateGuest(ctx context.Context, deviceId string, clientIP string) (*Create
 		}
 	}
 
-	// 3. Generate unique name: susu#XXXX (4-digit random number)
+	// Generate unique name: susu#XXXX (4-digit random number)
 	var name string
 	for i := 0; i < 10; i++ {
 		name = fmt.Sprintf("susu#%04d", rand.Intn(10000))
@@ -57,7 +52,7 @@ func CreateGuest(ctx context.Context, deviceId string, clientIP string) (*Create
 		}
 	}
 
-	// 4. Insert user record (role=guest, email/salt/password_hash left nil)
+	// Insert user record (role=guest, email/salt/password_hash left nil)
 	userId, err := dao.Users.Ctx(ctx).InsertAndGetId(do.Users{
 		Name:     name,
 		Role:     consts.GUEST,
@@ -68,7 +63,7 @@ func CreateGuest(ctx context.Context, deviceId string, clientIP string) (*Create
 		return nil, gerror.New(consts.ErrInternal)
 	}
 
-	// 5. Insert guest_users record (expires_at = now + 14 days)
+	// Insert guest_users record (expires_at = now + 14 days)
 	expiresAt := gtime.Now().Add(14 * 24 * time.Hour)
 	_, err = dao.GuestUsers.Ctx(ctx).Insert(do.GuestUsers{
 		Id:        userId,
@@ -76,30 +71,14 @@ func CreateGuest(ctx context.Context, deviceId string, clientIP string) (*Create
 	})
 	if err != nil {
 		g.Log().Error(ctx, "CreateGuest: insert guest_users failed", err)
-		// Rollback: hard-delete the user we just created
 		_, _ = dao.Users.Ctx(ctx).Unscoped().Where(dao.Users.Columns().Id, userId).Delete()
 		return nil, gerror.New(consts.ErrInternal)
 	}
 
-	// 6. Generate JWT and store in Redis (14-day TTL)
-	token, err := sjwt.GenerateToken(int(userId))
-	if err != nil {
-		g.Log().Error(ctx, "CreateGuest: generate token failed", err)
-		return nil, gerror.New(consts.ErrInternal)
-	}
-	ex := sjwt.GetExpireSecond()
-	err = g.Redis().SetEX(ctx, consts.RedisJWTPrefix+strconv.Itoa(int(userId)), token, ex)
-	if err != nil {
-		g.Log().Error(ctx, "CreateGuest: redis setex failed", err)
-		return nil, gerror.New(consts.ErrInternal)
-	}
-
-	// 7. Return token/id/role
+	// Session is created at the controller layer (needs access to the response writer).
 	return &CreateGuestOutput{
-		Type:  consts.TokenType,
-		Token: token,
-		Role:  consts.GUEST,
-		Id:    int(userId),
+		Role: consts.GUEST,
+		Id:   int(userId),
 	}, nil
 }
 
@@ -157,10 +136,8 @@ type UpgradeInput struct {
 
 // UpgradeOutput holds the result of a successful guest upgrade.
 type UpgradeOutput struct {
-	Type  string
-	Token string
-	Role  string
-	Id    int
+	Role string
+	Id   int
 }
 
 // UpgradeGuest upgrades a temporary guest user to a full student account.
@@ -172,7 +149,7 @@ func UpgradeGuest(ctx context.Context, userId int, in *UpgradeInput) (*UpgradeOu
 		return nil, gerror.New("仅临时用户可升级")
 	}
 
-	// 2. Verify email code from Redis (same mechanism as register)
+	// 2. Verify email code from Redis
 	code, err := g.Redis().Get(ctx, consts.RedisSendCodePrefix+in.Email)
 	if err != nil {
 		return nil, gerror.New(consts.ErrInternal)
@@ -188,10 +165,9 @@ func UpgradeGuest(ctx context.Context, userId int, in *UpgradeInput) (*UpgradeOu
 		}
 		return nil, gerror.New("验证码错误")
 	}
-	// One-time use: delete code after successful verification
 	g.Redis().Del(ctx, consts.RedisSendCodePrefix+in.Email, consts.RedisCountCodePrefix+in.Email)
 
-	// 3. Check name uniqueness (including soft-deleted users, exclude self)
+	// 3. Check name uniqueness
 	nameCount, err := dao.Users.Ctx(ctx).Unscoped().
 		Where(dao.Users.Columns().Name, in.Name).
 		WhereNot(dao.Users.Columns().Id, userId).
@@ -203,7 +179,7 @@ func UpgradeGuest(ctx context.Context, userId int, in *UpgradeInput) (*UpgradeOu
 		return nil, gerror.New("用户名已存在")
 	}
 
-	// 4. Check email uniqueness (including soft-deleted users)
+	// 4. Check email uniqueness
 	emailCount, err := dao.Users.Ctx(ctx).Unscoped().
 		Where(dao.Users.Columns().Email, in.Email).
 		Count()
@@ -220,7 +196,7 @@ func UpgradeGuest(ctx context.Context, userId int, in *UpgradeInput) (*UpgradeOu
 		return nil, gerror.New(consts.ErrInternal)
 	}
 
-	// 6. Update user record: role→student, set name/nickname/email/password_hash, clear salt
+	// 6. Update user record: role→student
 	_, err = dao.Users.Ctx(ctx).Where(dao.Users.Columns().Id, userId).Data(do.Users{
 		Name:         in.Name,
 		Nickname:     in.Name,
@@ -233,10 +209,10 @@ func UpgradeGuest(ctx context.Context, userId int, in *UpgradeInput) (*UpgradeOu
 		return nil, gerror.New(consts.ErrInternal)
 	}
 
-	// 7. Delete guest_users record (no longer a guest)
+	// 7. Delete guest_users record
 	_, _ = dao.GuestUsers.Ctx(ctx).Where(dao.GuestUsers.Columns().Id, userId).Delete()
 
-	// 8. Insert settings record (theme=default, notify_switch=on, notify_email=email)
+	// 8. Insert settings record
 	_, err = service.Setting().AddSetting(ctx, model.AddSettingInput{
 		Id:           userId,
 		ThemeId:      consts.DefaultThemeId,
@@ -245,22 +221,11 @@ func UpgradeGuest(ctx context.Context, userId int, in *UpgradeInput) (*UpgradeOu
 	})
 	if err != nil {
 		g.Log().Error(ctx, "UpgradeGuest: add setting failed", err)
-		// Don't fail the upgrade for a settings insert error
 	}
 
-	// 9. Re-issue JWT (role changed, need new token) and update Redis
-	newToken, err := sjwt.GenerateToken(userId)
-	if err != nil {
-		return nil, gerror.New(consts.ErrInternal)
-	}
-	ex := sjwt.GetExpireSecond()
-	_ = g.Redis().SetEX(ctx, consts.RedisJWTPrefix+strconv.Itoa(userId), newToken, ex)
-
-	// 10. Return new token/id/role
+	// Session re-creation is handled at the controller layer.
 	return &UpgradeOutput{
-		Type:  consts.TokenType,
-		Token: newToken,
-		Role:  consts.STUDENT,
-		Id:    userId,
+		Role: consts.STUDENT,
+		Id:   userId,
 	}, nil
 }

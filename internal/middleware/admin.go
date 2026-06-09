@@ -13,7 +13,7 @@ import (
 )
 
 // AdminRequired 中间件：验证当前用户为管理员角色，非管理员返回 403。
-// 必须在 JwtRequired 之后使用，依赖其设置的 CtxId。
+// 必须在 SessionRequired 之后使用，依赖其设置的 CtxId。
 func AdminRequired(r *ghttp.Request) {
 	userId := gconv.Int(r.Context().Value(consts.CtxId))
 
