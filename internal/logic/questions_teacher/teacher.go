@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"suask/internal/consts"
 	"suask/internal/dao"
+	"suask/internal/middleware"
 	"suask/internal/model"
 	"suask/internal/model/custom"
 	"suask/internal/service"
@@ -12,6 +13,8 @@ import (
 )
 
 type sTeacherQuestion struct{}
+
+const errTeacherSearchFailed = "搜索失败，请稍后重试"
 
 func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeacherInput) (*model.GetBaseOfTeacherOutput, error) {
 	relation := fmt.Sprintf("favorites.question_id = questions.id AND favorites.user_id = %d AND favorites.package = '%s'", input.TeacherID, consts.OnTop)
@@ -28,7 +31,7 @@ func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeach
 	// 1. 先统计总数 (此时没有 Fields 和 Order，可生成正确的 COUNT(1) 语句)
 	remain, err := md.Count()
 	if err != nil {
-		return nil, err
+		return nil, middleware.SanitizeError(ctx, err, errTeacherSearchFailed, "TeacherQuestion.GetBase: count questions failed", "teacherId", input.TeacherID, "keyword", input.Keyword)
 	}
 
 	// 2. 注入 Fields、置顶以及选择的排序逻辑
@@ -36,7 +39,7 @@ func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeach
 	md = md.Order("favorites.id DESC")
 	err = utility.SortByType(&md, input.SortType)
 	if err != nil {
-		return nil, err
+		return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "TeacherQuestion.GetBase: apply sort failed", "teacherId", input.TeacherID, "sortType", input.SortType)
 	}
 
 	// 3. 再应用分页进行列表查询
@@ -44,7 +47,7 @@ func (sTeacherQuestion) GetBase(ctx context.Context, input *model.GetBaseOfTeach
 	var q []*custom.Questions
 	err = md.Scan(&q)
 	if err != nil {
-		return nil, err
+		return nil, middleware.SanitizeError(ctx, err, errTeacherSearchFailed, "TeacherQuestion.GetBase: query paged questions failed", "teacherId", input.TeacherID, "page", input.Page, "keyword", input.Keyword)
 	}
 	// 计算剩余页数
 	remain = utility.CountRemainPage(remain, input.Page)
@@ -88,7 +91,7 @@ func (sTeacherQuestion) GetKeyword(ctx context.Context, input *model.GetKeywords
 	words := make([]model.Keyword, consts.MaxKeywordsPerReq)
 	err := md.WhereLike(dao.Questions.Columns().Title, "%"+input.Keyword+"%").Limit(8).Scan(&words)
 	if err != nil {
-		return nil, err
+		return nil, middleware.SanitizeError(ctx, err, errTeacherSearchFailed, "TeacherQuestion.GetKeyword: query keywords failed", "teacherId", input.TeacherID, "keyword", input.Keyword)
 	}
 	output := &model.GetKeywordsOutput{}
 	output.Words = words
