@@ -24,7 +24,7 @@ type InboxRes struct {
 
 type InboxKeywordsReq struct {
 	g.Meta  `path:"/questions/inbox/keywords" method:"GET" tags:"Inbox" summary:"收件箱关键字"`
-	Keyword string `json:"keyword" v:"required|length:2,100"`
+	Keyword string `json:"keyword" v:"required|length:2,100#请输入关键词|关键词长度需为 2-100 个字符"`
 }
 
 type InboxKeywordsRes struct {
@@ -35,7 +35,7 @@ type InboxKeywordsRes struct {
 
 type InboxSearchReq struct {
 	g.Meta   `path:"/questions/inbox/search" method:"GET" tags:"Inbox" summary:"收件箱搜索"`
-	Keyword  string `json:"keyword" v:"required|length:2,100"`
+	Keyword  string `json:"keyword" v:"required|length:2,100#请输入关键词|关键词长度需为 2-100 个字符"`
 	Page     int    `json:"page" v:"required|min:1"`
 	SortType int    `json:"sort_type" v:"required|min:0|max:3"`
 }

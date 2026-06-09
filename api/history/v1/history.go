@@ -23,7 +23,7 @@ type GetHistoryPageRes struct {
 
 type GetHistorySearchKeywordsReq struct {
 	g.Meta   `path:"/history/keywords" method:"GET" tags:"History" summary:"搜索收藏"`
-	Keyword  string `v:"required|length:2,100" json:"keyword"`
+	Keyword  string `v:"required|length:2,100#请输入关键词|关键词长度需为 2-100 个字符" json:"keyword"`
 	SortType int    `v:"required|min:0|max:3" json:"sort_type"`
 }
 
@@ -35,7 +35,7 @@ type GetHistorySearchKeywordsRes struct {
 
 type GetHistoryPageByKeywordReq struct {
 	g.Meta  `path:"/history/search" method:"GET" tags:"History" summary:"根据关键字获取收藏列表"`
-	Keyword string `v:"length:2,100" json:"keyword"`
+	Keyword string `v:"length:2,100#关键词长度需为 2-100 个字符" json:"keyword"`
 	GetPageBase
 }
 

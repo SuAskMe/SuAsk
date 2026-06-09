@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"suask/internal/consts"
 	"suask/internal/dao"
+	"suask/internal/middleware"
 	"suask/internal/model"
 	"suask/internal/model/custom"
 	"suask/internal/model/do"
@@ -16,6 +17,8 @@ import (
 // 原来在 internal/logic/question_teacher_self/ 包里，
 // 旧路由删除后挪到这里，由新的 /questions/inbox 接口复用。
 type sTeacherQuestionSelf struct{}
+
+const errInboxSearchFailed = "搜索失败，请稍后重试"
 
 func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMInput) (*model.GetQFMOutput, error) {
 	relation := fmt.Sprintf("favorites.question_id = questions.id AND favorites.user_id = %d AND favorites.package = '%s'", input.TeacherId, consts.OnTop)
@@ -42,7 +45,7 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 	// 1. 先统计总数 (此时没有 Fields 和 Order，可生成正确的 COUNT(1) 语句)
 	remain, err := md.Count()
 	if err != nil {
-		return nil, err
+		return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Inbox.GetQFMAll: count questions failed", "teacherId", input.TeacherId, "keyword", input.Keyword)
 	}
 
 	// 2. 注入 Fields、置顶以及选择的排序逻辑
@@ -50,7 +53,7 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 	md = md.Order("favorites.id DESC")
 	err = utility.SortByType(&md, input.SortType)
 	if err != nil {
-		return nil, err
+		return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Inbox.GetQFMAll: apply sort failed", "teacherId", input.TeacherId, "sortType", input.SortType)
 	}
 
 	// 3. 应用分页进行列表查询
@@ -58,7 +61,7 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 	var q []*custom.Questions
 	err = md.Scan(&q)
 	if err != nil {
-		return nil, err
+		return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Inbox.GetQFMAll: query paged questions failed", "teacherId", input.TeacherId, "page", input.Page, "keyword", input.Keyword)
 	}
 	remain = utility.CountRemainPage(remain, input.Page)
 
@@ -98,7 +101,7 @@ func (sTeacherQuestionSelf) GetQFMPinned(ctx context.Context, input *model.GetQF
 	var fav []custom.MyFavorites
 	err := md.Scan(&fav)
 	if err != nil {
-		return nil, err
+		return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Inbox.GetQFMPinned: query pinned failed", "teacherId", input.TeacherId)
 	}
 	qIDs := make([]int, len(fav))
 	for i, f := range fav {
@@ -112,7 +115,7 @@ func (sTeacherQuestionSelf) GetQFMPinned(ctx context.Context, input *model.GetQF
 	var q []*custom.Questions
 	err = md.Scan(&q)
 	if err != nil {
-		return nil, err
+		return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Inbox.GetQFMPinned: query questions failed", "teacherId", input.TeacherId)
 	}
 	pqs := make([]model.QFM, len(q))
 	idMap := make(map[int]int)
@@ -147,7 +150,7 @@ func (sTeacherQuestionSelf) GetKeyword(ctx context.Context, input *model.GetQFMK
 	words := make([]model.Keyword, consts.MaxKeywordsPerReq)
 	err := md.Scan(&words)
 	if err != nil {
-		return nil, nil
+		return nil, middleware.SanitizeError(ctx, err, errInboxSearchFailed, "Inbox.GetKeyword: query keywords failed", "teacherId", input.TeacherId, "keyword", input.Keyword)
 	}
 	output := &model.GetKeywordsOutput{}
 	output.Words = words
@@ -160,12 +163,12 @@ func (sTeacherQuestionSelf) PinQFM(ctx context.Context, input *model.PinQFMInput
 	md = md.Where(dao.Favorites.Columns().Package, consts.OnTop)
 	cnt, err := md.Count()
 	if err != nil {
-		return nil, err
+		return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Inbox.PinQFM: count pins failed", "teacherId", input.TeacherId, "questionId", input.QuestionId)
 	}
 	if cnt > 0 {
 		_, err = md.Delete()
 		if err != nil {
-			return nil, err
+			return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Inbox.PinQFM: delete old pin failed", "teacherId", input.TeacherId, "questionId", input.QuestionId)
 		}
 		return &model.PinQFMOutput{IsPinned: false}, nil
 	} else {
@@ -176,7 +179,7 @@ func (sTeacherQuestionSelf) PinQFM(ctx context.Context, input *model.PinQFMInput
 			Package:    consts.OnTop,
 		})
 		if err != nil {
-			return nil, err
+			return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Inbox.PinQFM: insert pin failed", "teacherId", input.TeacherId, "questionId", input.QuestionId)
 		}
 		return &model.PinQFMOutput{IsPinned: true}, nil
 	}

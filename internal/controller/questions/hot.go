@@ -5,6 +5,7 @@ import (
 	v1 "suask/api/questions/v1"
 	"suask/internal/consts"
 	"suask/internal/dao"
+	"suask/internal/middleware"
 	qutil "suask/internal/logic/questions_util"
 	"suask/internal/model"
 	"suask/internal/model/custom"
@@ -46,7 +47,7 @@ func (c *cHotQuestion) Get(ctx context.Context, req *v1.GetHotQuestionsReq) (res
 	var total int
 	err = md.ScanAndCount(&q, &total, false)
 	if err != nil {
-		return nil, err
+		return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Hot.Get: query questions failed", "page", req.Page, "timeRange", req.TimeRange, "keyword", req.Keyword)
 	}
 
 	// 热点问题最多展示 MaxHotQuestions 条
@@ -90,13 +91,13 @@ func (c *cHotQuestion) Get(ctx context.Context, req *v1.GetHotQuestionsReq) (res
 	// 获取图片
 	imagesOutput, err := service.QuestionUtil().GetImages(ctx, &model.GetImagesInput{QuestionIDs: qIDs})
 	if err != nil {
-		return nil, err
+		return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Hot.Get: get images failed")
 	}
 	if imagesOutput != nil && len(imagesOutput.ImageMap) > 0 {
 		allFileIDs := qutil.CollectFileIDs(imagesOutput.ImageMap, nil)
 		urlMap, err_ := qutil.BatchGetFileURLs(ctx, allFileIDs)
 		if err_ != nil {
-			return nil, err_
+			return nil, middleware.SanitizeError(ctx, err_, consts.ErrInternal, "Hot.Get: batch get file urls failed")
 		}
 		imageURLs := qutil.ResolveImageURLs(urlMap, imagesOutput.ImageMap)
 		for qid, urls := range imageURLs {
