@@ -93,6 +93,7 @@ var (
 						questions.Inbox,
 						history.History,
 						notification.Notification,
+						announcement.Announcement.GetActive,
 					)
 				})
 
@@ -109,7 +110,6 @@ var (
 						favorite.Favorite,
 						teacher.Teacher.UpdatePerm,
 						announcement.Announcement.List,
-						announcement.Announcement.GetActive,
 						announcement.Announcement.Detail,
 						announcement.Announcement.AddComment,
 						announcement.Announcement.Create,
