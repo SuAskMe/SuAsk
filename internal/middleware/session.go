@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"errors"
-	"net/http"
 	"time"
 
 	"suask/internal/consts"
@@ -52,8 +51,7 @@ func SetSessionCookie(r *ghttp.Request, sid string) {
 	name, maxAge := session.CookieConfig()
 	r.Cookie.SetCookie(name, sid, "", "/", time.Duration(maxAge)*time.Second, ghttp.CookieOptions{
 		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: 1, // 1 = 1
 	})
 }
 
@@ -62,8 +60,7 @@ func ClearSessionCookie(r *ghttp.Request) {
 	name, _ := session.CookieConfig()
 	r.Cookie.SetCookie(name, "", "", "/", 0, ghttp.CookieOptions{
 		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: 1,
 	})
 }
 
