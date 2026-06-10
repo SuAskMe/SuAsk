@@ -2,6 +2,8 @@ package announcement
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
@@ -198,6 +200,9 @@ func (s *sAnnouncement) GetActive(ctx context.Context) (*model.AnnouncementActiv
 		Limit(1).
 		Scan(&r)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return &model.AnnouncementActiveOutput{}, nil
+		}
 		return nil, err
 	}
 	if r.Id == 0 {
