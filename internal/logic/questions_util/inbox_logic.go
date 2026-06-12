@@ -11,6 +11,8 @@ import (
 	"suask/internal/model/do"
 	"suask/internal/service"
 	"suask/utility"
+
+	"github.com/gogf/gf/v2/database/gdb"
 )
 
 // sTeacherQuestionSelf 实现老师收件箱的核心逻辑。
@@ -22,6 +24,94 @@ const errInboxSearchFailed = "搜索失败，请稍后重试"
 
 func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMInput) (*model.GetQFMOutput, error) {
 	relation := fmt.Sprintf("favorites.question_id = questions.id AND favorites.user_id = %d AND favorites.package = '%s'", input.TeacherId, consts.OnTop)
+	page := input.Page
+	if page < 1 {
+		page = 1
+	}
+	limit := consts.MaxQuestionsPerPage
+	offset := (page - 1) * limit
+
+	if input.Tag == "pinned" {
+		md := buildInboxQuestionQuery(ctx, input, relation).
+			WhereNotNull("favorites.id")
+		remain, err := md.Count()
+		if err != nil {
+			return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Inbox.GetQFMAll: count pinned questions failed", "teacherId", input.TeacherId, "keyword", input.Keyword)
+		}
+
+		md = md.Fields("questions.*", "(favorites.id IS NOT NULL) AS is_pinned").
+			Order("favorites.id DESC").
+			Order("questions.created_at DESC").
+			Limit(offset, limit)
+		var q []*custom.Questions
+		err = md.Scan(&q)
+		if err != nil {
+			return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Inbox.GetQFMAll: query pinned questions failed", "teacherId", input.TeacherId, "page", page, "keyword", input.Keyword)
+		}
+		return buildQFMOutput(q, utility.CountRemainPage(remain, page)), nil
+	}
+
+	pinnedCountMd := buildInboxQuestionQuery(ctx, input, relation).
+		WhereNotNull("favorites.id")
+	pinnedCount, err := pinnedCountMd.Count()
+	if err != nil {
+		return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Inbox.GetQFMAll: count pinned questions failed", "teacherId", input.TeacherId, "keyword", input.Keyword)
+	}
+
+	unpinnedCountMd := buildInboxQuestionQuery(ctx, input, relation).
+		WhereNull("favorites.id")
+	unpinnedCount, err := unpinnedCountMd.Count()
+	if err != nil {
+		return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Inbox.GetQFMAll: count unpinned questions failed", "teacherId", input.TeacherId, "keyword", input.Keyword)
+	}
+
+	var q []*custom.Questions
+	if offset < pinnedCount {
+		pinnedLimit := limit
+		if remainPinned := pinnedCount - offset; remainPinned < pinnedLimit {
+			pinnedLimit = remainPinned
+		}
+		pinnedMd := buildInboxQuestionQuery(ctx, input, relation).
+			WhereNotNull("favorites.id").
+			Fields("questions.*", "(favorites.id IS NOT NULL) AS is_pinned").
+			Order("favorites.id DESC").
+			Order("questions.created_at DESC").
+			Limit(offset, pinnedLimit)
+		var pinnedQuestions []*custom.Questions
+		err = pinnedMd.Scan(&pinnedQuestions)
+		if err != nil {
+			return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Inbox.GetQFMAll: query pinned questions failed", "teacherId", input.TeacherId, "page", page, "keyword", input.Keyword)
+		}
+		q = append(q, pinnedQuestions...)
+	}
+
+	if len(q) < limit {
+		unpinnedOffset := 0
+		if offset > pinnedCount {
+			unpinnedOffset = offset - pinnedCount
+		}
+		unpinnedLimit := limit - len(q)
+		unpinnedMd := buildInboxQuestionQuery(ctx, input, relation).
+			WhereNull("favorites.id").
+			Fields("questions.*", "(favorites.id IS NOT NULL) AS is_pinned")
+		err = utility.SortByType(&unpinnedMd, input.SortType)
+		if err != nil {
+			return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Inbox.GetQFMAll: apply sort failed", "teacherId", input.TeacherId, "sortType", input.SortType)
+		}
+		unpinnedMd = unpinnedMd.Order("questions.id DESC").Limit(unpinnedOffset, unpinnedLimit)
+		var unpinnedQuestions []*custom.Questions
+		err = unpinnedMd.Scan(&unpinnedQuestions)
+		if err != nil {
+			return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Inbox.GetQFMAll: query unpinned questions failed", "teacherId", input.TeacherId, "page", page, "keyword", input.Keyword)
+		}
+		q = append(q, unpinnedQuestions...)
+	}
+
+	remain := utility.CountRemainPage(pinnedCount+unpinnedCount, page)
+	return buildQFMOutput(q, remain), nil
+}
+
+func buildInboxQuestionQuery(ctx context.Context, input *model.GetQFMInput, relation string) *gdb.Model {
 	md := dao.Questions.Ctx(ctx)
 	if input.Tag == "deleted" {
 		md = md.Unscoped().WhereNotNull("questions.deleted_at")
@@ -34,37 +124,15 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 		md = md.Where("questions.reply_cnt", 0)
 	case consts.Answered:
 		md = md.WhereGT("questions.reply_cnt", 0)
-	case "pinned":
-		md = md.WhereNotNull("favorites.id")
 	}
 
 	if input.Keyword != "" {
 		md = md.WhereLike("questions.title", "%"+input.Keyword+"%")
 	}
+	return md
+}
 
-	// 1. 先统计总数 (此时没有 Fields 和 Order，可生成正确的 COUNT(1) 语句)
-	remain, err := md.Count()
-	if err != nil {
-		return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Inbox.GetQFMAll: count questions failed", "teacherId", input.TeacherId, "keyword", input.Keyword)
-	}
-
-	// 2. 注入 Fields、置顶以及选择的排序逻辑
-	md = md.Fields("questions.*", "(favorites.id IS NOT NULL) AS is_pinned")
-	md = md.Order("favorites.id DESC")
-	err = utility.SortByType(&md, input.SortType)
-	if err != nil {
-		return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Inbox.GetQFMAll: apply sort failed", "teacherId", input.TeacherId, "sortType", input.SortType)
-	}
-
-	// 3. 应用分页进行列表查询
-	md = md.Page(input.Page, consts.MaxQuestionsPerPage)
-	var q []*custom.Questions
-	err = md.Scan(&q)
-	if err != nil {
-		return nil, middleware.SanitizeError(ctx, err, consts.ErrInternal, "Inbox.GetQFMAll: query paged questions failed", "teacherId", input.TeacherId, "page", input.Page, "keyword", input.Keyword)
-	}
-	remain = utility.CountRemainPage(remain, input.Page)
-
+func buildQFMOutput(q []*custom.Questions, remain int) *model.GetQFMOutput {
 	qIDs := make([]int, len(q))
 	pqs := make([]model.QFM, len(q))
 	idMap := make(map[int]int)
@@ -86,13 +154,12 @@ func (sTeacherQuestionSelf) GetQFMAll(ctx context.Context, input *model.GetQFMIn
 		pqs[i].IsPinned = pq.IsPinned
 	}
 
-	output := model.GetQFMOutput{
+	return &model.GetQFMOutput{
 		QuestionIDs: qIDs,
 		IdMap:       idMap,
 		Questions:   pqs,
 		RemainPage:  remain,
 	}
-	return &output, nil
 }
 
 func (sTeacherQuestionSelf) GetQFMPinned(ctx context.Context, input *model.GetQFMInput) (*model.GetQFMOutput, error) {
