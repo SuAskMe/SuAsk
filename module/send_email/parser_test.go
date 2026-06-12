@@ -7,9 +7,8 @@ import (
 // 测试formatTmpl函数正常情况
 func TestFormatTmpl(t *testing.T) {
 	// 测试验证码模板
-	// authCodeTmpl := `<html><body><p>您的验证码为：$code$</p></body></html>`
 	authCodeTargets := []string{"$code$"}
-	authCodeTmpl := loadTmplFileWithDefault("/home/jacko/FILES/SuAsk/auth_code.tmpl", authCodeTargets, "")
+	authCodeTmpl := _AUTH_CODE_TMPL
 
 	cache, err := formatTmpl(authCodeTmpl, authCodeTargets)
 	if err != nil {
@@ -32,7 +31,7 @@ func TestFormatTmpl(t *testing.T) {
 	// 测试消息模板
 
 	messageTargets := []string{"$user$", "$type$", "$content$", "$url$"}
-	messageTmpl := loadTmplFileWithDefault("/home/jacko/FILES/SuAsk/msg.tmpl", messageTargets, "")
+	messageTmpl := _NEW_MESSAGE_TMPL
 	cache, err = formatTmpl(messageTmpl, messageTargets)
 	if err != nil {
 		t.Errorf("formatTmpl returned error: %v", err)
@@ -43,11 +42,11 @@ func TestFormatTmpl(t *testing.T) {
 		return
 	}
 
-	if len(cache.pairs) != 6 {
+	if len(cache.pairs) != 4 {
 		t.Errorf("Expected 4 pairs, got %d", len(cache.pairs))
 	}
 
-	if len(cache.slice) != 7 {
+	if len(cache.slice) != 5 {
 		t.Errorf("Expected 5 slices, got %d", len(cache.slice))
 	}
 

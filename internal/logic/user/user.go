@@ -9,8 +9,6 @@ import (
 	"suask/internal/model/do"
 	"suask/internal/service"
 	"suask/utility"
-
-	"github.com/gogf/gf/v2/util/grand"
 )
 
 type sUser struct {
@@ -43,10 +41,13 @@ func (s sUser) UpdateUser(ctx context.Context, in model.UpdateUserInput) (out mo
 }
 
 func (s sUser) UpdatePassword(ctx context.Context, in model.UpdatePasswordInput) (out model.UpdatePasswordOutput, err error) {
-	salt := grand.S(10)
-	password := utility.EncryptPassword(in.Password, salt)
+	// 新密码统一写 bcrypt，顺便把旧的 salt 清空（兼容历史字段，避免残留）
+	password, err := utility.HashPassword(in.Password)
+	if err != nil {
+		return model.UpdatePasswordOutput{}, err
+	}
 	update := do.Users{
-		Salt:         salt,
+		Salt:         "",
 		PasswordHash: password,
 	}
 	md := dao.Users.Ctx(ctx)

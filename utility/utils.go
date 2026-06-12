@@ -10,14 +10,10 @@ import (
 
 func SortByType(md **gdb.Model, sortType int) error {
 	switch sortType {
-	case consts.SortByTimeDsc:
-		*md = (*md).Order("created_at DESC")
-	case consts.SortByTimeAsc:
-		*md = (*md).Order("created_at ASC")
-	case consts.SortByViewsDsc:
-		*md = (*md).Order("views DESC")
-	case consts.SortByViewsAsc:
-		*md = (*md).Order("views ASC")
+	case consts.SortByDefault, consts.SortByTimeDsc:
+		*md = (*md).Order("questions.created_at DESC")
+	case consts.SortByViewsDsc, consts.SortByViewsAsc:
+		*md = (*md).Order("questions.views DESC")
 	default:
 		return fmt.Errorf("invalid sort type: %d", sortType)
 	}
@@ -43,6 +39,9 @@ func TruncateString(s string) string {
 
 func CountRemainPage(remain, page int) int {
 	remainNum := remain - consts.MaxQuestionsPerPage*page
+	if remainNum <= 0 {
+		return 0
+	}
 	remain = remainNum / consts.MaxQuestionsPerPage
 	if remainNum%consts.MaxQuestionsPerPage > 0 {
 		remain += 1

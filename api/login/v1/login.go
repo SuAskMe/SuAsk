@@ -14,10 +14,8 @@ type LoginReq struct {
 }
 
 type LoginRes struct {
-	Type  string `json:"type"         dc:"Token格式"`
-	Token string `json:"token"        dc:"用户的Token"`
-	Role  string `json:"role"         orm:"role"           dc:"用户角色"`
-	Id    int    `json:"id"           orm:"id"             dc:"用户ID"`
+	Role string `json:"role" orm:"role" dc:"用户角色"`
+	Id   int    `json:"id"   orm:"id"   dc:"用户ID"`
 	//Name         string `json:"name"         orm:"name"           dc:"用户名"`
 	//Email        string `json:"email"        orm:"email"          dc:"邮箱"`
 	//Nickname     string `json:"nickname"     orm:"nickname"       dc:"昵称"`

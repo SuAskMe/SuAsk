@@ -2,17 +2,19 @@ package login
 
 import (
 	"context"
-	"strconv"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	"suask/internal/model"
+	"suask/internal/model/do"
 	"suask/internal/model/entity"
 	"suask/internal/service"
-	"suask/module/sjwt"
 	"suask/utility"
+	"time"
 
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type sLogin struct{}
@@ -34,44 +36,60 @@ func (s sLogin) Login(ctx context.Context, in *model.UserLoginInput) (res *model
 	if err != nil {
 		return nil, gerror.New("登录失败，用户名或密码错误")
 	}
-	// 密码校验失败
-	if utility.EncryptPassword(in.Password, userInfo.Salt) != userInfo.PasswordHash {
+	// 密码校验：兼容老 MD5 + 新 bcrypt 两种存储
+	match, needUpgrade, verifyErr := utility.VerifyPassword(userInfo.PasswordHash, userInfo.Salt, in.Password)
+	if verifyErr != nil {
+		g.Log().Error(ctx, verifyErr)
+		return nil, gerror.New(consts.ErrInternal)
+	}
+	if !match {
 		return nil, gerror.New("登录失败，用户名或密码错误")
 	}
-	// 查看是否已登录
-	vtoken, err := g.Redis().Get(ctx, consts.RedisJWTPrefix+strconv.Itoa(userInfo.Id))
-	if err != nil {
-		g.Log().Error(ctx, err)
-		return nil, gerror.New(consts.ErrInternal)
+	// 旧哈希透明升级到 bcrypt
+	if needUpgrade {
+		if newHash, hashErr := utility.HashPassword(in.Password); hashErr == nil {
+			_, updErr := dao.Users.Ctx(ctx).
+				Where(dao.Users.Columns().Id, userInfo.Id).
+				Update(do.Users{PasswordHash: newHash, Salt: ""})
+			if updErr != nil {
+				g.Log().Warningf(ctx, "bcrypt upgrade failed for user %d: %v", userInfo.Id, updErr)
+			}
+		} else {
+			g.Log().Warningf(ctx, "bcrypt hash gen failed for user %d: %v", userInfo.Id, hashErr)
+		}
 	}
-	token := vtoken.String()
-	// 已在别处登录，返回同一个token
-	if token != "" {
-		return &model.UserLoginOutput{Type: consts.TokenType, Id: userInfo.Id, Role: userInfo.Role, Token: token}, nil
-	}
-	// 生成token
-	token, err = sjwt.GenerateToken(userInfo.Id)
-	if err != nil {
-		g.Log().Error(ctx, err)
-		return nil, gerror.New("登录失败，生成token失败")
-	}
-	ex := sjwt.GetExpireSecond()
-	err = g.Redis().SetEX(ctx, consts.RedisJWTPrefix+strconv.Itoa(userInfo.Id), token, ex)
-	if err != nil {
-		g.Log().Error(ctx, err)
-		return nil, gerror.New(consts.ErrInternal)
-	}
-	return &model.UserLoginOutput{Type: consts.TokenType, Id: userInfo.Id, Role: userInfo.Role, Token: token}, nil
+
+	return &model.UserLoginOutput{
+		Id:   userInfo.Id,
+		Role: userInfo.Role,
+	}, nil
 }
 
 func (s sLogin) Logout(ctx context.Context) error {
-	//TODO implement me
-	panic("implement me")
+	userId := gconv.Int(ctx.Value(consts.CtxId))
+	if userId == 0 {
+		return gerror.New("未找到登录用户")
+	}
+	// Session deletion is now handled at the controller level (needs access to cookie).
+	return nil
 }
 
 func (s sLogin) HeartBeats(ctx context.Context) error {
-	//TODO implement me
-	panic("implement me")
+	userId := gconv.Int(ctx.Value(consts.CtxId))
+	if userId == 0 {
+		return gerror.New("未找到登录用户")
+	}
+
+	var user entity.Users
+	_ = dao.Users.Ctx(ctx).Where(dao.Users.Columns().Id, userId).Fields(dao.Users.Columns().Role).Scan(&user)
+	if user.Role == consts.GUEST {
+		newExpire := gtime.Now().Add(14 * 24 * time.Hour)
+		_, _ = dao.GuestUsers.Ctx(ctx).
+			Where(dao.GuestUsers.Columns().Id, userId).
+			Data(do.GuestUsers{ExpiresAt: newExpire}).
+			Update()
+	}
+	return nil
 }
 
 func init() {

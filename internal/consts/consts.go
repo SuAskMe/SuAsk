@@ -2,10 +2,11 @@ package consts
 
 const (
 	MaxQuestionsPerPage   = 10
+	MaxHotQuestions       = 20 // 热点问题最多展示条数
 	MaxKeywordsPerReq     = 8
 	MaxAvatarsPerQuestion = 3
-	SortByTimeDsc         = 0
-	SortByTimeAsc         = 1
+	SortByDefault         = 0
+	SortByTimeDsc         = 1
 	SortByViewsDsc        = 2
 	SortByViewsAsc        = 3
 )
@@ -25,7 +26,7 @@ const (
 const (
 	Answered   = "已回答"
 	Unanswered = "未回答"
-	OnTop      = "置顶"
+	OnTop      = "top" // 置顶标记，存到 favorites.package 中；原为中文 "置顶"，已统一英文化
 )
 
 // for User Role
@@ -34,6 +35,7 @@ const (
 	TEACHER = "teacher"
 	STUDENT = "student"
 	ADMIN   = "admin"
+	GUEST   = "guest"
 )
 
 // for gToken

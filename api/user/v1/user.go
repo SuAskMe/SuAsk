@@ -25,6 +25,9 @@ type UserInfoByIdReq struct {
 
 type UserInfoByIdRes struct {
 	UserInfoBase
+	// 以下字段仅当 role=teacher 时有值
+	Perm      string `json:"perm,omitempty"      dc:"提问箱权限（仅老师）"`
+	Responses int    `json:"responses,omitempty" dc:"回复数（仅老师）"`
 }
 
 type UserInfoBase struct {
@@ -81,3 +84,12 @@ type ForgetPasswordReq struct {
 type ForgetPasswordRes struct {
 	Id int `json:"id"           orm:"id"             description:"用户ID"`
 }
+
+// --- 用户注销 ---
+
+type DeactivateReq struct {
+	g.Meta   `path:"/user/deactivate" method:"POST" tags:"User" summary:"注销账号（不可逆）"`
+	Password string `json:"password" v:"required" dc:"确认密码"`
+}
+
+type DeactivateRes struct{}

@@ -25,19 +25,49 @@ DROP TABLE IF EXISTS `answers`;
 CREATE TABLE `answers` (
   `id` int NOT NULL AUTO_INCREMENT COMMENT '回答ID',
   `user_id` int NOT NULL COMMENT '用户ID',
-  `question_id` int NOT NULL COMMENT '问题ID',
+  `question_id` int DEFAULT NULL COMMENT '问题ID',
+  `announcement_id` int DEFAULT NULL COMMENT '公告ID（公告评论）',
   `in_reply_to` int DEFAULT NULL COMMENT '回复的回答ID，可为空',
   `contents` text CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '回答内容',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `upvotes` int NOT NULL DEFAULT '0' COMMENT '点赞量',
+  `deleted_at` timestamp NULL DEFAULT NULL COMMENT '软删除时间',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `user_id` (`user_id`) USING BTREE,
   KEY `question_id` (`question_id`) USING BTREE,
+  KEY `announcement_id` (`announcement_id`) USING BTREE,
   KEY `in_reply_to` (`in_reply_to`) USING BTREE,
+  KEY `idx_answers_announcement_deleted_created` (`announcement_id`, `deleted_at`, `created_at`) USING BTREE,
   CONSTRAINT `answers_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `answers_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `answers_ibfk_3` FOREIGN KEY (`in_reply_to`) REFERENCES `answers` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `answers_ibfk_3` FOREIGN KEY (`in_reply_to`) REFERENCES `answers` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `answers_chk_question_or_announcement` CHECK (((`question_id` IS NULL) <> (`announcement_id` IS NULL)))
 ) ENGINE=InnoDB AUTO_INCREMENT=49 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_zh_0900_as_cs ROW_FORMAT=DYNAMIC;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `announcements`
+--
+
+DROP TABLE IF EXISTS `announcements`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `announcements` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT '公告ID',
+  `author_id` int NOT NULL COMMENT '发布者用户ID（管理员）',
+  `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '公告标题',
+  `contents` text CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '公告内容',
+  `is_pinned` bit(1) NOT NULL DEFAULT b'0' COMMENT '是否置顶',
+  `published_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发布时间',
+  `expires_at` timestamp NULL DEFAULT NULL COMMENT '过期时间，为空表示永不过期',
+  `updated_at` timestamp NULL DEFAULT NULL COMMENT '更新时间',
+  `deleted_at` timestamp NULL DEFAULT NULL COMMENT '软删除时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `idx_author` (`author_id`) USING BTREE,
+  KEY `idx_pinned_published` (`is_pinned`, `published_at`) USING BTREE,
+  KEY `idx_announcement_active_order` (`deleted_at`, `is_pinned`, `published_at`) USING BTREE,
+  CONSTRAINT `fk_announcements_author` FOREIGN KEY (`author_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_zh_0900_as_cs ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -51,16 +81,19 @@ CREATE TABLE `attachments` (
   `id` int NOT NULL AUTO_INCREMENT COMMENT '附件ID',
   `question_id` int DEFAULT NULL COMMENT '问题ID',
   `answer_id` int DEFAULT NULL COMMENT '回答ID',
+  `announcement_id` int DEFAULT NULL COMMENT '公告ID',
   `type` enum('picture') CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '附件类型（目前仅支持图片）',
   `file_id` int NOT NULL COMMENT '文件ID',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `question_id` (`question_id`) USING BTREE,
   KEY `answer_id` (`answer_id`) USING BTREE,
+  KEY `announcement_id` (`announcement_id`) USING BTREE,
   KEY `file_id` (`file_id`) USING BTREE,
   CONSTRAINT `attachments_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `attachments_ibfk_2` FOREIGN KEY (`answer_id`) REFERENCES `answers` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `attachments_ibfk_3` FOREIGN KEY (`file_id`) REFERENCES `files` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `attachments_chk_1` CHECK ((((`question_id` is not null) + (`answer_id` is not null)) = 1))
+  CONSTRAINT `attachments_ibfk_4` FOREIGN KEY (`announcement_id`) REFERENCES `announcements` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `attachments_chk_1` CHECK (((`question_id` IS NOT NULL) + (`answer_id` IS NOT NULL) + (`announcement_id` IS NOT NULL)) = 1)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_zh_0900_as_cs ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -158,7 +191,6 @@ CREATE TABLE `questions` (
   `dst_user_id` int DEFAULT NULL COMMENT '被提问的用户ID，为空时问大家，不为空时问教师',
   `title` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '问题标题',
   `contents` text CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '问题内容',
-  `is_private` bit(1) NOT NULL COMMENT '是否私密提问，仅在问教师时可为是',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `views` int NOT NULL DEFAULT '0' COMMENT '浏览量',
   `reply_cnt` int NOT NULL DEFAULT '0' COMMENT '回复数',
@@ -167,8 +199,7 @@ CREATE TABLE `questions` (
   KEY `dst_user_id` (`dst_user_id`) USING BTREE,
   FULLTEXT KEY `title` (`title`) COMMENT '内容支持全文搜索，使用ngram parser以支持中文，默认token size为2' /*!50100 WITH PARSER `ngram` */ ,
   CONSTRAINT `questions_ibfk_1` FOREIGN KEY (`src_user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `questions_ibfk_2` FOREIGN KEY (`dst_user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `questions_chk_1` CHECK (((`dst_user_id` is not null) or (`is_private` = 0)))
+  CONSTRAINT `questions_ibfk_2` FOREIGN KEY (`dst_user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB AUTO_INCREMENT=133 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_zh_0900_as_cs ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

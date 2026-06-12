@@ -1,0 +1,761 @@
+{
+  "exported_at": "2026-05-11T10:08:34",
+  "questions": [
+    {
+      "id": 3,
+      "src_user_id": 1000,
+      "dst_user_id": null,
+      "title": "快来邀请教师们入驻吧",
+      "contents": "欢迎各位同学和老师使用速问提问箱",
+      "is_private": 0,
+      "created_at": "2025-03-11 04:54:17",
+      "views": 90,
+      "reply_cnt": 0
+    },
+    {
+      "id": 5,
+      "src_user_id": 1001,
+      "dst_user_id": null,
+      "title": "内容长度测试",
+      "contents": "这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容这是一条很长的内容",
+      "is_private": 0,
+      "created_at": "2025-03-14 14:27:56",
+      "views": 58,
+      "reply_cnt": 1
+    },
+    {
+      "id": 151,
+      "src_user_id": 1069,
+      "dst_user_id": null,
+      "title": "test",
+      "contents": "test",
+      "is_private": 0,
+      "created_at": "2026-05-10 23:22:33.479543629+08:00",
+      "views": 12,
+      "reply_cnt": 1
+    },
+    {
+      "id": 38,
+      "src_user_id": 1001,
+      "dst_user_id": null,
+      "title": "［Report］欢迎大家在这里反馈提问箱的 Issues",
+      "contents": "目前提问箱已经进入了稳定使用阶段 😊\r\n但由于各种原因，我们不能进行实时地维护更新，这很抱歉🙏\r\n如果有更多的优化建议或者发现了 Bug，大家可以在这里或在仓库的 issue 反馈，我们会每周不定时的查看并处理👀\r\nAnd，如果有紧急的 Bug 想要反馈，请直接 email 联系我 1730072668@qq.com ❤️",
+      "is_private": 0,
+      "created_at": "2025-03-20 10:56:08",
+      "views": 101,
+      "reply_cnt": 4
+    },
+    {
+      "id": 1,
+      "src_user_id": 1001,
+      "dst_user_id": null,
+      "title": "我是 SuAsk 的核心开发者",
+      "contents": "大家有什么问题都可以在这里反馈",
+      "is_private": 0,
+      "created_at": "2025-03-08 02:30:59",
+      "views": 297,
+      "reply_cnt": 15
+    }
+  ],
+  "answers": [
+    {
+      "id": 1,
+      "user_id": 1000,
+      "question_id": 1,
+      "in_reply_to": null,
+      "contents": "你是奶龙吗",
+      "created_at": "2025-03-08 02:58:00",
+      "upvotes": 1
+    },
+    {
+      "id": 2,
+      "user_id": 1001,
+      "question_id": 1,
+      "in_reply_to": 1,
+      "contents": "你才是奶龙",
+      "created_at": "2025-03-08 02:58:51",
+      "upvotes": 1
+    },
+    {
+      "id": 3,
+      "user_id": 1000,
+      "question_id": 1,
+      "in_reply_to": 2,
+      "contents": "风风光光了",
+      "created_at": "2025-03-08 03:10:49",
+      "upvotes": 1
+    },
+    {
+      "id": 4,
+      "user_id": 1001,
+      "question_id": 1,
+      "in_reply_to": 3,
+      "contents": "消息测试",
+      "created_at": "2025-03-08 03:21:02",
+      "upvotes": 1
+    },
+    {
+      "id": 5,
+      "user_id": 1002,
+      "question_id": 1,
+      "in_reply_to": null,
+      "contents": "什么时候带我上荣耀",
+      "created_at": "2025-03-08 03:57:33",
+      "upvotes": 1
+    },
+    {
+      "id": 6,
+      "user_id": 1001,
+      "question_id": 1,
+      "in_reply_to": null,
+      "contents": "时区测试",
+      "created_at": "2025-03-10 06:50:34",
+      "upvotes": 0
+    },
+    {
+      "id": 7,
+      "user_id": 1001,
+      "question_id": 1,
+      "in_reply_to": null,
+      "contents": "时区测试",
+      "created_at": "2025-03-10 06:51:37",
+      "upvotes": 0
+    },
+    {
+      "id": 8,
+      "user_id": 1001,
+      "question_id": 1,
+      "in_reply_to": null,
+      "contents": "时区测试",
+      "created_at": "2025-03-10 07:04:05",
+      "upvotes": 0
+    },
+    {
+      "id": 9,
+      "user_id": 1001,
+      "question_id": 1,
+      "in_reply_to": null,
+      "contents": "时区测试\r\n",
+      "created_at": "2025-03-10 15:04:50",
+      "upvotes": 0
+    },
+    {
+      "id": 40,
+      "user_id": 1000,
+      "question_id": 1,
+      "in_reply_to": null,
+      "contents": "11",
+      "created_at": "2025-06-06 12:27:04",
+      "upvotes": 0
+    },
+    {
+      "id": 49,
+      "user_id": 1036,
+      "question_id": 1,
+      "in_reply_to": null,
+      "contents": "1",
+      "created_at": "2025-09-16 05:34:24",
+      "upvotes": 0
+    },
+    {
+      "id": 50,
+      "user_id": 1036,
+      "question_id": 1,
+      "in_reply_to": 49,
+      "contents": "2",
+      "created_at": "2025-09-16 05:36:48",
+      "upvotes": 0
+    },
+    {
+      "id": 51,
+      "user_id": 1036,
+      "question_id": 1,
+      "in_reply_to": 40,
+      "contents": "邮件测试",
+      "created_at": "2025-09-16 05:38:48",
+      "upvotes": 0
+    },
+    {
+      "id": 52,
+      "user_id": 1036,
+      "question_id": 1,
+      "in_reply_to": null,
+      "contents": "3",
+      "created_at": "2025-09-16 05:39:27",
+      "upvotes": 0
+    },
+    {
+      "id": 53,
+      "user_id": 1000,
+      "question_id": 1,
+      "in_reply_to": 51,
+      "contents": "111",
+      "created_at": "2025-09-16 07:35:45",
+      "upvotes": 0
+    },
+    {
+      "id": 11,
+      "user_id": 1001,
+      "question_id": 5,
+      "in_reply_to": null,
+      "contents": "确实很长",
+      "created_at": "2025-03-14 14:29:07",
+      "upvotes": 0
+    },
+    {
+      "id": 41,
+      "user_id": 1056,
+      "question_id": 38,
+      "in_reply_to": null,
+      "contents": "不知道为什么不能问老师？报错请求无响应，提问失败。\r\n\r\n草稿好像会保存多次，即使是一样的",
+      "created_at": "2025-06-14 07:51:14",
+      "upvotes": 0
+    },
+    {
+      "id": 46,
+      "user_id": 1013,
+      "question_id": 38,
+      "in_reply_to": null,
+      "contents": "从别的网站跳到这个网站里，click返回按钮返回到原本的网站去了🤔",
+      "created_at": "2025-07-19 14:57:53",
+      "upvotes": 0
+    },
+    {
+      "id": 47,
+      "user_id": 1001,
+      "question_id": 38,
+      "in_reply_to": 46,
+      "contents": "一般情况下返回是直接回到上一个页面🤔看起来是合理的。可以提供更多信息嘛，直接邮件发给我就好",
+      "created_at": "2025-07-31 09:56:29",
+      "upvotes": 0
+    },
+    {
+      "id": 48,
+      "user_id": 1001,
+      "question_id": 38,
+      "in_reply_to": 41,
+      "contents": "请问现在还是这样吗，是提问的哪个老师呢，草稿这个我们现在看看",
+      "created_at": "2025-07-31 09:58:00",
+      "upvotes": 0
+    },
+    {
+      "id": 64,
+      "user_id": 1000,
+      "question_id": 151,
+      "in_reply_to": null,
+      "contents": "11",
+      "created_at": "2026-05-11 00:22:54.457397024+08:00",
+      "upvotes": 0
+    }
+  ],
+  "attachments_of_questions": [
+    {
+      "id": 1,
+      "question_id": 3,
+      "answer_id": null,
+      "type": "picture",
+      "file_id": 9
+    },
+    {
+      "id": 5,
+      "question_id": 151,
+      "answer_id": null,
+      "type": "picture",
+      "file_id": 23
+    }
+  ],
+  "attachments_of_answers": [
+    {
+      "id": 2,
+      "question_id": null,
+      "answer_id": 40,
+      "type": "picture",
+      "file_id": 20
+    },
+    {
+      "id": 3,
+      "question_id": null,
+      "answer_id": 40,
+      "type": "picture",
+      "file_id": 21
+    },
+    {
+      "id": 6,
+      "question_id": null,
+      "answer_id": 64,
+      "type": "picture",
+      "file_id": 24
+    }
+  ],
+  "favorites": [
+    {
+      "id": 2,
+      "user_id": 1000,
+      "question_id": 3,
+      "created_at": "2025-03-11 15:36:03",
+      "package": "default"
+    },
+    {
+      "id": 15,
+      "user_id": 1069,
+      "question_id": 151,
+      "created_at": "2026-05-10 23:24:19.351525983+08:00",
+      "package": "default"
+    }
+  ],
+  "upvotes_of_questions": [],
+  "upvotes_of_answers": [
+    {
+      "id": 1,
+      "user_id": 1001,
+      "question_id": null,
+      "answer_id": 1
+    },
+    {
+      "id": 2,
+      "user_id": 1001,
+      "question_id": null,
+      "answer_id": 2
+    },
+    {
+      "id": 3,
+      "user_id": 1001,
+      "question_id": null,
+      "answer_id": 3
+    },
+    {
+      "id": 4,
+      "user_id": 1001,
+      "question_id": null,
+      "answer_id": 4
+    },
+    {
+      "id": 5,
+      "user_id": 1001,
+      "question_id": null,
+      "answer_id": 5
+    }
+  ],
+  "notifications_of_questions": [
+    {
+      "id": 1,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": null,
+      "answer_id": 1,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-03-08 02:58:00",
+      "deleted_at": null
+    },
+    {
+      "id": 2,
+      "user_id": 1000,
+      "question_id": 1,
+      "reply_to_id": 2,
+      "answer_id": 1,
+      "type": "new_reply",
+      "is_read": 1,
+      "created_at": "2025-03-08 02:58:51",
+      "deleted_at": null
+    },
+    {
+      "id": 3,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": null,
+      "answer_id": 3,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-03-08 03:10:49",
+      "deleted_at": null
+    },
+    {
+      "id": 4,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": 3,
+      "answer_id": 2,
+      "type": "new_reply",
+      "is_read": 1,
+      "created_at": "2025-03-08 03:10:49",
+      "deleted_at": null
+    },
+    {
+      "id": 5,
+      "user_id": 1000,
+      "question_id": 1,
+      "reply_to_id": 4,
+      "answer_id": 3,
+      "type": "new_reply",
+      "is_read": 1,
+      "created_at": "2025-03-08 03:21:02",
+      "deleted_at": null
+    },
+    {
+      "id": 6,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": null,
+      "answer_id": 5,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-03-08 03:57:33",
+      "deleted_at": null
+    },
+    {
+      "id": 132,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": null,
+      "answer_id": 40,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-06-06 12:27:04",
+      "deleted_at": null
+    },
+    {
+      "id": 145,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": null,
+      "answer_id": 49,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-09-16 05:34:24",
+      "deleted_at": null
+    },
+    {
+      "id": 146,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": null,
+      "answer_id": 50,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-09-16 05:36:48",
+      "deleted_at": null
+    },
+    {
+      "id": 147,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": null,
+      "answer_id": 51,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-09-16 05:38:48",
+      "deleted_at": null
+    },
+    {
+      "id": 148,
+      "user_id": 1000,
+      "question_id": 1,
+      "reply_to_id": 51,
+      "answer_id": 40,
+      "type": "new_reply",
+      "is_read": 1,
+      "created_at": "2025-09-16 05:38:49",
+      "deleted_at": null
+    },
+    {
+      "id": 149,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": null,
+      "answer_id": 52,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-09-16 05:39:27",
+      "deleted_at": null
+    },
+    {
+      "id": 150,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": null,
+      "answer_id": 53,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-09-16 07:35:45",
+      "deleted_at": null
+    },
+    {
+      "id": 151,
+      "user_id": 1036,
+      "question_id": 1,
+      "reply_to_id": 53,
+      "answer_id": 51,
+      "type": "new_reply",
+      "is_read": 1,
+      "created_at": "2025-09-16 07:35:46",
+      "deleted_at": null
+    },
+    {
+      "id": 135,
+      "user_id": 1001,
+      "question_id": 38,
+      "reply_to_id": null,
+      "answer_id": 41,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-06-14 07:51:14",
+      "deleted_at": null
+    },
+    {
+      "id": 142,
+      "user_id": 1001,
+      "question_id": 38,
+      "reply_to_id": null,
+      "answer_id": 46,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-07-19 14:57:53",
+      "deleted_at": null
+    },
+    {
+      "id": 143,
+      "user_id": 1013,
+      "question_id": 38,
+      "reply_to_id": 47,
+      "answer_id": 46,
+      "type": "new_reply",
+      "is_read": 1,
+      "created_at": "2025-07-31 09:56:30",
+      "deleted_at": null
+    },
+    {
+      "id": 144,
+      "user_id": 1056,
+      "question_id": 38,
+      "reply_to_id": 48,
+      "answer_id": 41,
+      "type": "new_reply",
+      "is_read": 0,
+      "created_at": "2025-07-31 09:58:00",
+      "deleted_at": null
+    },
+    {
+      "id": 173,
+      "user_id": 1069,
+      "question_id": 151,
+      "reply_to_id": 0,
+      "answer_id": 64,
+      "type": "new_answer",
+      "is_read": 0,
+      "created_at": "2026-05-11 00:22:54.478104655+08:00",
+      "deleted_at": null
+    }
+  ],
+  "notifications_of_answers": [
+    {
+      "id": 1,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": null,
+      "answer_id": 1,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-03-08 02:58:00",
+      "deleted_at": null
+    },
+    {
+      "id": 2,
+      "user_id": 1000,
+      "question_id": 1,
+      "reply_to_id": 2,
+      "answer_id": 1,
+      "type": "new_reply",
+      "is_read": 1,
+      "created_at": "2025-03-08 02:58:51",
+      "deleted_at": null
+    },
+    {
+      "id": 3,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": null,
+      "answer_id": 3,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-03-08 03:10:49",
+      "deleted_at": null
+    },
+    {
+      "id": 4,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": 3,
+      "answer_id": 2,
+      "type": "new_reply",
+      "is_read": 1,
+      "created_at": "2025-03-08 03:10:49",
+      "deleted_at": null
+    },
+    {
+      "id": 5,
+      "user_id": 1000,
+      "question_id": 1,
+      "reply_to_id": 4,
+      "answer_id": 3,
+      "type": "new_reply",
+      "is_read": 1,
+      "created_at": "2025-03-08 03:21:02",
+      "deleted_at": null
+    },
+    {
+      "id": 6,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": null,
+      "answer_id": 5,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-03-08 03:57:33",
+      "deleted_at": null
+    },
+    {
+      "id": 132,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": null,
+      "answer_id": 40,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-06-06 12:27:04",
+      "deleted_at": null
+    },
+    {
+      "id": 135,
+      "user_id": 1001,
+      "question_id": 38,
+      "reply_to_id": null,
+      "answer_id": 41,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-06-14 07:51:14",
+      "deleted_at": null
+    },
+    {
+      "id": 142,
+      "user_id": 1001,
+      "question_id": 38,
+      "reply_to_id": null,
+      "answer_id": 46,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-07-19 14:57:53",
+      "deleted_at": null
+    },
+    {
+      "id": 143,
+      "user_id": 1013,
+      "question_id": 38,
+      "reply_to_id": 47,
+      "answer_id": 46,
+      "type": "new_reply",
+      "is_read": 1,
+      "created_at": "2025-07-31 09:56:30",
+      "deleted_at": null
+    },
+    {
+      "id": 144,
+      "user_id": 1056,
+      "question_id": 38,
+      "reply_to_id": 48,
+      "answer_id": 41,
+      "type": "new_reply",
+      "is_read": 0,
+      "created_at": "2025-07-31 09:58:00",
+      "deleted_at": null
+    },
+    {
+      "id": 145,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": null,
+      "answer_id": 49,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-09-16 05:34:24",
+      "deleted_at": null
+    },
+    {
+      "id": 146,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": null,
+      "answer_id": 50,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-09-16 05:36:48",
+      "deleted_at": null
+    },
+    {
+      "id": 147,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": null,
+      "answer_id": 51,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-09-16 05:38:48",
+      "deleted_at": null
+    },
+    {
+      "id": 148,
+      "user_id": 1000,
+      "question_id": 1,
+      "reply_to_id": 51,
+      "answer_id": 40,
+      "type": "new_reply",
+      "is_read": 1,
+      "created_at": "2025-09-16 05:38:49",
+      "deleted_at": null
+    },
+    {
+      "id": 149,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": null,
+      "answer_id": 52,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-09-16 05:39:27",
+      "deleted_at": null
+    },
+    {
+      "id": 150,
+      "user_id": 1001,
+      "question_id": 1,
+      "reply_to_id": null,
+      "answer_id": 53,
+      "type": "new_answer",
+      "is_read": 1,
+      "created_at": "2025-09-16 07:35:45",
+      "deleted_at": null
+    },
+    {
+      "id": 151,
+      "user_id": 1036,
+      "question_id": 1,
+      "reply_to_id": 53,
+      "answer_id": 51,
+      "type": "new_reply",
+      "is_read": 1,
+      "created_at": "2025-09-16 07:35:46",
+      "deleted_at": null
+    },
+    {
+      "id": 173,
+      "user_id": 1069,
+      "question_id": 151,
+      "reply_to_id": 0,
+      "answer_id": 64,
+      "type": "new_answer",
+      "is_read": 0,
+      "created_at": "2026-05-11 00:22:54.478104655+08:00",
+      "deleted_at": null
+    }
+  ]
+}

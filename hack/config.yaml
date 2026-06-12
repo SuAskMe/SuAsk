@@ -14,7 +14,7 @@ gfcli:
 
   gen: # 自动生成 dao
     dao:
-      - link: "mysql:root:123456@tcp(127.0.0.1:3306)/suask"
+      - link: "mysql:${DB_USER}:${DB_PASSWORD}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}"
         descriptionTag: true
     enums:
       path: "internal/enum/enums.go"

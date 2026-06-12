@@ -3,7 +3,6 @@ package history
 import (
 	"context"
 	v1 "suask/api/history/v1"
-	"suask/internal/consts"
 	"suask/internal/model"
 	"suask/internal/service"
 
@@ -26,52 +25,26 @@ func GetHistoryImpl(ctx context.Context, req interface{}) (res interface{}, err 
 	}
 	QuestionList := baseOutput.Questions
 	idMap := baseOutput.IdMap
-	// 获取图片
-	imagesOutput, err := service.QuestionUtil().GetImages(ctx, &model.GetImagesInput{QuestionIDs: baseOutput.QuestionIDs})
+	dstUserIDMap := make(map[int]int, len(QuestionList))
+	for _, question := range QuestionList {
+		dstUserIDMap[question.ID] = question.DstUserID
+	}
+	assetsOutput, err := service.QuestionUtil().GetQuestionListAssets(ctx, &model.GetQuestionListAssetsInput{
+		QuestionIDs:  baseOutput.QuestionIDs,
+		DstUserIDMap: dstUserIDMap,
+	})
 	if err != nil {
 		return
 	}
-	for k, v := range imagesOutput.ImageMap {
-		urls, err_ := service.File().GetList(ctx, model.FileListGetInput{IdList: v})
-		if err_ != nil {
-			return nil, err_
-		}
-		QuestionList[idMap[k]].ImageURLs = urls.URL
+	for questionId, urls := range assetsOutput.ImageURLMap {
+		QuestionList[idMap[questionId]].ImageURLs = urls
 	}
-	// 获取回答数
-	answersOutput, err := service.PublicQuestion().GetAnswers(ctx, &model.GetAnswersInput{QuestionIDs: baseOutput.QuestionIDs})
-	if err != nil {
-		return
+	for questionId, urls := range assetsOutput.AnswerAvatarMap {
+		QuestionList[idMap[questionId]].AnswerAvatars = urls
 	}
-	if answersOutput != nil {
-		for k, v := range answersOutput.AvatarsMap {
-			dstId := QuestionList[idMap[k]].DstUserID
-			if dstId != 0 {
-				QuestionList[idMap[k]].AnswerAvatars = []string{consts.DefaultAvatarURL}
-				continue
-			}
-			idList := make([]int, 0, len(v))
-			URLs := make([]string, 0, len(v))
-			for _, u := range v {
-				if u != 0 {
-					idList = append(idList, u)
-				} else {
-					URLs = append(URLs, consts.DefaultAvatarURL)
-				}
-			}
-			urls, err_ := service.File().GetList(ctx, model.FileListGetInput{IdList: idList})
-			if err_ != nil {
-				return nil, err_
-			}
-			if len(URLs) == 0 {
-				URLs = urls.URL
-			} else {
-				URLs = append(urls.URL, URLs[0])
-			}
-			QuestionList[idMap[k]].AnswerAvatars = URLs
-		}
+	for questionId, users := range assetsOutput.AnswerUserMap {
+		QuestionList[idMap[questionId]].AnswerUsers = users
 	}
-	// 返回结果
 	res = &v1.GetHistoryPageRes{
 		QuestionList: QuestionList,
 		RemainPage:   baseOutput.RemainPage,

@@ -55,6 +55,12 @@ func (t *TrieMux) getSplitIndexFrom(path *string, singleSep byte, st int) int {
 }
 
 func (t *TrieMux) HasPrefix(path string) bool {
+	if path == "" {
+		return false
+	}
+	if path == "/" {
+		return true
+	}
 	if path[0] != '/' {
 		return false
 	}

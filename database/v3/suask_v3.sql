@@ -121,7 +121,6 @@ CREATE TABLE `questions`  (
   `dst_user_id` int NULL DEFAULT NULL COMMENT '被提问的用户ID，为空时问大家，不为空时问教师',
   `title` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '问题标题',
   `contents` text CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL COMMENT '问题内容',
-  `is_private` bit(1) NOT NULL COMMENT '是否私密提问，仅在问教师时可为是',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `views` int NOT NULL DEFAULT 0 COMMENT '浏览量',
   `reply_cnt` int NOT NULL DEFAULT 0 COMMENT '回复数',

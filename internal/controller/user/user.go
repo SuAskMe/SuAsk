@@ -5,10 +5,13 @@ import (
 	v1 "suask/api/user/v1"
 	"suask/internal/consts"
 	"suask/internal/dao"
+	fileLogic "suask/internal/logic/file"
 	"suask/internal/model"
 	"suask/internal/service"
 	"suask/module/send_email"
+	"suask/module/session"
 	"suask/module/validation"
+	"suask/utility"
 
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
@@ -27,15 +30,16 @@ func (c *cUser) UpdateUserInfo(ctx context.Context, req *v1.UpdateUserReq) (res 
 		Nickname:     req.Nickname,
 		Introduction: req.Introduction,
 	}
-	// 上传头像
-	if req.AvatarFile.FileHeader != nil {
-		avatarFile := model.FileUploadInput{File: req.AvatarFile}
-		data, err := service.File().UploadFile(ctx, avatarFile)
+	// 上传头像（使用共享逻辑）
+	if req.AvatarFile != nil && req.AvatarFile.FileHeader != nil {
+		out, err := fileLogic.UploadAvatar(ctx, fileLogic.UploadAvatarInput{
+			UserId: userId,
+			File:   req.AvatarFile,
+		})
 		if err != nil {
 			return nil, err
 		}
-		avatarId := data.Id
-		userInfo.AvatarFileId = avatarId
+		_ = out // avatar_file_id 已在 UploadAvatar 中更新
 	}
 	// 更新基础数据
 	out, err := service.User().UpdateUser(ctx, userInfo)
@@ -82,7 +86,7 @@ func (c *cUser) SendVerificationCode(ctx context.Context, req *v1.SendVerificati
 			return nil, gerror.New("邮箱不存在")
 		}
 	default:
-		return nil, err
+		return nil, gerror.New("不支持的验证码类型")
 	}
 	v, err := g.Redis().Get(ctx, consts.RedisSendCodePrefix+req.Email)
 	if err != nil {
@@ -124,6 +128,8 @@ func (c *cUser) UpdatePassWord(ctx context.Context, req *v1.UpdatePasswordReq) (
 	if verificationCode != req.Code {
 		return nil, gerror.New("验证码错误")
 	}
+	// 验证码一次性使用：校验成功后立即删除
+	g.Redis().Del(ctx, consts.RedisSendCodePrefix+req.Email, consts.RedisCountCodePrefix+req.Email)
 	input := model.UpdatePasswordInput{Type: consts.ResetPassword, Password: req.Password, UserId: userId}
 	out, err := service.User().UpdatePassword(ctx, input)
 	if err != nil {
@@ -146,6 +152,8 @@ func (c *cUser) ForgetPassword(ctx context.Context, req *v1.ForgetPasswordReq) (
 	if verificationCode != req.Code {
 		return nil, gerror.New("验证码错误")
 	}
+	// 验证码一次性使用：校验成功后立即删除
+	g.Redis().Del(ctx, consts.RedisSendCodePrefix+req.Email, consts.RedisCountCodePrefix+req.Email)
 	input := model.UpdatePasswordInput{Type: consts.ForgetPassword, Password: req.Password, Email: req.Email}
 	out, err := service.User().UpdatePassword(ctx, input)
 	if err != nil {
@@ -173,16 +181,21 @@ func (c *cUser) GetUserInfoById(ctx context.Context, req *v1.UserInfoByIdReq) (r
 		if err != nil {
 			return nil, err
 		}
-		avatarURL := file.URL
-		res.AvatarURL = avatarURL
-	} else if res.Role == consts.TEACHER {
-		avatarURL, err := service.Teacher().GetTeacherAvatar(ctx, &model.TeacherGetAvatarInput{TeacherId: out.Id})
-		if err != nil {
-			return nil, err
-		}
-		res.AvatarURL = avatarURL.AvatarUrl
+		res.AvatarURL = file.URL
 	} else {
 		res.AvatarURL = consts.DefaultAvatarURL
+	}
+	// 如果是老师，附加 perm 和 responses
+	if res.Role == consts.TEACHER {
+		perm, _ := validation.IsTeacher(ctx, out.Id)
+		res.Perm = perm
+		// responses 从 teachers 表读
+		type teacherInfo struct {
+			Responses int `json:"responses"`
+		}
+		var ti teacherInfo
+		dao.Teachers.Ctx(ctx).Where("id", out.Id).Fields("responses").Scan(&ti)
+		res.Responses = ti.Responses
 	}
 	return res, nil
 }
@@ -217,18 +230,72 @@ func (c *cUser) Info(ctx context.Context, req *v1.UserInfoReq) (res *v1.UserInfo
 	}
 	res.Email = user.Email
 
-	// 获取设置内容
+	// 获取设置内容（guest 用户可能没有 settings 记录，使用默认值）
 	setting, err := service.Setting().GetSetting(ctx, model.GetSettingInput{Id: userId})
-	if err != nil {
-		return nil, err
+	if err == nil {
+		res.ThemeId = setting.ThemeId
+		res.NotifyEmail = setting.NotifyEmail
+		res.NotifySwitch = setting.NotifySwitch
+	} else {
+		res.ThemeId = consts.DefaultThemeId
+		res.NotifySwitch = false
 	}
-	res.ThemeId = setting.ThemeId
-	res.NotifyEmail = setting.NotifyEmail
-	res.NotifySwitch = setting.NotifySwitch
 
 	// 获取提问箱权限（如果是教师）
 	perm, _ := validation.IsTeacher(ctx, userId)
 	res.QuestionBoxPerm = perm
 
 	return res, nil
+}
+
+func (c *cUser) Deactivate(ctx context.Context, req *v1.DeactivateReq) (res *v1.DeactivateRes, err error) {
+	userId := gconv.Int(ctx.Value(consts.CtxId))
+	if userId == consts.DefaultUserId {
+		return nil, gerror.New("请登录后操作")
+	}
+	// 验证密码
+	user, err := service.User().GetUser(ctx, model.UserInfoInput{Id: userId})
+	if err != nil {
+		return nil, err
+	}
+	// 从 DB 拿完整的 salt + hash
+	var userEntity struct {
+		Salt         string `json:"salt" orm:"salt"`
+		PasswordHash string `json:"password_hash" orm:"password_hash"`
+	}
+	err = dao.Users.Ctx(ctx).Where(dao.Users.Columns().Id, userId).
+		Fields("salt, password_hash").Scan(&userEntity)
+	if err != nil {
+		return nil, gerror.New(consts.ErrInternal)
+	}
+	match, _, verifyErr := utility.VerifyPassword(userEntity.PasswordHash, userEntity.Salt, req.Password)
+	if verifyErr != nil || !match {
+		return nil, gerror.New("密码错误，无法注销")
+	}
+	_ = user // 确认用户存在
+
+	// 执行注销：匿名化 + 软删
+	_, err = g.DB().Exec(ctx, `
+		UPDATE users SET
+			name         = 'deleted_' || CAST(id AS TEXT),
+			email        = 'deleted_' || CAST(id AS TEXT) || '@deleted',
+			password_hash = '',
+			salt         = '',
+			nickname     = '已注销用户',
+			introduction = '',
+			avatar_file_id = NULL,
+			deleted_at   = CURRENT_TIMESTAMP
+		WHERE id = ?
+	`, userId)
+	if err != nil {
+		return nil, gerror.New(consts.ErrInternal)
+	}
+
+	// 清除 settings 的通知邮箱
+	g.DB().Exec(ctx, "UPDATE settings SET notify_email = NULL, notify_switch = 0 WHERE id = ?", userId)
+
+	// 清除 Redis 登录态
+	session.DeleteUserSessions(ctx, userId)
+
+	return &v1.DeactivateRes{}, nil
 }

@@ -2,7 +2,10 @@ package cmd
 
 import (
 	"context"
+	"suask/internal/controller/admin"
+	"suask/internal/controller/announcement"
 	"suask/internal/controller/favorite"
+	"suask/internal/controller/guest"
 	"suask/internal/controller/history"
 	"suask/internal/controller/login"
 	"suask/internal/controller/notification"
@@ -10,6 +13,8 @@ import (
 	"suask/internal/controller/register"
 	"suask/internal/controller/teacher"
 	"suask/internal/controller/user"
+	fileCleanup "suask/internal/logic/file"
+	guestLogic "suask/internal/logic/guest"
 	"suask/internal/middleware"
 
 	"github.com/gogf/gf/v2/frame/g"
@@ -25,54 +30,130 @@ var (
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
 			s := g.Server()
 
-			jToken := JwtToken()
-			if err != nil {
-				return err
+			// 初始化校园网网段配置
+			middleware.InitCampusSubnets(ctx)
+
+			// 请求体上限 32 MiB
+			const minBodySize int64 = 32 * 1024 * 1024
+			bodyLimit := minBodySize
+			if v, err := g.Cfg().Get(ctx, "upload.max_bytes"); err == nil && !v.IsNil() {
+				if n := v.Int64(); n > bodyLimit {
+					bodyLimit = n
+				}
 			}
+			s.SetClientMaxBodySize(bodyLimit)
+			g.Log().Infof(ctx, "HTTP body size limit set to %d bytes", bodyLimit)
 
 			s.Group("/", func(group *ghttp.RouterGroup) {
 				group.Middleware(
 					ghttp.MiddlewareHandlerResponse,
+					middleware.CleanErrorResponse,
 					middleware.CORS,
 				)
-				// 这里无需登录，不需要请求用户数据
+
+				// ========== 公开接口（需要校园网） ==========
+				group.Group("/", func(group *ghttp.RouterGroup) {
+					group.Middleware(middleware.CampusNetworkCheck)
+					group.Bind(register.Register)
+				})
+
+				// ========== 公开接口（无需认证、无需校园网） ==========
 				group.Bind(
-					register.Register,
 					user.User.GetUserInfoById,
 					teacher.Teacher.GetTeacher,
 					teacher.Teacher.GetTeacherPin,
+					questions.HotQuestion,
+					guest.Guest.Login,
+					login.Login.Login,
 				)
-				// 这里是登录和非登录共有接口
+
+				// ========== Guest 升级（需要校园网 + 登录） ==========
 				group.Group("/", func(group *ghttp.RouterGroup) {
-					group.Middleware(jToken.JwtAuth)
-					group.Bind(login.Login.Login,
+					group.Middleware(middleware.CampusNetworkCheck)
+					group.Middleware(middleware.SessionRequired)
+					group.Bind(
+						guest.Guest.Upgrade,
+						guest.Guest.SendCode,
+					)
+				})
+
+				// ========== 必须登录（Guest 也可以访问） ==========
+				group.Group("/", func(group *ghttp.RouterGroup) {
+					group.Middleware(middleware.SessionRequired)
+					group.Bind(
 						login.Login.Logout,
 						login.Login.HeartBeats,
-						questions.PublicQuestions,
-						questions.QuestionDetail.GetDetail,
 						user.User.Info,
+						questions.TeacherQuestion,
+						questions.QuestionDetail.GetDetail,
+						questions.Question,
+						questions.QuestionDetail.DeleteAnswer,
+						questions.QuestionDetail.AddAnswer,
+						questions.QuestionDetail.Upvote,
+						questions.Inbox,
+						history.History,
+						notification.Notification,
+						announcement.Announcement.GetActive,
+					)
+				})
+
+				// ========== 必须登录 + 非 Guest（Guest 不可访问） ==========
+				group.Group("/", func(group *ghttp.RouterGroup) {
+					group.Middleware(middleware.SessionRequired)
+					group.Middleware(middleware.NonGuestRequired)
+					group.Bind(
 						user.User.UpdateUserInfo,
 						user.User.UpdatePassWord,
 						user.User.SendVerificationCode,
 						user.User.ForgetPassword,
-						questions.QuestionDetail.AddAnswer,
+						user.User.Deactivate,
 						favorite.Favorite,
-						history.History,
-						questions.QuestionDetail.Upvote,
-						questions.Question,
 						teacher.Teacher.UpdatePerm,
-						questions.TeacherSelf,
-						questions.TeacherQuestion,
-						notification.Notification,
+						announcement.Announcement.List,
+						announcement.Announcement.Detail,
+						announcement.Announcement.AddComment,
+						announcement.Announcement.Create,
+						announcement.Announcement.Update,
+						announcement.Announcement.Delete,
+					)
+				})
+
+				// ========== 管理员接口（需要登录 + 管理员角色） ==========
+				group.Group("/", func(group *ghttp.RouterGroup) {
+					group.Middleware(middleware.SessionRequired)
+					group.Middleware(middleware.AdminRequired)
+					group.Bind(
+						admin.Admin.ListUsers,
+						admin.Admin.CreateUser,
+						admin.Admin.UpdateUser,
+						admin.Admin.ResetPassword,
+						admin.Admin.DeleteUser,
+						admin.Admin.UpdateAvatar,
+						admin.Admin.ListQuestions,
+						admin.Admin.GetQuestionDetail,
+						admin.Admin.DeleteQuestion,
+						admin.Admin.RestoreQuestion,
+						admin.Admin.DeleteQuestionAnswer,
+						admin.Admin.RestoreQuestionAnswer,
+						announcement.Announcement.AdminList,
 					)
 				})
 			})
-			// 设置静态文件服务
-			s.SetIndexFolder(true)
-			s.SetFileServerEnabled(true)
-			s.SetServerRoot(".")
 
-			// 启动服务器
+			// 静态文件服务
+			uploadPath := g.Cfg().MustGet(ctx, "upload.path").String()
+			if uploadPath == "" {
+				uploadPath = "upload"
+			}
+			s.AddStaticPath("/"+uploadPath, "./"+uploadPath)
+			s.SetIndexFolder(false)
+
+			// 启动文件清理定时任务
+			fileCleanup.StartCleanupTask(ctx)
+
+			// 启动 Guest 清理定时任务
+			guestLogic.StartGuestCleanupTask(ctx)
+
 			s.Run()
 			return nil
 		},

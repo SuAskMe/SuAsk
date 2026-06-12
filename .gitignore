@@ -12,10 +12,29 @@ gf
 main
 main.exe
 output/
-manifest
 manifest/output/
 temp/
 temp.yaml
 bin
 **/config/config.yaml
+**/config/config.local.yaml
 .lingma
+.kiro
+.claude/
+suask.db.*
+suask.local.db*
+upload/
+upload-local/
+logs-local/
+
+# SQLite 运行时文件（WAL/SHM 是临时文件，.db 是数据文件，按需决定是否提交）
+*.db
+*.db-shm
+*.db-wal
+# 不再提交由 dump.sql 直接生成的数据库副本
+/database/suask.db
+
+# 运行期日志
+/logs/
+**/logs/
+module/send_email/logs/

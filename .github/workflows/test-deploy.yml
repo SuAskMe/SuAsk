@@ -1,0 +1,56 @@
+name: Deploy Test Backend (GoFrame)
+
+on:
+    push:
+        branches:
+            - dev-v2 # 只有推送到 dev 分支时触发
+    workflow_dispatch:
+
+jobs:
+    build-and-deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version: "1.24.1"
+                  check-latest: false
+
+            - name: Run Tests
+              env:
+                  GF_GCFG_FILE: manifest/config/config.yaml.example
+              run: go test ./...
+
+            - name: Run Vet
+              env:
+                  GF_GCFG_FILE: manifest/config/config.yaml.example
+              run: go vet ./...
+
+            - name: Build Binary
+              run: |
+                  # 编译为 Linux 用的二进制文件，起名为 main_test 避免冲突
+                  CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main_test main.go
+
+            - name: Deploy to Server
+              uses: appleboy/scp-action@v0.1.7
+              with:
+                  host: ${{ secrets.SERVER_IP }}
+                  username: root
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  # 上传二进制文件和配置文件
+                  source: "main_test,manifest/"
+                  target: "/home/suask/test-backend"
+
+            - name: Restart Test Service
+              uses: appleboy/ssh-action@v1.0.3
+              with:
+                  host: ${{ secrets.SERVER_IP }}
+                  username: root
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  script: |
+                      chmod +x /home/suask/test-backend/main_test
+                      # 重启专门的测试环境服务
+                      systemctl restart suask-test.service

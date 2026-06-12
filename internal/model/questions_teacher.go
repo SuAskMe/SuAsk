@@ -7,6 +7,7 @@ type TeacherQuestion struct {
 	Views     int      `json:"views"`
 	CreatedAt int64    `json:"created_at"`
 	ImageURLs []string `json:"image_urls"`
+	IsPinned  bool     `json:"is_pinned"`
 }
 
 type GetBaseOfTeacherInput struct {

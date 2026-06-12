@@ -482,19 +482,6 @@
           "id": 3
         },
         {
-          "name": "is_private",
-          "type": "BIT",
-          "comment": "是否私密提问，仅在问教师时可为是",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "",
-          "size": 1,
-          "check": "",
-          "id": 4
-        },
-        {
           "name": "created_at",
           "type": "TIMESTAMP",
           "comment": "创建时间",

@@ -3,16 +3,17 @@ package model
 import "github.com/gogf/gf/v2/os/gtime"
 
 type FavoriteQuestion struct {
-	ID            int      `json:"id"`
-	Title         string   `json:"title"`
-	Content       string   `json:"contents"`
-	Views         int      `json:"views"`
-	CreatedAt     int64    `json:"created_at"`
-	ImageURLs     []string `json:"image_urls"`
-	IsFavorite    bool     `json:"is_favorite"`
-	AnswerNum     int      `json:"answer_num"`
-	AnswerAvatars []string `json:"answer_avatars"`
-	DstUserID     int      `json:"dst_user_id"`
+	ID            int                 `json:"id"`
+	Title         string              `json:"title"`
+	Content       string              `json:"contents"`
+	Views         int                 `json:"views"`
+	CreatedAt     int64               `json:"created_at"`
+	ImageURLs     []string            `json:"image_urls"`
+	IsFavorite    bool                `json:"is_favorite"`
+	AnswerNum     int                 `json:"answer_num"`
+	AnswerAvatars []string            `json:"answer_avatars"`
+	AnswerUsers   []AnswerUserSummary `json:"answer_users"`
+	DstUserID     int                 `json:"dst_user_id"`
 }
 
 type Favorite struct {

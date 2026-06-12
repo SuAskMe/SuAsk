@@ -3,13 +3,11 @@ package middleware
 import (
 	"context"
 	"errors"
-	"slices"
 	"strconv"
 	"strings"
 	"suask/internal/consts"
 	"suask/module/sjwt"
 	"suask/utility/resp"
-	triemux "suask/utility/trie_mux"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
@@ -18,48 +16,35 @@ import (
 const MsgErrAuthHeader = "Authorization : %s get token key fail"
 const MsgErrAuthJwt = "Authorization : %s validate token fail"
 
-type JWTMiddleware struct {
-	trie           *triemux.TrieMux
-	excpetUrlMatch []string
-	fullUrlMatch   []string
-}
-
-func NewJWTMiddleware(prefixUrlMatch, fullUrlMatch, excpetUrlMatch []string) *JWTMiddleware {
-	jm := &JWTMiddleware{
-		trie:           triemux.NewTrieMux(),
-		excpetUrlMatch: excpetUrlMatch,
-		fullUrlMatch:   fullUrlMatch,
-	}
-	jm.buildMustLoginTrie(prefixUrlMatch)
-	return jm
-}
-
-func (j *JWTMiddleware) buildMustLoginTrie(prefixUrlMatch []string) {
-	for _, v := range prefixUrlMatch {
-		if err := j.trie.Insert(v); err != nil {
-			panic(err)
-		}
-	}
-}
-
-func (j *JWTMiddleware) JwtAuth(r *ghttp.Request) {
+// JwtRequired 中间件：必须登录，无有效 token 则返回 401。
+func JwtRequired(r *ghttp.Request) {
 	authHeader := r.Header.Get("Authorization")
-	claims, err := j.auth(r.Context(), authHeader)
+	claims, err := jwtAuth(r.Context(), authHeader)
 	if err != nil {
-		if j.isMustLoginPath(r.URL.String()) {
-			g.Log().Error(r.Context(), errors.Join(err, errors.New("is must login path")))
-			resp.Do(r, 401, "请登录", nil)
-			return
-		}
-		r.SetCtxVar(consts.CtxId, consts.DefaultUserId)
-	} else {
-		r.SetCtxVar(consts.CtxId, claims.UserID)
+		g.Log().Error(r.Context(), errors.Join(err, errors.New("must login")))
+		resp.Do(r, 401, "请登录", nil)
+		return
 	}
-	g.Log().Debug(r.Context(), "URL", r.URL.String(), "Claims", claims)
+	r.SetCtxVar(consts.CtxId, claims.UserID)
+	g.Log().Debug(r.Context(), "URL", r.URL.Path, "UserId", claims.UserID)
 	r.Middleware.Next()
 }
 
-func (j *JWTMiddleware) auth(ctx context.Context, authHeader string) (claims *sjwt.JwtClaims, err error) {
+// JwtOptional 中间件（已废弃）：不再有"匿名浏览"状态，所有用户必须持有有效 token。
+// func JwtOptional(r *ghttp.Request) {
+// 	authHeader := r.Header.Get("Authorization")
+// 	claims, err := jwtAuth(r.Context(), authHeader)
+// 	if err != nil {
+// 		r.SetCtxVar(consts.CtxId, consts.DefaultUserId)
+// 	} else {
+// 		r.SetCtxVar(consts.CtxId, claims.UserID)
+// 	}
+// 	g.Log().Debug(r.Context(), "URL", r.URL.Path, "Claims", claims)
+// 	r.Middleware.Next()
+// }
+
+// jwtAuth 解析并验证 JWT token。
+func jwtAuth(ctx context.Context, authHeader string) (claims *sjwt.JwtClaims, err error) {
 	if len(authHeader) == 0 {
 		err = errors.New(sjwt.MsgLog(MsgErrAuthHeader, authHeader))
 		return
@@ -86,14 +71,4 @@ func (j *JWTMiddleware) auth(ctx context.Context, authHeader string) (claims *sj
 		return
 	}
 	return
-}
-
-func (j *JWTMiddleware) isMustLoginPath(path string) bool {
-	if slices.Contains(j.excpetUrlMatch, path) {
-		return false
-	}
-	if j.trie.HasPrefix(path) {
-		return true
-	}
-	return slices.Contains(j.fullUrlMatch, path)
 }

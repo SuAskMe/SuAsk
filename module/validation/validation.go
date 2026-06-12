@@ -9,6 +9,7 @@ import (
 	"suask/internal/model/entity"
 	"sync"
 
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/util/gconv"
 )
 
@@ -41,7 +42,7 @@ func TeacherPerm(ctx context.Context, teacherId int) error {
 	}
 	t, ok := teacherCache.Load(teacherId)
 	if !ok {
-		md := dao.Teachers.Ctx(ctx).Where("id = ?", teacherId).Fields(dao.Teachers.Columns().Name, dao.Teachers.Columns().Perm)
+		md := dao.Teachers.Ctx(ctx).Where("id = ?", teacherId).Fields(dao.Teachers.Columns().Perm)
 		var teacher *entity.Teachers
 		err := md.Scan(&teacher)
 		if err != nil {
@@ -61,7 +62,8 @@ func TeacherPerm(ctx context.Context, teacherId int) error {
 	case consts.PermPrivate:
 		return errors.New("老师并未开启提问箱，请联系老师")
 	case consts.PermProtected:
-		if UserId == consts.DefaultUserId {
+		// Guest 用户不能访问 protected 提问箱
+		if isGuestUser(ctx, UserId) {
 			return errors.New("请登录后再提问")
 		}
 		return nil
@@ -70,19 +72,40 @@ func TeacherPerm(ctx context.Context, teacherId int) error {
 	}
 }
 
+// isGuestUser 检查指定用户是否为 guest 角色。
+func isGuestUser(ctx context.Context, userId int) bool {
+	if userId == 0 {
+		return false
+	}
+	var user entity.Users
+	err := dao.Users.Ctx(ctx).
+		Where(dao.Users.Columns().Id, userId).
+		Fields(dao.Users.Columns().Role).
+		Scan(&user)
+	if err != nil {
+		return false
+	}
+	return user.Role == consts.GUEST
+}
+
+/*
+	问题权限（"问大家"模块已下线后的简化版）：
+	1. 查看：
+		问老师的问题 + 老师已回复 → 任何（含匿名）可看
+		问老师的问题 + 老师未回复 → 只有提问者本人和该老师可看
+	2. 回答：
+		未登录用户不能回答
+		只有提问者本人在老师已回复后才能回答
+		老师自己随时能回答
+	3. 所有问题的 DstUserId 必定 > 0（DB 有 NOT NULL 约束）
+*/
+
 // 所有问题细节查看权限（不检查老师提问箱权限）
 func QuestionPerm(ctx context.Context, question *entity.Questions) error {
 	UserId := gconv.Int(ctx.Value(consts.CtxId))
-	if question.IsPrivate && question.SrcUserId != UserId { // 私有问题，且不是自己提问
-		return errors.New("你不能查看别人的私有问题")
-	}
-	if question.DstUserId == 0 && UserId == consts.DefaultUserId { // 问大家的问题
-		return errors.New("请登录后再查看问大家的问题")
-	}
-	if question.DstUserId != 0 && question.ReplyCnt <= 0 { // 问教师的问题,且还没有回复
+	// 问老师的问题，还没有回复
+	if question.ReplyCnt <= 0 {
 		switch UserId {
-		case consts.DefaultUserId:
-			return errors.New("该问题还没有回复，请耐心等待")
 		case question.SrcUserId:
 			return nil
 		case question.DstUserId:
@@ -97,26 +120,18 @@ func QuestionPerm(ctx context.Context, question *entity.Questions) error {
 // 回答问题权限 (不检查老师提问箱权限)
 func AnswerPerm(ctx context.Context, question *entity.Questions) error {
 	UserId := gconv.Int(ctx.Value(consts.CtxId))
-	if UserId == consts.DefaultUserId {
-		return errors.New("请登录后再回答问题")
-	}
-	if question.DstUserId == 0 { // 问大家的问题
-		return nil
-	}
-	if question.DstUserId != 0 { // 问教师的问题,且还没有回复
-		switch UserId {
-		case question.SrcUserId:
-			if question.ReplyCnt <= 0 { // 还没有回复
-				return errors.New("该问题还没有回复，请耐心等待")
-			}
-			return nil
-		case question.DstUserId:
-			return nil
-		default:
-			return errors.New("你不能回答这个问题")
+	// 所有问题都是问老师的问题
+	switch UserId {
+	case question.SrcUserId:
+		if question.ReplyCnt <= 0 { // 提问者必须等到老师先回复
+			return errors.New("该问题还没有回复，请耐心等待")
 		}
+		return nil
+	case question.DstUserId:
+		return nil
+	default:
+		return errors.New("你不能回答这个问题")
 	}
-	return nil
 }
 
 // 判断是否为老师
@@ -140,26 +155,34 @@ func IsTeacher(ctx context.Context, teacherId int) (string, error) {
 	return t.(*entity.Teachers).Perm, nil
 }
 
+// UpdateTeacherPerm 同步更新缓存中的老师权限信息。
 func UpdateTeacherPerm(teacherId int, name, perm string) {
-	teacher := &entity.Teachers{Perm: perm}
-	teacherCache.Store(teacherId, teacher)
+	if v, ok := teacherCache.Load(teacherId); ok {
+		if cached, ok := v.(*entity.Teachers); ok && cached != nil {
+			updated := *cached
+			updated.Perm = perm
+			teacherCache.Store(teacherId, &updated)
+			return
+		}
+	}
+	teacherCache.Store(teacherId, &entity.Teachers{
+		Id:   teacherId,
+		Perm: perm,
+	})
 }
 
 func GetTeacherName(ctx context.Context, teacherId int) (string, error) {
-	t, ok := teacherCache.Load(teacherId)
-	if !ok {
-		// fmt.Println("not in cache", teacherId)
-		md := dao.Teachers.Ctx(ctx).Where("id = ?", teacherId).Fields(dao.Teachers.Columns().Name)
-		var teacher *entity.Teachers
-		err := md.Scan(&teacher)
-		if err != nil {
-			return "", err
-		}
-		if teacher == nil || teacher.Name == "" {
-			return "", fmt.Errorf("该用户不是老师")
-		}
-		teacherCache.Store(teacherId, teacher)
-		t = teacher
+	// name 现在在 users 表里
+	type row struct {
+		Name string `json:"name"`
 	}
-	return t.(*entity.Teachers).Name, nil
+	var r row
+	err := g.DB().Ctx(ctx).Model("users").Where("id = ?", teacherId).Fields("name").Scan(&r)
+	if err != nil {
+		return "", err
+	}
+	if r.Name == "" {
+		return "", fmt.Errorf("该用户不是老师")
+	}
+	return r.Name, nil
 }

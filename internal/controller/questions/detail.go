@@ -3,13 +3,15 @@ package questions
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	v1 "suask/api/answer/v1"
 	"suask/internal/consts"
+	qutil "suask/internal/logic/questions_util"
 	"suask/internal/model"
 	"suask/internal/service"
 	"suask/module/send_email"
 
-	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/util/gconv"
 )
@@ -22,37 +24,65 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 	qid := req.QuestionID
 	userId := gconv.Int(ctx.Value(consts.CtxId))
 
-	// 获取问题
 	QBOutput, err := service.QuestionDetail().GetQuestionBase(ctx, &model.GetQuestionBaseInput{QuestionId: qid, UserId: userId})
 	if err != nil {
 		return nil, err
 	}
-	// 增加浏览量
-	_, err = service.QuestionDetail().AddQuestionView(ctx, &model.AddViewInput{QuestionId: qid})
-	if err != nil {
-		return nil, err
+
+	var (
+		wg                sync.WaitGroup
+		viewErr           error
+		questionImageErr  error
+		answerErr         error
+		questionImageURLs []string
+		ansOutput         *model.GetAnswerDetailOutput
+	)
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		_, viewErr = service.QuestionDetail().AddQuestionView(ctx, &model.AddViewInput{QuestionId: qid})
+	}()
+	go func() {
+		defer wg.Done()
+		urlMap, err := qutil.BatchGetFileURLs(ctx, QBOutput.ImageList)
+		if err != nil {
+			questionImageErr = err
+			return
+		}
+		questionImageURLs = make([]string, 0, len(QBOutput.ImageList))
+		for _, fid := range QBOutput.ImageList {
+			if url, ok := urlMap[fid]; ok {
+				questionImageURLs = append(questionImageURLs, url)
+			}
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		ansOutput, answerErr = service.QuestionDetail().GetAnswers(ctx, &model.GetAnswerDetailInput{QuestionId: qid, DstUserId: QBOutput.DstUserId})
+	}()
+	wg.Wait()
+
+	if viewErr != nil {
+		return nil, viewErr
 	}
-	// 获取问题图片列表
-	fileList, err := service.File().GetList(ctx, model.FileListGetInput{IdList: QBOutput.ImageList})
-	if err != nil {
-		return nil, err
+	if questionImageErr != nil {
+		return nil, questionImageErr
 	}
-	res = &v1.GetDetailRes{ // 填充返回结果
+	if answerErr != nil {
+		return nil, answerErr
+	}
+
+	res = &v1.GetDetailRes{
 		Question: model.QuestionBase{
 			ID:         QBOutput.ID,
 			Title:      QBOutput.Title,
 			Content:    QBOutput.Content,
 			Views:      QBOutput.Views + 1,
 			CreatedAt:  QBOutput.CreatedAt,
-			ImageURLs:  fileList.URL,
+			ImageURLs:  questionImageURLs,
 			IsFavorite: QBOutput.IsFavorite,
 		},
 		CanReply: QBOutput.CanReply,
-	}
-	// 获取回答列表
-	ansOutput, err := service.QuestionDetail().GetAnswers(ctx, &model.GetAnswerDetailInput{QuestionId: qid, DstUserId: QBOutput.DstUserId})
-	if err != nil {
-		return nil, err
 	}
 
 	answerList := ansOutput.Answers
@@ -62,50 +92,54 @@ func (cQuestionDetail) GetDetail(ctx context.Context, req *v1.GetDetailReq) (res
 
 	// 获取回答头像
 	AvatarList := make([]int, 0, len(AvatarsMap))
-	TeacherAvatarList := make([]int, 0)
 	for k := range AvatarsMap {
 		if k > 0 {
 			AvatarList = append(AvatarList, k)
-		} else if k < 0 {
-			TeacherAvatarList = append(TeacherAvatarList, k)
 		}
 	}
-	avatarUrls, err := service.File().GetList(ctx, model.FileListGetInput{IdList: AvatarList})
+
+	// 收集所有需要查的 file_id：用户头像 + 回答图片，一次批查
+	allFileIDs := make([]int, 0, len(AvatarList)+len(ImageMap)*4)
+	allFileIDs = append(allFileIDs, AvatarList...)
+	for _, fids := range ImageMap {
+		allFileIDs = append(allFileIDs, fids...)
+	}
+	// 问题本身的图片已经在上面单独查过了（QBOutput.ImageList），这里只处理回答相关的
+	urlMap, err := qutil.BatchGetFileURLs(ctx, allFileIDs)
 	if err != nil {
 		return nil, err
 	}
-	for i, url := range avatarUrls.URL {
-		IdList := AvatarsMap[avatarUrls.FileId[i]]
-		for _, id := range IdList {
-			answerList[IdMap[id]].UserAvatar = url
+
+	// 分发用户头像（file_id > 0 的）
+	for fileId, ansIds := range AvatarsMap {
+		if fileId > 0 {
+			if url, ok := urlMap[fileId]; ok {
+				for _, aid := range ansIds {
+					answerList[IdMap[aid]].UserAvatar = url
+				}
+			}
 		}
 	}
-	for _, tid := range TeacherAvatarList {
-		out, err := service.Teacher().GetTeacherAvatar(ctx, &model.TeacherGetAvatarInput{TeacherId: -tid})
-		if err != nil {
-			g.Log().Error(ctx, err)
-			return nil, gerror.New("获取老师头像失败")
+
+	// 分发回答图片（按原始顺序）
+	for answerId, fids := range ImageMap {
+		urls := make([]string, 0, len(fids))
+		for _, fid := range fids {
+			if url, ok := urlMap[fid]; ok {
+				urls = append(urls, url)
+			}
 		}
-		IdList := AvatarsMap[tid]
-		for _, id := range IdList {
-			answerList[IdMap[id]].UserAvatar = out.AvatarUrl
-		}
-	}
-	// 获取回答图片
-	for k, v := range ImageMap {
-		url, err := service.File().GetList(ctx, model.FileListGetInput{IdList: v})
-		if err != nil {
-			return nil, err
-		}
-		answerList[IdMap[k]].ImageURLs = url.URL
+		answerList[IdMap[answerId]].ImageURLs = urls
 	}
 	res.Answers = answerList
 
-	// 更新通知
-	_, err = service.Notification().UpdateAoQ(ctx, model.UpdateAoQInput{UserID: userId, QuestionID: req.QuestionID})
-	if err != nil {
-		return nil, err
-	}
+	bgCtx := context.WithoutCancel(ctx)
+	go func(userID, questionID int) {
+		_, err := service.Notification().UpdateAoQ(bgCtx, model.UpdateAoQInput{UserID: userID, QuestionID: questionID})
+		if err != nil {
+			g.Log().Warningf(bgCtx, "更新问题通知已读状态失败: %v", err)
+		}
+	}(userId, qid)
 	return
 }
 
@@ -136,24 +170,11 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 		return
 	}
 
-	// 更新回答数
-	replyCntOut, err := service.QuestionDetail().AddReplyCnt(ctx, &model.AddReplyCntInput{QuestionId: input.QuestionId})
-	if err != nil {
-		return
-	}
-
-	// 记录头像
-	if replyCntOut.ReplyCnt <= consts.MaxAvatarsPerQuestion {
-		_, err = service.QuestionDetail().BuildRelation(ctx, &model.BuildRelationInput{QuestionId: input.QuestionId})
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	// 上传文件
 	if req.Files != nil {
 		fileList := model.FileListAddInput{
-			FileList: req.Files,
+			UploaderId: UserId,
+			FileList:   req.Files,
 		}
 		fileIdList, err := service.File().UploadFileList(ctx, fileList)
 		if err != nil {
@@ -170,23 +191,24 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 		}
 	}
 
-	// 添加通知
+	// 添加通知（失败只记日志，不阻断回答已入库的事实）
 	srcUserId, err := service.QuestionUtil().GetQuestionSrcUserId(ctx, req.QuestionId)
 	if err != nil {
-		return nil, err
+		g.Log().Warningf(ctx, "获取问题发起者失败: %v", err)
+		return &v1.AddAnswerRes{Id: output.Id}, nil
 	}
 	// 给发帖的人通知有回答
 	if srcUserId != consts.DefaultUserId && srcUserId != UserId {
-		_, err = service.Notification().Add(ctx, model.AddNotificationInput{
+		_, notifErr := service.Notification().Add(ctx, model.AddNotificationInput{
 			UserId:     srcUserId,
 			QuestionId: req.QuestionId,
 			AnswerId:   output.Id,
 			Type:       consts.NewAnswer,
 		})
-		if err != nil {
-			return nil, err
+		if notifErr != nil {
+			g.Log().Warningf(ctx, "添加回答通知失败: %v", notifErr)
 		}
-		err = service.Notification().SendNoticeEmail(ctx, &model.SendNoticeEmailInput{
+		emailErr := service.Notification().SendNoticeEmail(ctx, &model.SendNoticeEmailInput{
 			To: srcUserId,
 			Notice: &send_email.Notice{
 				User:    "SuAsk用户",
@@ -195,30 +217,31 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 				URL:     "https://suask.me/question-detail/" + gconv.String(req.QuestionId) + "#" + gconv.String(output.Id),
 			},
 		})
-		if err != nil {
-			return nil, err
+		if emailErr != nil {
+			g.Log().Warningf(ctx, "发送回答邮件通知失败: %v", emailErr)
 		}
 	}
 
 	// 如果是回复别人的回答
 	if req.InReplyTo != nil {
-		answer, err := service.Answer().GetAnswerIDs(ctx, gconv.Int(req.InReplyTo))
-		if err != nil {
-			return nil, err
+		answer, ansErr := service.Answer().GetAnswerIDs(ctx, gconv.Int(req.InReplyTo))
+		if ansErr != nil {
+			g.Log().Warningf(ctx, "获取被回复的回答失败: %v", ansErr)
+			return &v1.AddAnswerRes{Id: output.Id}, nil
 		}
 		// 回复不是默认用户或自己发的
 		if answer.UserId != consts.DefaultUserId && answer.UserId != UserId {
-			_, err := service.Notification().Add(ctx, model.AddNotificationInput{
+			_, notifErr := service.Notification().Add(ctx, model.AddNotificationInput{
 				UserId:     answer.UserId,
 				AnswerId:   answer.Id,
 				ReplyToId:  output.Id,
 				QuestionId: answer.QuestionId,
 				Type:       consts.NewReply,
 			})
-			if err != nil {
-				return nil, err
+			if notifErr != nil {
+				g.Log().Warningf(ctx, "添加回复通知失败: %v", notifErr)
 			}
-			err = service.Notification().SendNoticeEmail(ctx, &model.SendNoticeEmailInput{
+			emailErr := service.Notification().SendNoticeEmail(ctx, &model.SendNoticeEmailInput{
 				To: answer.UserId,
 				Notice: &send_email.Notice{
 					User:    "SuAsk用户",
@@ -227,17 +250,25 @@ func (cQuestionDetail) AddAnswer(ctx context.Context, req *v1.AddAnswerReq) (res
 					URL:     "https://suask.me/question-detail/" + gconv.String(req.QuestionId) + "#" + gconv.String(output.Id),
 				},
 			})
-			if err != nil {
-				return nil, err
+			if emailErr != nil {
+				g.Log().Warningf(ctx, "发送回复邮件通知失败: %v", emailErr)
 			}
 		}
 	}
 
-	if err != nil {
-		return nil, err
-	}
 	res = &v1.AddAnswerRes{
 		Id: output.Id,
 	}
 	return
+}
+
+func (cQuestionDetail) DeleteAnswer(ctx context.Context, req *v1.DeleteAnswerReq) (res *v1.DeleteAnswerRes, err error) {
+	userId := gconv.Int(ctx.Value(consts.CtxId))
+	if userId == consts.DefaultUserId {
+		return nil, fmt.Errorf("请登录后操作")
+	}
+	if err := service.QuestionDetail().DeleteAnswer(ctx, req.ID, userId); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteAnswerRes{}, nil
 }
