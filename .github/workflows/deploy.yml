@@ -53,4 +53,4 @@ jobs:
                   script: |
                       chmod +x /home/suask/backend/main_test
                       # 重启专门的测试环境服务
-                      systemctl restart suask-test.service
+                      systemctl restart gfapp.service
