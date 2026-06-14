@@ -12,6 +12,7 @@ import (
 	"suask/utility/files"
 
 	"github.com/gogf/gf/v2/database/gdb"
+	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gtime"
 )
@@ -43,6 +44,32 @@ type announcementImageAttachment struct {
 	Id             int `json:"id"`
 	AnnouncementId int `json:"announcement_id"`
 	FileId         int `json:"file_id"`
+}
+
+type announcementCreateData struct {
+	AuthorId  int         `orm:"author_id"`
+	Title     string      `orm:"title"`
+	Contents  string      `orm:"contents"`
+	IsPinned  bool        `orm:"is_pinned"`
+	ExpiresAt *gtime.Time `orm:"expires_at"`
+}
+
+type announcementUpdateData struct {
+	Title     any `orm:"title"`
+	Contents  any `orm:"contents"`
+	IsPinned  any `orm:"is_pinned"`
+	ExpiresAt any `orm:"expires_at"`
+}
+
+func (d announcementUpdateData) hasChanges() bool {
+	return d.Title != nil || d.Contents != nil || d.IsPinned != nil || d.ExpiresAt != nil
+}
+
+type announcementCommentData struct {
+	UserId         int    `orm:"user_id"`
+	AnnouncementId int    `orm:"announcement_id"`
+	Contents       string `orm:"contents"`
+	InReplyTo      *int   `orm:"in_reply_to"`
 }
 
 func (s *sAnnouncement) getImageURLs(ctx context.Context, announcementIDs []int) (map[int][]string, map[int][]model.AnnouncementImage, error) {
@@ -263,12 +290,12 @@ func (s *sAnnouncement) Detail(ctx context.Context, in model.AnnouncementDetailI
 }
 
 func (s *sAnnouncement) Create(ctx context.Context, in model.AnnouncementCreateInput) (*model.AnnouncementCreateOutput, error) {
-	data := g.Map{
-		"author_id":  in.AuthorID,
-		"title":      in.Title,
-		"contents":   in.Content,
-		"is_pinned":  in.IsPinned,
-		"expires_at": in.ExpiresAt,
+	data := announcementCreateData{
+		AuthorId:  in.AuthorID,
+		Title:     in.Title,
+		Contents:  in.Content,
+		IsPinned:  in.IsPinned,
+		ExpiresAt: in.ExpiresAt,
 	}
 	id, err := g.DB().Ctx(ctx).Model("announcements").InsertAndGetId(data)
 	if err != nil {
@@ -278,23 +305,36 @@ func (s *sAnnouncement) Create(ctx context.Context, in model.AnnouncementCreateI
 }
 
 func (s *sAnnouncement) Update(ctx context.Context, in model.AnnouncementUpdateInput) (*model.AnnouncementUpdateOutput, error) {
-	data := g.Map{"updated_at": gtime.Now()}
+	data := announcementUpdateData{}
 	if in.Title != "" {
-		data["title"] = in.Title
+		data.Title = in.Title
 	}
 	if in.Content != "" {
-		data["contents"] = in.Content
+		data.Contents = in.Content
 	}
 	if in.IsPinned != nil {
-		data["is_pinned"] = *in.IsPinned
+		data.IsPinned = *in.IsPinned
 	}
 	if in.ClearExpiresAt {
-		data["expires_at"] = gdb.Raw("NULL")
+		data.ExpiresAt = gdb.Raw("NULL")
 	} else if in.ExpiresAt != nil {
-		data["expires_at"] = in.ExpiresAt
+		data.ExpiresAt = in.ExpiresAt
 	}
-	_, err := g.DB().Ctx(ctx).Model("announcements").Where("id = ?", in.ID).Update(data)
+	if !data.hasChanges() {
+		count, err := g.DB().Ctx(ctx).Model("announcements").Where("id = ?", in.ID).Count()
+		if err != nil {
+			return nil, err
+		}
+		if count == 0 {
+			return nil, gerror.New("公告不存在")
+		}
+		return &model.AnnouncementUpdateOutput{ID: in.ID}, nil
+	}
+	result, err := g.DB().Ctx(ctx).Model("announcements").Where("id = ?", in.ID).Update(data)
 	if err != nil {
+		return nil, err
+	}
+	if err = expectAnnouncementRowsAffected(result, "公告不存在"); err != nil {
 		return nil, err
 	}
 	return &model.AnnouncementUpdateOutput{ID: in.ID}, nil
@@ -340,16 +380,19 @@ func (s *sAnnouncement) SyncImages(ctx context.Context, in model.AnnouncementIma
 }
 
 func (s *sAnnouncement) Delete(ctx context.Context, in model.AnnouncementDeleteInput) error {
-	_, err := g.DB().Ctx(ctx).Model("announcements").Where("id = ?", in.ID).Update(g.Map{"deleted_at": gtime.Now()})
-	return err
+	result, err := g.DB().Ctx(ctx).Model("announcements").Where("id = ?", in.ID).Delete()
+	if err != nil {
+		return err
+	}
+	return expectAnnouncementRowsAffected(result, "公告不存在")
 }
 
 func (s *sAnnouncement) AddComment(ctx context.Context, in model.AnnouncementCommentInput) (*model.AnnouncementCommentOutput, error) {
-	data := g.Map{
-		"user_id":         in.UserID,
-		"announcement_id": in.AnnouncementID,
-		"contents":        in.Content,
-		"in_reply_to":     in.InReplyTo,
+	data := announcementCommentData{
+		UserId:         in.UserID,
+		AnnouncementId: in.AnnouncementID,
+		Contents:       in.Content,
+		InReplyTo:      in.InReplyTo,
 	}
 	id, err := g.DB().Ctx(ctx).Model("answers").InsertAndGetId(data)
 	if err != nil {
@@ -428,4 +471,18 @@ func init() {
 
 func New() *sAnnouncement {
 	return &sAnnouncement{}
+}
+
+func expectAnnouncementRowsAffected(result sql.Result, emptyMessage string) error {
+	if result == nil {
+		return gerror.New(emptyMessage)
+	}
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return gerror.New(consts.ErrInternal)
+	}
+	if affected == 0 {
+		return gerror.New(emptyMessage)
+	}
+	return nil
 }
