@@ -2,6 +2,7 @@ package admin
 
 import (
 	"context"
+	"database/sql"
 	v1 "suask/api/admin/v1"
 	"suask/internal/consts"
 	"suask/internal/dao"
@@ -9,8 +10,8 @@ import (
 	qutil "suask/internal/logic/questions_util"
 	"suask/internal/model/do"
 	"suask/internal/model/entity"
-	"suask/module/session"
 	"suask/internal/service"
+	"suask/module/session"
 	"suask/utility"
 
 	"github.com/gogf/gf/v2/database/gdb"
@@ -25,6 +26,13 @@ const (
 	adminDeletedStatusAll       = "all"
 	adminDeletedStatusDeleted   = "deleted"
 	adminDeletedStatusUndeleted = "undeleted"
+)
+
+const (
+	adminQuestionListStatusAll        = "all"
+	adminQuestionListStatusAnswered   = "answered"
+	adminQuestionListStatusUnanswered = "unanswered"
+	adminQuestionListStatusDeleted    = "deleted"
 )
 
 const adminQuestionFields = `
@@ -473,19 +481,9 @@ func ListQuestions(ctx context.Context, req *v1.ListQuestionsReq) (res *v1.ListQ
 		md = md.Where("q.dst_user_id = ?", req.TeacherId)
 	}
 
-	switch req.Status {
-	case "", "all":
-		md = md.Where("q.deleted_at IS NULL")
-	case "answered":
-		md = md.Where("q.deleted_at IS NULL")
-		md = md.Where("EXISTS (SELECT 1 FROM answers ax WHERE ax.question_id = q.id AND ax.deleted_at IS NULL)")
-	case "unanswered":
-		md = md.Where("q.deleted_at IS NULL")
-		md = md.Where("NOT EXISTS (SELECT 1 FROM answers ax WHERE ax.question_id = q.id AND ax.deleted_at IS NULL)")
-	case "deleted":
-		md = md.Where("q.deleted_at IS NOT NULL")
-	default:
-		return nil, gerror.New("无效的问题状态")
+	md, err = applyQuestionListStatusFilter(md, req.Status)
+	if err != nil {
+		return nil, err
 	}
 
 	likePattern := "%" + req.Keyword + "%"
@@ -638,13 +636,16 @@ func RestoreQuestion(ctx context.Context, questionId int) (res *v1.RestoreQuesti
 		return nil, gerror.New("问题未删除")
 	}
 
-	_, err = dao.Questions.Ctx(ctx).
+	result, err := dao.Questions.Ctx(ctx).
 		Unscoped().
 		Where(dao.Questions.Columns().Id, questionId).
 		Data(dao.Questions.Columns().DeletedAt, gdb.Raw("NULL")).
 		Update()
 	if err != nil {
 		return nil, gerror.New(consts.ErrInternal)
+	}
+	if err = expectRowsAffected(result, "问题未删除"); err != nil {
+		return nil, err
 	}
 	return &v1.RestoreQuestionRes{Id: questionId}, nil
 }
@@ -663,12 +664,16 @@ func DeleteQuestionAnswer(ctx context.Context, questionId int, answerId int) (re
 			return gerror.New("回答不存在")
 		}
 
-		if _, err := tx.Exec(
+		result, err := tx.Exec(
 			"UPDATE answers SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND question_id = ? AND deleted_at IS NULL",
 			answerId,
 			questionId,
-		); err != nil {
+		)
+		if err != nil {
 			return gerror.New(consts.ErrInternal)
+		}
+		if err := expectRowsAffected(result, "回答不存在"); err != nil {
+			return err
 		}
 
 		if _, err := tx.Exec(
@@ -708,12 +713,16 @@ func RestoreQuestionAnswer(ctx context.Context, questionId int, answerId int) (r
 			return gerror.New("回答未删除")
 		}
 
-		if _, err := tx.Exec(
+		result, err := tx.Exec(
 			"UPDATE answers SET deleted_at = NULL WHERE id = ? AND question_id = ? AND deleted_at IS NOT NULL",
 			answerId,
 			questionId,
-		); err != nil {
+		)
+		if err != nil {
 			return gerror.New(consts.ErrInternal)
+		}
+		if err := expectRowsAffected(result, "回答未删除"); err != nil {
+			return err
 		}
 
 		if _, err := tx.Exec(
@@ -826,6 +835,23 @@ func resolveAdminDeletedStatus(deletedStatus string, includeDeleted bool) (strin
 	}
 }
 
+func applyQuestionListStatusFilter(md *gdb.Model, status string) (*gdb.Model, error) {
+	switch status {
+	case "", adminQuestionListStatusAll:
+		return applyDeletedStatusFilter(md, "q.deleted_at", adminDeletedStatusUndeleted), nil
+	case adminQuestionListStatusAnswered:
+		md = applyDeletedStatusFilter(md, "q.deleted_at", adminDeletedStatusUndeleted)
+		return md.Where("EXISTS (SELECT 1 FROM answers ax WHERE ax.question_id = q.id AND ax.deleted_at IS NULL)"), nil
+	case adminQuestionListStatusUnanswered:
+		md = applyDeletedStatusFilter(md, "q.deleted_at", adminDeletedStatusUndeleted)
+		return md.Where("NOT EXISTS (SELECT 1 FROM answers ax WHERE ax.question_id = q.id AND ax.deleted_at IS NULL)"), nil
+	case adminQuestionListStatusDeleted:
+		return applyDeletedStatusFilter(md, "q.deleted_at", adminDeletedStatusDeleted), nil
+	default:
+		return nil, gerror.New("无效的问题状态")
+	}
+}
+
 func applyDeletedStatusFilter(md *gdb.Model, deletedAtField string, deletedStatus string) *gdb.Model {
 	switch deletedStatus {
 	case adminDeletedStatusDeleted:
@@ -835,4 +861,22 @@ func applyDeletedStatusFilter(md *gdb.Model, deletedAtField string, deletedStatu
 	default:
 		return md
 	}
+}
+
+func expectRowsAffected(result sql.Result, emptyMessage string) error {
+	affected, err := rowsAffected(result)
+	if err != nil {
+		return gerror.New(consts.ErrInternal)
+	}
+	if affected == 0 {
+		return gerror.New(emptyMessage)
+	}
+	return nil
+}
+
+func rowsAffected(result sql.Result) (int64, error) {
+	if result == nil {
+		return 0, nil
+	}
+	return result.RowsAffected()
 }
