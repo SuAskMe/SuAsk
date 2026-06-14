@@ -2,6 +2,7 @@ package notification
 
 import (
 	"context"
+	"database/sql"
 	"suask/internal/consts"
 	"suask/internal/dao"
 	qutil "suask/internal/logic/questions_util"
@@ -242,9 +243,13 @@ func resolveNotificationAvatar(avatarFileID int, avatarURLMap map[int]string) st
 }
 
 func (s *sNotification) Update(ctx context.Context, in model.UpdateNotificationInput) (out model.UpdateNotificationOutput, err error) {
-	_, err = dao.Notifications.Ctx(ctx).Where(dao.Notifications.Columns().Id, in.Id).
+	result, err := dao.Notifications.Ctx(ctx).
+		Where(dao.Notifications.Columns().Id, in.Id).
 		Update(do.Notifications{IsRead: true})
 	if err != nil {
+		return model.UpdateNotificationOutput{}, err
+	}
+	if err = expectNotificationRowsAffected(result, "通知不存在"); err != nil {
 		return model.UpdateNotificationOutput{}, err
 	}
 	out.IsRead = true
@@ -253,7 +258,10 @@ func (s *sNotification) Update(ctx context.Context, in model.UpdateNotificationI
 }
 
 func (s *sNotification) UpdateAoQ(ctx context.Context, in model.UpdateAoQInput) (out model.UpdateAoQOutput, err error) {
-	_, err = dao.Notifications.Ctx(ctx).Where(dao.Notifications.Columns().UserId, in.UserID).Where(dao.Notifications.Columns().QuestionId, in.QuestionID).Update(do.Notifications{IsRead: true})
+	_, err = dao.Notifications.Ctx(ctx).
+		Where(dao.Notifications.Columns().UserId, in.UserID).
+		Where(dao.Notifications.Columns().QuestionId, in.QuestionID).
+		Update(do.Notifications{IsRead: true})
 	if err != nil {
 		return model.UpdateAoQOutput{}, err
 	}
@@ -263,8 +271,13 @@ func (s *sNotification) UpdateAoQ(ctx context.Context, in model.UpdateAoQInput) 
 }
 
 func (s *sNotification) Delete(ctx context.Context, in model.DeleteNotificationInput) (out model.DeleteNotificationOutput, err error) {
-	_, err = dao.Notifications.Ctx(ctx).Where(dao.Notifications.Columns().Id, in.Id).Delete()
+	result, err := dao.Notifications.Ctx(ctx).
+		Where(dao.Notifications.Columns().Id, in.Id).
+		Delete()
 	if err != nil {
+		return model.DeleteNotificationOutput{}, err
+	}
+	if err = expectNotificationRowsAffected(result, "通知不存在"); err != nil {
 		return model.DeleteNotificationOutput{}, err
 	}
 	out = model.DeleteNotificationOutput{}
@@ -304,4 +317,18 @@ func init() {
 
 func New() *sNotification {
 	return &sNotification{}
+}
+
+func expectNotificationRowsAffected(result sql.Result, emptyMessage string) error {
+	if result == nil {
+		return gerror.New(emptyMessage)
+	}
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return gerror.New(consts.ErrInternal)
+	}
+	if affected == 0 {
+		return gerror.New(emptyMessage)
+	}
+	return nil
 }

@@ -126,6 +126,66 @@ func TestNewNotificationCountOnlyUnreadActiveNotifications(t *testing.T) {
 	}
 }
 
+func TestUpdateAndDeleteNotificationRespectDeletedState(t *testing.T) {
+	ctx := context.Background()
+	setupNotificationTestDB(t, ctx)
+
+	svc := New()
+	updated, err := svc.Update(ctx, model.UpdateNotificationInput{Id: 1})
+	if err != nil {
+		t.Fatalf("update notification: %v", err)
+	}
+	if updated.Id != 1 || !updated.IsRead {
+		t.Fatalf("update output = %+v, want id=1 is_read=true", updated)
+	}
+	if isRead := notificationIsRead(t, ctx, 1); !isRead {
+		t.Fatalf("notification 1 should be marked read")
+	}
+	if _, err := svc.Update(ctx, model.UpdateNotificationInput{Id: 4}); err == nil {
+		t.Fatalf("updating a deleted notification should fail")
+	}
+
+	if _, err := svc.Delete(ctx, model.DeleteNotificationInput{Id: 2}); err != nil {
+		t.Fatalf("delete notification: %v", err)
+	}
+	if deleted := notificationIsDeleted(t, ctx, 2); !deleted {
+		t.Fatalf("notification 2 should be soft deleted")
+	}
+	if _, err := svc.Delete(ctx, model.DeleteNotificationInput{Id: 2}); err == nil {
+		t.Fatalf("deleting an already deleted notification should fail")
+	}
+
+	out, err := svc.Get(ctx, model.GetNotificationsInput{UserId: 2})
+	if err != nil {
+		t.Fatalf("get notifications after delete: %v", err)
+	}
+	if len(out.NewAnswer) != 0 {
+		t.Fatalf("deleted new_answer notification should be hidden, got %d", len(out.NewAnswer))
+	}
+}
+
+func TestUpdateAoQMarksOnlyActiveNotificationsRead(t *testing.T) {
+	ctx := context.Background()
+	setupNotificationTestDB(t, ctx)
+
+	if _, err := New().UpdateAoQ(ctx, model.UpdateAoQInput{UserID: 2, QuestionID: 10}); err != nil {
+		t.Fatalf("update notifications on question: %v", err)
+	}
+
+	if isRead := notificationIsRead(t, ctx, 1); !isRead {
+		t.Fatalf("active question notification should be read")
+	}
+	if isRead := notificationIsRead(t, ctx, 2); !isRead {
+		t.Fatalf("active answer notification should be read")
+	}
+	if isRead := notificationIsRead(t, ctx, 4); isRead {
+		t.Fatalf("deleted question notification should not be changed")
+	}
+	if isRead := notificationIsRead(t, ctx, 5); isRead {
+		t.Fatalf("deleted answer notification should not be changed")
+	}
+}
+
 func setupNotificationTestDB(t *testing.T, ctx context.Context) {
 	t.Helper()
 
@@ -223,4 +283,38 @@ func setupNotificationTestDB(t *testing.T, ctx context.Context) {
 			t.Fatalf("exec test schema/fixture: %v\nSQL: %s", err, stmt)
 		}
 	}
+}
+
+func notificationIsRead(t *testing.T, ctx context.Context, id int) bool {
+	t.Helper()
+
+	var row struct {
+		IsRead int `orm:"is_read"`
+	}
+	if err := g.DB().Ctx(ctx).
+		Model("notifications").
+		Unscoped().
+		Fields("is_read").
+		Where("id", id).
+		Scan(&row); err != nil {
+		t.Fatalf("query notification is_read: %v", err)
+	}
+	return row.IsRead == 1
+}
+
+func notificationIsDeleted(t *testing.T, ctx context.Context, id int) bool {
+	t.Helper()
+
+	var row struct {
+		DeletedAt any `orm:"deleted_at"`
+	}
+	if err := g.DB().Ctx(ctx).
+		Model("notifications").
+		Unscoped().
+		Fields("deleted_at").
+		Where("id", id).
+		Scan(&row); err != nil {
+		t.Fatalf("query notification deleted_at: %v", err)
+	}
+	return row.DeletedAt != nil
 }
