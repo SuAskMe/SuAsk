@@ -135,6 +135,9 @@ func (s *sFile) Get(ctx context.Context, in model.FileGetInput) (out model.FileG
 	if err != nil {
 		return model.FileGetOutput{}, err
 	}
+	if file.Id == 0 {
+		return model.FileGetOutput{}, gerror.New("文件不存在")
+	}
 	URL, err := files.GetURL(file.Hash, file.Name)
 	if err != nil {
 		return model.FileGetOutput{}, err

@@ -40,12 +40,26 @@ func UploadAvatar(ctx context.Context, in UploadAvatarInput) (out *UploadAvatarO
 	}
 
 	// 更新用户头像 ID
-	_, err = dao.Users.Ctx(ctx).
+	result, err := dao.Users.Ctx(ctx).
 		Where(dao.Users.Columns().Id, in.UserId).
 		Data(do.Users{AvatarFileId: fileData.Id}).
 		Update()
 	if err != nil {
+		cleanupUploadedFileRecord(ctx, fileData.Id)
 		return nil, gerror.New(consts.ErrInternal)
+	}
+	if result == nil {
+		cleanupUploadedFileRecord(ctx, fileData.Id)
+		return nil, gerror.New("用户不存在")
+	}
+	affected, err := result.RowsAffected()
+	if err != nil {
+		cleanupUploadedFileRecord(ctx, fileData.Id)
+		return nil, gerror.New(consts.ErrInternal)
+	}
+	if affected == 0 {
+		cleanupUploadedFileRecord(ctx, fileData.Id)
+		return nil, gerror.New("用户不存在")
 	}
 
 	// 获取新头像 URL
@@ -60,4 +74,11 @@ func UploadAvatar(ctx context.Context, in UploadAvatarInput) (out *UploadAvatarO
 		AvatarURL: avatarURL,
 	}
 	return
+}
+
+func cleanupUploadedFileRecord(ctx context.Context, fileId int) {
+	if fileId == 0 {
+		return
+	}
+	_, _ = dao.Files.Ctx(ctx).Where(dao.Files.Columns().Id, fileId).Delete()
 }
